@@ -1,0 +1,30 @@
+{
+  "name": "MainBE",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.15.3",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@types/cookie-parser": "^1.4.9",
+    "@types/cors": "^2.8.19",
+    "@types/dotenv": "^8.2.3",
+    "@types/express": "^5.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "@repo/db": "workspace:*"
+  },
+  "type": "module"
+}

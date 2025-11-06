@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  // output   = "../generated/prisma"
+  output   = "../node_modules/@prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AllWebhookMethods {
+  GET
+  POST
+  PATCH
+  PUT
+  DELETE
+  HEAD
+}
+
+model Workflow{
+  id            Int      @id @default(autoincrement())
+  title         String   @unique
+  enabled       Boolean  @default(false)
+  nodes         Json     @db.JsonB  @default("{}")
+  connections   Json     @db.JsonB  @default("{}")
+}
+
+model Webhook{
+  id                              Int                 @id  @default(autoincrement())
+  title                           String   
+  method                          AllWebhookMethods   @default(POST)
+  path                            String
+  header                          String
+  secret                          String
+  corresponding_workflow_id       Int                 
+}
+
+model Credentials{
+  id          Int       @id  @default(autoincrement())
+  title       String  
+  platform    String
+  data        Json      @db.JsonB
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Available_Triggers{
+  id           Int     @id  @default(autoincrement())
+  title        String   
+  parameters   Json    @db.JsonB
+}
+
+model Available_Actions{
+  id           Int     @id  @default(autoincrement())
+  title        String  
+  parameters   Json    @db.JsonB
+}
+
+model Available_Credential_Apps{
+  id           Int     @id  @default(autoincrement())
+  title        String
+  parameters   Json    @db.JsonB
+}
