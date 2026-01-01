@@ -119,3 +119,12 @@ export async function editParticularWorkflow(req:Request, res:Response){
     }
     
 }
+
+// let's just save the available triggers in a file:
+
+    // to save all of them in a single file:    
+        // in an array[{}, {}, {}, {}]
+        // in an object {} 
+            // much easier to access all the values
+
+    // in a single folder, but in different files 

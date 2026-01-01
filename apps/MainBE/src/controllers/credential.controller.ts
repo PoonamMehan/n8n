@@ -1,4 +1,4 @@
-import prisma, {Prisma, PrismaClientKnownRequestError} from '@repo/db/index';
+import prisma, { PrismaClientKnownRequestError } from '@repo/db/index';
 import { Request, Response } from 'express';
 
 interface TelegramCredentials{
@@ -63,11 +63,6 @@ export function deleteCredentialHandler (req: Request, res: Response){
     }
 }
 
-new Promise(resolve, reject){
-    setTimeout(()=>{
-        
-    }, 1000)
-}
 
 export async function editCredentialHandler (req:Request, res:Response){
     // edit a credential based on its id
@@ -108,3 +103,25 @@ export async function editCredentialHandler (req:Request, res:Response){
         res.status(500).send(`Some error occured while updating the row in db: ${err}`);
     }
 }
+
+
+
+// Optimize the db
+// Webhook: Trigger: Db table
+    // Figure out the parameters for Webhook trigger
+    // Mention all the methods/options we are going to provide to the Webhook in the available_triggers: parameters
+
+// Telegram: Action: db table:  
+    // figure out params nested object structure
+    // Edit the Available_Actions table
+
+// Available_Credential_Apps: db table: 
+    // Descriptive object of all the params Telegram needs
+    // Basic auth 
+    // header auth
+
+// React flow 
+// Build the ui
+// make all them available at the frontend
+
+// what is the need of interfaces? Figure out

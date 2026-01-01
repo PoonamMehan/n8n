@@ -12,16 +12,12 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum AllWebhookMethods {
   GET
   POST
-  PATCH
   PUT
-  DELETE
-  HEAD
 }
 
 model Workflow{
@@ -34,13 +30,21 @@ model Workflow{
 
 model Webhook{
   id                              Int                 @id  @default(autoincrement())
-  title                           String   
-  method                          AllWebhookMethods   @default(POST)
+  title                           String 
+  production_url                  String
+  http_method                     AllWebhookMethods   @default(POST)
   path                            String
-  header                          String
-  secret                          String
-  corresponding_workflow_id       Int                 
+  authentication_method           String
+  authentication_credentials_id   Int?
+  corresponding_workflow_id       Int  
+  response_code                   Int?
+  no_response_body                Boolean?
+  response_data                   Json?                @db.JsonB
+  allowed_origins                 Json?                @db.JsonB
+  response_headers                Json?                @db.JsonB
 }
+// SHOULD THE TITLE BE UNIQUE?
+// SHOULD THE PRODUCTION TITLE BE UNIQUE? 
 
 model Credentials{
   id          Int       @id  @default(autoincrement())
@@ -51,20 +55,24 @@ model Credentials{
   updatedAt   DateTime  @updatedAt
 }
 
-model Available_Triggers{
-  id           Int     @id  @default(autoincrement())
-  title        String   
-  parameters   Json    @db.JsonB
-}
+// model Available_Triggers{
+//   id           Int     @id  @default(autoincrement())
+//   title        String  
+//   description  String 
+//   parameters   Json    @db.JsonB
+// }
+//i don't think we need @id, or for that matter any id column here
+//n8n, frontend, extra(jo use hota hai woh hi acche se)
 
-model Available_Actions{
-  id           Int     @id  @default(autoincrement())
-  title        String  
-  parameters   Json    @db.JsonB
-}
+// model Available_Actions{
+//   id           Int     @id  @default(autoincrement())
+//   title        String  
+//   description  String?
+//   parameters   Json    @db.JsonB
+// }
 
-model Available_Credential_Apps{
-  id           Int     @id  @default(autoincrement())
-  title        String
-  parameters   Json    @db.JsonB
-}
+// model Available_Credential_Apps{
+//   id           Int     @id  @default(autoincrement())
+//   title        String
+//   parameters   Json    @db.JsonB
+// }
