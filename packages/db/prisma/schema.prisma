@@ -26,6 +26,8 @@ model Workflow{
   enabled       Boolean  @default(false)
   nodes         Json     @db.JsonB  @default("{}")
   connections   Json     @db.JsonB  @default("{}")
+  userId        String       
+  user          User      @relation(fields: [userId], references: [id])
 }
 
 model Webhook{
@@ -53,6 +55,8 @@ model Credentials{
   data        Json      @db.JsonB
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  userId      String  
+  user        User      @relation(fields: [userId], references: [id])
 }
 
 model User{
@@ -60,7 +64,9 @@ model User{
   username     String       @unique
   email        String       @unique 
   password     String       
-  sessions     String[]       
+  sessions     String[]    
+  workflows    Workflow[] 
+  credentials  Credentials[]  
 }
 
 // model Available_Triggers{
