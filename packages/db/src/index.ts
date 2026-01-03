@@ -1,8 +1,12 @@
-import {PrismaClient, Prisma} from "@prisma/client";
+import "dotenv/config";
+import {PrismaClient} from "../prisma/generated/prisma/client.js";
+import {PrismaClientKnownRequestError} from "@prisma/client/runtime/library.js";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-export * from "@prisma/client";
+const connectionString = process.env.DATABASE_URL;
+const adapter = new PrismaPg({connectionString});
+const prisma = new PrismaClient({adapter});
 
-const prisma = new PrismaClient();
-
-export { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 export default prisma;
+export * from "../prisma/generated/prisma/client.js";
+export {PrismaClientKnownRequestError};

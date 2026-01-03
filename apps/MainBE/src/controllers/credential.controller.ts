@@ -1,4 +1,4 @@
-import prisma, { PrismaClientKnownRequestError } from '@repo/db/index';
+import prisma, { PrismaClientKnownRequestError } from '@repo/db';
 import { Request, Response } from 'express';
 
 interface TelegramCredentials{
@@ -15,18 +15,20 @@ export async function addCredentialHandler(req: Request, res: Response){
     //Get credentials of all the available things for credentials
     // all the available credentials, their interface based on the name of the credential
     const d = req.body;
-    let finalData: Partial<TelegramCredentials> = {};
-    finalData.accessToken = d.accessToken;  
-    finalData.baseURL = d.baseURL;
-    finalData.usersSharing = d.usersSharing;
+    // let finalData: Partial<TelegramCredentials> = {};
+    // finalData.accessToken = d.accessToken;  
+    // finalData.baseURL = d.baseURL;
+    // finalData.usersSharing = d.usersSharing;
     // according to the name of the credential came in payload, Predefined Interface, take that and get all the credential info
 
+    //WHEN WE WILL USE THOSE CREDENTIALS THEN WE WILL THRW THE ERROR THAT THE CREDENTIAL IS NOT COMPLETE.
     try{
-        const addedCredential = await prisma.credential.create({
+        const addedCredential = await prisma.credentials.create({
             data: {
                 title: d.title,
                 platform: d.platform,
-                data: finalData
+                data: d.data,
+                user: d.userId
             }
         })
 
@@ -46,7 +48,7 @@ export function deleteCredentialHandler (req: Request, res: Response){
 
     if(id){
         try{
-            const fetchedCred = prisma.credential.delete({
+            const fetchedCred = prisma.credentials.delete({
                 where: {
                     id: id
                 }
@@ -83,7 +85,7 @@ export async function editCredentialHandler (req:Request, res:Response){
     }
     
     try{    
-        const updatedRecord = await prisma.credential.update({
+        const updatedRecord = await prisma.credentials.update({
             where: {
                 id: id
             },
