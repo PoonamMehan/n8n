@@ -5,21 +5,25 @@ import { z } from "zod";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
 
+const signupSchema = z.object({
+  username: z.string(),
+  email: z.string().email(),
+  password: z.string().min(6, "Password is required and has to be of 6 characters or longer.")
+})
 const loginSchema = z.object({
   username: z.string().optional(),
   email: z.string().email().optional(),
   password: z.string().min(6, "Password is required and has to be of 6 characters or longer.")
 }).refine((data)=> data.username || data.email, {
-  message: "Either username or email is required.",
-  path: ["username"]
+  message: "Either username or email is required."
 })
 
 export async function signupHandler(req: Request, res: Response){
   //validate the data came in request
   try{
-    const validatedData = loginSchema.safeParse(req.body);
+    const validatedData = signupSchema.safeParse(req.body);
     if(!validatedData.success){
-      console.log("While logging in, validation failed: ", validatedData.error);
+      console.log("While signing up, validation failed: ", validatedData.error);
       return res.status(400).send(validatedData.error);
     }
     const {username, email, password} = validatedData.data;
@@ -27,32 +31,25 @@ export async function signupHandler(req: Request, res: Response){
     //encrypt the password using bcrypt
     const saltRounds = 12;
     let cryptedPassword;
-    try{
-      cryptedPassword = await bcrypt.hash(password, saltRounds);
-    }catch(err){
-      return res.status(500).send("Some error occurred at the backend while trying to prepare the password to be stored on the DB.");
-    }
-
-  //store that in the Db
-  let userEntryInDb; 
-  try{
-    userEntryInDb = await PrismaClient.user.create({
-      data: {
-        email: email,
-        username: username,
-        password: cryptedPassword
-      }
-    })
+    cryptedPassword = await bcrypt.hash(password, saltRounds);
+    if(cryptedPassword){
+    //store that in the Db
+      const userEntryInDb = await PrismaClient.user.create({
+        data: {
+          email: email,
+          username: username,
+          password: cryptedPassword
+        }
+      })
+      //check if the email or username already exists errr is there & send a custom error message. //yeah 'P2002' 
+      return res.status(200).send(userEntryInDb.id)
+    }    
+}catch(err: any){
+  if(err.code=='P2002'){
+    return res.status(400).send(err.message);
+    //TODO: find specific return status codes according to different conditions
   }
-  catch(err: any){
-    // TODO: check if the email or username already exists errr is there & send a custom error message.
-    return res.status(500).send(err.message);
-  }  
-  //return user id
-  // TODO: Check the structure of userEntryInDb object and then just send the user id back to the client.
-  return res.status(200).send({userEntryInDb})
-}catch(err){
-
+  return res.status(500).send("Some error occurred at the backend.");
 }
 }
 
@@ -79,10 +76,10 @@ export async function loginHandler(req:Request, res:Response){
         const jwtAccessToken = jwt.sign({userId: fetchedUser.id}, accessSecret!, {expiresIn: '15m'});
         console.log("Access Token: ", jwtAccessToken);
 
-        const refreshToken = jwt.sign({userId: fetchedUser.id}, process.env.REFRESH_SECRET_TOKEN!, {expiresIn: '7d'});
+        const jwtRefreshToken = jwt.sign({userId: fetchedUser.id}, process.env.REFRESH_SECRET_TOKEN!, {expiresIn: '7d'});
 
         //save the refresh token in db
-        fetchedUser.sessions.push(refreshToken);
+        fetchedUser.sessions.push(jwtRefreshToken);
         const savedToken = await PrismaClient.user.update({
           where: {
             id: fetchedUser.id
@@ -95,7 +92,9 @@ export async function loginHandler(req:Request, res:Response){
 
         // set the token in the cookies
         // return the result with "Login Successful!"
-        res.cookie('Authorization', jwtAccessToken, {httpOnly: true, secure: true, sameSite: 'lax'});
+        res.cookie('__Host-access_token', jwtAccessToken, {httpOnly: true, secure: true, sameSite: 'lax', path: '/'});
+        res.cookie('__Host-refresh_token', jwtRefreshToken, {httpOnly: true, secure: true, sameSite: 'lax', path: '/'});   
+
         res.status(200).send("User logged in successfully.");
       }else{
         return res.status(400).send("Incorrect password.");
@@ -104,14 +103,63 @@ export async function loginHandler(req:Request, res:Response){
       console.log("No user was found with this username/email.")
       return res.status(400).send("Incorrect credentials.");
     }
-    
   }catch(err: any){
     return res.status(500).send(`Some error occurred at the backend: ${err.message}`)
   }
 }
 
-export function signoutHandler(){
+export async function signoutHandler(req: Request, res: Response){
+  try{
+  //add the middleware, extract the userID
+  const { userId, sessions } = req.body;
+  // get the refreshToken
+  const refreshToken = req.cookies['__Host-refresh_token'];
 
+  // delete that from the user.sessions[] in db
+  const newSessionsArr = sessions.filter((seshn: String[]) => seshn != refreshToken);
+  const editedUserRecord = await PrismaClient.user.update({
+    where: {
+      id: userId
+    }, 
+    data: {
+      sessions: newSessionsArr
+    }
+  }) 
+  
+  // remove the 'Authorization' cookie from the header
+  res.clearCookie('__Host-refresh_token');
+  res.clearCookie('__Host-access_token', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: true,
+    path: '/'
+  })
+
+  // return status(200)
+  return res.status(200).send("User logged out successfully.");
+  }catch(err){
+    return res.status(500)
+  }
+}
+
+export async function refreshJWTokens(req: Request, res: Response){
+  //extract refresh token 
+  const refreshToken = req.cookies['__Host-refresh_token'];
+  
+  // find the user with the user Id with the payload found fromt his refresh token
+  // if user does not exist then return status(400) => lead to re-login on FE
+  // if the user exists, then create accessToken , refreshToken
+  // from db, the already fetched user, remove the old refresh token and add the new one 
+  // set the token in the cookies
+  // return status(200)
 }
 
 //signup, signin, signout, middleware
+
+// TODO: the refreshing of accessToken (do in middleware jwtHandler function)
+// TODO: jwtHandler middleware
+// TODO: /refresh  along with above routes: when jwt returns an error: 
+// network err
+// not correct accessToken -> redirect to login on FE
+// expired accesstoken, custom status code, at the FE call /refresh
+
