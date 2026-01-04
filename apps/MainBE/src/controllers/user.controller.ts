@@ -2,8 +2,9 @@ import {Request, Response} from "express";
 import bcrypt from "bcrypt";
 import PrismaClient from "@repo/db";
 import { z } from "zod";
-import jwt from "jsonwebtoken";
+import jwt, {JwtPayload} from "jsonwebtoken";
 import "dotenv/config";
+
 
 const signupSchema = z.object({
   username: z.string(),
@@ -169,7 +170,7 @@ export async function refreshJWTokens(req: Request, res: Response){
   const newRefreshToken = jwt.sign({userId: fetchedUser.id}, process.env.REFRESH_TOKEN_SECRET!, {expiresIn: '7d'});
 
   // from db, the already fetched user, remove the old refresh token and add the new one
-  const newSessionArr = fetchedUser.sessions.filter((seshn)=>seshn != refreshToken);
+  const newSessionArr = fetchedUser.sessions.filter((seshn) => seshn != refreshToken);
   newSessionArr.push(newRefreshToken);
 
   // set the token in the cookies
@@ -184,5 +185,92 @@ export async function refreshJWTokens(req: Request, res: Response){
   
 }
 
+export const getMe = async (req: Request, res: Response) => {
+  try {
+    // Try to verify the ACCESS TOKEN first
+    const accessToken = req.cookies['__Host-access_token'];
+    
+    if (accessToken) {
+      try {
+        const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET!);
+        if(typeof decoded == 'object'){
+          const user = await PrismaClient.user.findUnique({ 
+            where: { id: decoded.userId },
+            select: { id: true, username: true, email: true } 
+          });
+          return res.status(200).json({ isAuthenticated: true, user });
+        }
+      } catch (err) {
+        // Token invalid or expired? Fall through to next
+      }
+    }
+
+    // Access Token failed/missing, try REFRESH TOKEN.
+    const refreshToken = req.cookies['__Host-refresh_token'];
+    
+    if (!refreshToken) {
+      return res.status(200).json({ isAuthenticated: false, user: null });
+    }
+
+    let decoded;
+    try{
+      decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!);
+    }
+    catch(err: any){
+        res.clearCookie('__Host-access_token', {httpOnly: true, secure: true, sameSite: 'lax', path: '/'});
+        res.clearCookie('__Host-refresh_token', {httpOnly: true, secure: true, sameSite: 'lax', path: '/'});
+        return res.status(200).json({ isAuthenticated: false, user: null });  
+    }
+
+    if(typeof decoded == 'string'){
+      res.clearCookie('__Host-access_token', {httpOnly: true, secure: true, sameSite: 'lax', path: '/'});
+      res.clearCookie('__Host-refresh_token', {httpOnly: true, secure: true, sameSite: 'lax', path: '/'});
+      return res.status(200).json({ isAuthenticated: false, user: null });  
+    }
+      // Verify Refresh Token (Check DB, etc. reuse refresh logic here)
+      const existingToken = await PrismaClient.user.findUnique({
+        where: {
+          id: decoded.id
+        }
+      });
+
+      if (!existingToken) {
+       // Refresh token is dead. Clear cookies and return false.
+       res.clearCookie('__Host-access_token', {httpOnly: true, secure: true, sameSite: 'lax', path: '/'});
+       res.clearCookie('__Host-refresh_token', {httpOnly: true, secure: true, sameSite: 'lax', path: '/'});
+       return res.status(200).json({ isAuthenticated: false, user: null });
+      }
+    // Refresh was successful. Generate NEW tokens.
+    const newAccessToken = jwt.sign({userId: existingToken.id}, process.env.ACCESS_TOKEN_SECRET!, {expiresIn: '15m'});
+    const newRefreshToken = jwt.sign({userId: existingToken.id}, process.env.REFRESH_TOKEN_SECRET!, {expiresIn: '7d'});
+    
+    const newSessionArr = existingToken.sessions.filter((seshn) => seshn != refreshToken);
+    newSessionArr.push(newRefreshToken);
+
+    // Update DB with new refresh token (Rotate)
+    await PrismaClient.user.update({
+      where: {
+        id: existingToken.id
+      },
+      data: {
+        sessions: newSessionArr
+      }
+    }); 
+
+    // Set new Cookies
+    res.cookie('__Host-access_token', newAccessToken, {httpOnly: true, secure: true, sameSite: 'lax', path: '/'});
+    res.cookie('__Host-refresh_token', newRefreshToken, {httpOnly: true, secure: true, sameSite: 'lax', path: '/'});
+
+    // Return success
+    return res.status(200).json({ 
+      isAuthenticated: true, 
+      user: { id: existingToken.id, username: existingToken.username } 
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
 // custom status codes for different situations

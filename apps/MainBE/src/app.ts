@@ -14,7 +14,7 @@ app.use(cors({
 app.use(express.urlencoded({}));
 app.use(cookieParser());
 
-app.use("/api/v1/user", userRouter);
+app.use("/api/v1/auth", userRouter);
 app.use("/api/v1/workflow", workflowRouter);
 app.use("/api/v1/credential", credentialRouter);
 
