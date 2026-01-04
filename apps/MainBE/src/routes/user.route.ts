@@ -1,6 +1,5 @@
 import { Router } from "express";
-import { signupHandler, loginHandler, signoutHandler,  } from "../controllers/user.controller.js";
-import { jwtHandler } from "../middlewares/authorizationMiddleware.js";
+import { signupHandler, loginHandler, signoutHandler, refreshJWTokens } from "../controllers/user.controller.js";
 
 const router: Router = Router();
 

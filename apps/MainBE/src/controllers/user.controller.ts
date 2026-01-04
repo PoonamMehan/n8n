@@ -143,23 +143,46 @@ export async function signoutHandler(req: Request, res: Response){
 }
 
 export async function refreshJWTokens(req: Request, res: Response){
-  //extract refresh token 
-  const refreshToken = req.cookies['__Host-refresh_token'];
-  
-  // find the user with the user Id with the payload found fromt his refresh token
-  // if user does not exist then return status(400) => lead to re-login on FE
+  try{
+    //extract refresh token 
+  const refreshToken = req.cookies['__Host-refresh_token']; 
+  if(!refreshToken){
+    res.status(401).send("No refresh token provided.")
+  }
+  const decodedToken = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!); 
+  if(typeof decodedToken == 'string'){
+    return res.status(400).send("Invalid JWT token. Login again!");
+  }
+  // find the user with the user Id with the payload found from this refresh token
+  const fetchedUser = await PrismaClient.user.findUnique({
+    where: {
+      id: decodedToken.userId
+    }
+  })
+  if(!fetchedUser){
+     // if user does not exist then return status(400) => lead to re-login on FE
+    return res.status(400).send("Invalid JWT token. Login again!");
+  }
+
   // if the user exists, then create accessToken , refreshToken
-  // from db, the already fetched user, remove the old refresh token and add the new one 
+  const newAccessToken = jwt.sign({userId: fetchedUser.id}, process.env.ACCESS_TOKEN_SECRET!, {expiresIn: '15m'});
+  const newRefreshToken = jwt.sign({userId: fetchedUser.id}, process.env.REFRESH_TOKEN_SECRET!, {expiresIn: '7d'});
+
+  // from db, the already fetched user, remove the old refresh token and add the new one
+  const newSessionArr = fetchedUser.sessions.filter((seshn)=>seshn != refreshToken);
+  newSessionArr.push(newRefreshToken);
+
   // set the token in the cookies
+  res.cookie('__Host-refresh_token', newRefreshToken, {httpOnly: true, secure: true, sameSite: 'lax', path: '/'});
+  res.cookie('__Host-access_token', newAccessToken, {httpOnly: true, secure: true, sameSite: 'lax', path: '/'});
+
   // return status(200)
+  res.status(200).send("New Tokens successfully generated.");
+  }catch(err){
+    res.status(500).send("Some error occurred at the backend.");
+  }
+  
 }
 
-//signup, signin, signout, middleware
 
-// TODO: the refreshing of accessToken (do in middleware jwtHandler function)
-// TODO: jwtHandler middleware
-// TODO: /refresh  along with above routes: when jwt returns an error: 
-// network err
-// not correct accessToken -> redirect to login on FE
-// expired accesstoken, custom status code, at the FE call /refresh
-
+// custom status codes for different situations
