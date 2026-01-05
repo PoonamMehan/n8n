@@ -96,7 +96,7 @@ export async function loginHandler(req:Request, res:Response){
         res.cookie('__Host-access_token', jwtAccessToken, {httpOnly: true, secure: true, sameSite: 'lax', path: '/'});
         res.cookie('__Host-refresh_token', jwtRefreshToken, {httpOnly: true, secure: true, sameSite: 'lax', path: '/'});   
 
-        res.status(200).send("User logged in successfully.");
+        res.status(200).send({isSuccessful: true, userData: {username: savedToken.username, email: savedToken.email}});
       }else{
         return res.status(400).send("Incorrect password.");
       }
@@ -139,7 +139,7 @@ export async function signoutHandler(req: Request, res: Response){
   // return status(200)
   return res.status(200).send("User logged out successfully.");
   }catch(err){
-    return res.status(500)
+    return res.status(500).send("Some error happened at the backend.");
   }
 }
 
