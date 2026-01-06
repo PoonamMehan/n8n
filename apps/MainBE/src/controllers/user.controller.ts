@@ -1,8 +1,8 @@
 import {Request, Response} from "express";
 import bcrypt from "bcrypt";
-import PrismaClient from "@repo/db";
+import {prisma} from "@repo/db";
 import { z } from "zod";
-import jwt, {JwtPayload} from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import "dotenv/config";
 
 
@@ -27,21 +27,24 @@ export async function signupHandler(req: Request, res: Response){
       console.log("While signing up, validation failed: ", validatedData.error);
       return res.status(400).send(validatedData.error);
     }
+    console.log("Here is the validated data: ", validatedData);
     const {username, email, password} = validatedData.data;
-
+    console.log(username, " ", email, " ", password);
     //encrypt the password using bcrypt
     const saltRounds = 12;
     let cryptedPassword;
     cryptedPassword = await bcrypt.hash(password, saltRounds);
+    console.log("here is the crypted password: ", cryptedPassword);
     if(cryptedPassword){
     //store that in the Db
-      const userEntryInDb = await PrismaClient.user.create({
-        data: {
+      const userEntryInDb = await prisma.user.create({
+        data: {         
           email: email,
           username: username,
           password: cryptedPassword
         }
-      })
+      });
+      console.log("userEntryInDb: ", userEntryInDb);
       //check if the email or username already exists errr is there & send a custom error message. //yeah 'P2002' 
       return res.status(200).send(userEntryInDb.id)
     }    
@@ -50,7 +53,8 @@ export async function signupHandler(req: Request, res: Response){
     return res.status(400).send(err.message);
     //TODO: find specific return status codes according to different conditions
   }
-  return res.status(500).send("Some error occurred at the backend.");
+  console.log("Err while logging in the user: ", err.message);
+  return res.status(500).send(`Some error occurred at the backend: ${err.message}`);
 }
 }
 
@@ -65,7 +69,7 @@ export async function loginHandler(req:Request, res:Response){
     const {username, email, password} = validatedData.data;
 
     //search the db for password & handle if any entry with this username doesn't exist
-    const fetchedUser = await PrismaClient.user.findUnique({
+    const fetchedUser = await prisma.user.findUnique({
       where: username? {username} : {email: email!}
     })
 
@@ -81,7 +85,7 @@ export async function loginHandler(req:Request, res:Response){
 
         //save the refresh token in db
         fetchedUser.sessions.push(jwtRefreshToken);
-        const savedToken = await PrismaClient.user.update({
+        const savedToken = await prisma.user.update({
           where: {
             id: fetchedUser.id
           }, 
@@ -118,7 +122,7 @@ export async function signoutHandler(req: Request, res: Response){
 
   // delete that from the user.sessions[] in db
   const newSessionsArr = sessions.filter((seshn: String[]) => seshn != refreshToken);
-  const editedUserRecord = await PrismaClient.user.update({
+  const editedUserRecord = await prisma.user.update({
     where: {
       id: userId
     }, 
@@ -155,7 +159,7 @@ export async function refreshJWTokens(req: Request, res: Response){
     return res.status(400).send("Invalid JWT token. Login again!");
   }
   // find the user with the user Id with the payload found from this refresh token
-  const fetchedUser = await PrismaClient.user.findUnique({
+  const fetchedUser = await prisma.user.findUnique({
     where: {
       id: decodedToken.userId
     }
@@ -170,7 +174,7 @@ export async function refreshJWTokens(req: Request, res: Response){
   const newRefreshToken = jwt.sign({userId: fetchedUser.id}, process.env.REFRESH_TOKEN_SECRET!, {expiresIn: '7d'});
 
   // from db, the already fetched user, remove the old refresh token and add the new one
-  const newSessionArr = fetchedUser.sessions.filter((seshn) => seshn != refreshToken);
+  const newSessionArr = fetchedUser.sessions.filter((seshn: any) => seshn != refreshToken);
   newSessionArr.push(newRefreshToken);
 
   // set the token in the cookies
@@ -194,7 +198,7 @@ export const getMe = async (req: Request, res: Response) => {
       try {
         const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET!);
         if(typeof decoded == 'object'){
-          const user = await PrismaClient.user.findUnique({ 
+          const user = await prisma.user.findUnique({ 
             where: { id: decoded.userId },
             select: { id: true, username: true, email: true } 
           });
@@ -228,7 +232,7 @@ export const getMe = async (req: Request, res: Response) => {
       return res.status(200).json({ isAuthenticated: false, user: null });  
     }
       // Verify Refresh Token (Check DB, etc. reuse refresh logic here)
-      const existingToken = await PrismaClient.user.findUnique({
+      const existingToken = await prisma.user.findUnique({
         where: {
           id: decoded.id
         }
@@ -244,11 +248,11 @@ export const getMe = async (req: Request, res: Response) => {
     const newAccessToken = jwt.sign({userId: existingToken.id}, process.env.ACCESS_TOKEN_SECRET!, {expiresIn: '15m'});
     const newRefreshToken = jwt.sign({userId: existingToken.id}, process.env.REFRESH_TOKEN_SECRET!, {expiresIn: '7d'});
     
-    const newSessionArr = existingToken.sessions.filter((seshn) => seshn != refreshToken);
+    const newSessionArr = existingToken.sessions.filter((seshn: any) => seshn != refreshToken);
     newSessionArr.push(newRefreshToken);
 
     // Update DB with new refresh token (Rotate)
-    await PrismaClient.user.update({
+    await prisma.user.update({
       where: {
         id: existingToken.id
       },

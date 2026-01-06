@@ -1,5 +1,5 @@
 import {Request, Response} from "express";
-import prisma, {PrismaClientKnownRequestError} from "@repo/db/index";
+import {prisma} from "@repo/db";
 
 interface FinalData {
     title?: string,
@@ -22,20 +22,22 @@ interface FinalData {
 // schema optimize
 // frontend react flow
 
+
+// TODO: attach the user
 export async function createWorkflow(req:Request, res:Response){
     // you make an entry to the "workflows" table with just mentioning the name of the workflow "title"
     const {title} = req.body;
-    try{
-        const workflow = await prisma.workflow.create({
-        data: {
-            "title": title
-        }
-        })
-        res.status(200).send(`Successfully entry made in the workflow table. Data: ${workflow}`)
-    }catch(error){
-        console.log("Error while making an entry in the Workflow table: ", error);
-        res.status(500).send(`Error happened at the backend while creating an entry in the Workflow db. Err: ${error}`);
-    }
+    // try{
+    //     const workflow = await prisma.workflow.create({
+    //     data: {
+    //         "title": title
+    //     }
+    //     })
+    //     res.status(200).send(`Successfully entry made in the workflow table. Data: ${workflow}`)
+    // }catch(error){
+    //     console.log("Error while making an entry in the Workflow table: ", error);
+    //     res.status(500).send(`Error happened at the backend while creating an entry in the Workflow db. Err: ${error}`);
+    // }
 }
 
 export async function getWorkflows(req:Request, res:Response){
@@ -100,16 +102,16 @@ export async function editParticularWorkflow(req:Request, res:Response){
     }
 
     try{
-        const updatedWorkflow = await prisma.workflow.update({
-            where: {
-                id: d.id
-            },
-            data: finalData
-        })
+        // const updatedWorkflow = await prisma.workflow.update({
+        //     where: {
+        //         id: d.id
+        //     },
+        //     data: finalData
+        // })
 
-        res.status(200).send(updatedWorkflow);
-    }catch(err){
-        if(err instanceof PrismaClientKnownRequestError){
+        // res.status(200).send(updatedWorkflow);
+    }catch(err: any){
+        if(err){
             if(err.code === 'P2025'){
                 res.status(500).send(`No entry in db found with this id. Err: ${err}`);
             }

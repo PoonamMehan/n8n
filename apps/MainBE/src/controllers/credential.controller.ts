@@ -1,4 +1,4 @@
-import prisma, { PrismaClientKnownRequestError } from '@repo/db';
+import {prisma} from '@repo/db';
 import { Request, Response } from 'express';
 
 interface TelegramCredentials{
@@ -54,8 +54,8 @@ export function deleteCredentialHandler (req: Request, res: Response){
                 }
             })
             res.status(200).send(fetchedCred);
-        }catch(err){
-            if(err instanceof PrismaClientKnownRequestError){
+        }catch(err: any){
+            if(err){
                 if(err.code === 'P2025'){
                     res.status(400).send("No credential with this id existed in the db.");
                 }
@@ -70,7 +70,7 @@ export async function editCredentialHandler (req:Request, res:Response){
     // edit a credential based on its id
     // title
     // data: accessToken
-    // baseURL 
+    // baseURL
     // usersSharing
     
     const {id, title, accessToken, baseURL, usersSharing} = req.body;
@@ -96,8 +96,8 @@ export async function editCredentialHandler (req:Request, res:Response){
         })
 
         res.status(200).send(updatedRecord);
-    }catch(err){
-        if(err instanceof PrismaClientKnownRequestError){
+    }catch(err: any){
+        if(err){
             if(err.code === 'P2025'){
                 res.status(400).send("No credential with this id existed in the db.");
             }

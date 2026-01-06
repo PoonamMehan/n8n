@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "./generated/prisma"
+  output   = "../src/generated/prisma"
   // output   = "../node_modules/@prisma/client"
 }
 
@@ -29,6 +29,7 @@ model Workflow{
   userId        String       
   user          User      @relation(fields: [userId], references: [id])
 }
+//TODO: we can add ProjectId (which is just projectname) in Workflow table
 
 model Webhook{
   id                              Int                 @id  @default(autoincrement())
@@ -65,7 +66,7 @@ model User{
   email        String       @unique 
   password     String       
   sessions     String[]     @default([])    
-  workflows    Workflow[] 
+  workflows    Workflow[]   
   credentials  Credentials[]  
 }
 
