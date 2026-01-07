@@ -396,10 +396,6 @@ export type CredentialsOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
-}
-
 export type CredentialsCreateNestedManyWithoutUserInput = {
   create?: Prisma.XOR<Prisma.CredentialsCreateWithoutUserInput, Prisma.CredentialsUncheckedCreateWithoutUserInput> | Prisma.CredentialsCreateWithoutUserInput[] | Prisma.CredentialsUncheckedCreateWithoutUserInput[]
   connectOrCreate?: Prisma.CredentialsCreateOrConnectWithoutUserInput | Prisma.CredentialsCreateOrConnectWithoutUserInput[]

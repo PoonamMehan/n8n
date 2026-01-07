@@ -748,6 +748,8 @@ export const WorkflowScalarFieldEnum = {
   enabled: 'enabled',
   nodes: 'nodes',
   connections: 'connections',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   userId: 'userId'
 } as const
 
@@ -901,20 +903,6 @@ export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
 
 
 /**
- * Reference to a field of type 'AllWebhookMethods'
- */
-export type EnumAllWebhookMethodsFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AllWebhookMethods'>
-    
-
-
-/**
- * Reference to a field of type 'AllWebhookMethods[]'
- */
-export type ListEnumAllWebhookMethodsFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AllWebhookMethods[]'>
-    
-
-
-/**
  * Reference to a field of type 'DateTime'
  */
 export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -925,6 +913,20 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'AllWebhookMethods'
+ */
+export type EnumAllWebhookMethodsFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AllWebhookMethods'>
+    
+
+
+/**
+ * Reference to a field of type 'AllWebhookMethods[]'
+ */
+export type ListEnumAllWebhookMethodsFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AllWebhookMethods[]'>
     
 
 

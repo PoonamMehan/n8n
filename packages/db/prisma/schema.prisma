@@ -24,9 +24,11 @@ model Workflow{
   id            Int      @id @default(autoincrement())
   title         String   @unique
   enabled       Boolean  @default(false)
-  nodes         Json     @db.JsonB  @default("{}")
-  connections   Json     @db.JsonB  @default("{}")
-  userId        String       
+  nodes         Json     @db.JsonB       @default("{}")
+  connections   Json     @db.JsonB       @default("{}")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt      @default(now())
+  userId        String   
   user          User      @relation(fields: [userId], references: [id])
 }
 //TODO: we can add ProjectId (which is just projectname) in Workflow table

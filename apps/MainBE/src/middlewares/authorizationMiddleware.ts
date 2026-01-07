@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import {Request, Response, NextFunction } from "express"; 
-import PrismaClient from "@repo/db";
+import { prisma } from "@repo/db";
 
 export async function jwtHandler(req: Request, res: Response, next: NextFunction){
   try{
@@ -14,7 +14,7 @@ export async function jwtHandler(req: Request, res: Response, next: NextFunction
 
     // if expired access token, send custom status code to the FE so that it calls /refresh
     // if not expired, check the db for the user with the userId 
-    const userInDb = await PrismaClient.user.findUnique({
+    const userInDb = await prisma.user.findUnique({
       where: {
         id: decodedTokenPayload.userId
       }
@@ -27,7 +27,8 @@ export async function jwtHandler(req: Request, res: Response, next: NextFunction
     }
     
     //if user exists, add the userId to req object
-    req.body.userId = userInDb.id;
+    req.userId = userInDb.id;
+    req.sessions = userInDb.sessions;
     // call next()
     next();
   }
@@ -35,6 +36,6 @@ export async function jwtHandler(req: Request, res: Response, next: NextFunction
     //TODO: we can check for the err.name == TokenExpiredError || JsonWebTokenError & send status code for FE to call /refresh
     //TODO: 
     console.log("Error in jwtHandler middleware: ", err.message);
-    return res.status(500).send("Some error occurred at the backend.");
-  }   
+    return res.status(500).send(`Some error occurred at the backend: ", ${err.message}`);
+  }
 }

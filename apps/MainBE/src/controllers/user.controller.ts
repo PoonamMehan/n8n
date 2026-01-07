@@ -45,7 +45,7 @@ export async function signupHandler(req: Request, res: Response){
         }
       });
       console.log("userEntryInDb: ", userEntryInDb);
-      //check if the email or username already exists errr is there & send a custom error message. //yeah 'P2002' 
+      //check if the email or username already exists err is there & send a custom error message. //yeah 'P2002' 
       return res.status(200).send(userEntryInDb.id)
     }    
 }catch(err: any){
@@ -81,7 +81,7 @@ export async function loginHandler(req:Request, res:Response){
         const jwtAccessToken = jwt.sign({userId: fetchedUser.id}, accessSecret!, {expiresIn: '15m'});
         console.log("Access Token: ", jwtAccessToken);
 
-        const jwtRefreshToken = jwt.sign({userId: fetchedUser.id}, process.env.REFRESH_SECRET_TOKEN!, {expiresIn: '7d'});
+        const jwtRefreshToken = jwt.sign({userId: fetchedUser.id}, process.env.REFRESH_TOKEN_SECRET!, {expiresIn: '7d'});
 
         //save the refresh token in db
         fetchedUser.sessions.push(jwtRefreshToken);
@@ -116,12 +116,14 @@ export async function loginHandler(req:Request, res:Response){
 export async function signoutHandler(req: Request, res: Response){
   try{
   //add the middleware, extract the userID
-  const { userId, sessions } = req.body;
+  const userId = req.userId!;
+  const sessions = req.sessions!;
   // get the refreshToken
   const refreshToken = req.cookies['__Host-refresh_token'];
 
   // delete that from the user.sessions[] in db
-  const newSessionsArr = sessions.filter((seshn: String[]) => seshn != refreshToken);
+  const newSessionsArr = sessions.filter((seshn) => seshn != refreshToken);
+  // it should work because the middleware has already checked that a user with this user id exists unless some network or db's internal working error occurs
   const editedUserRecord = await prisma.user.update({
     where: {
       id: userId
@@ -132,18 +134,13 @@ export async function signoutHandler(req: Request, res: Response){
   }) 
   
   // remove the 'Authorization' cookie from the header
-  res.clearCookie('__Host-refresh_token');
-  res.clearCookie('__Host-access_token', {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: true,
-    path: '/'
-  })
+  res.clearCookie('__Host-refresh_token', {httpOnly: true, sameSite: 'lax', secure: true, path: '/'});
+  res.clearCookie('__Host-access_token', { httpOnly: true, sameSite: 'lax', secure: true, path: '/'})
 
   // return status(200)
   return res.status(200).send("User logged out successfully.");
-  }catch(err){
-    return res.status(500).send("Some error happened at the backend.");
+  }catch(err: any){
+    return res.status(500).send(`Some error happened at the backend: ${err.message}`);
   }
 }
 
@@ -174,15 +171,24 @@ export async function refreshJWTokens(req: Request, res: Response){
   const newRefreshToken = jwt.sign({userId: fetchedUser.id}, process.env.REFRESH_TOKEN_SECRET!, {expiresIn: '7d'});
 
   // from db, the already fetched user, remove the old refresh token and add the new one
-  const newSessionArr = fetchedUser.sessions.filter((seshn: any) => seshn != refreshToken);
-  newSessionArr.push(newRefreshToken);
+  const newSessionsArr = fetchedUser.sessions.filter((seshn: any) => seshn != refreshToken);
+  newSessionsArr.push(newRefreshToken);
+
+  const addRefreshTokenToDb = await prisma.user.update({
+    where: {
+      id: fetchedUser.id
+    },
+    data: {
+      sessions: newSessionsArr
+    }
+  })
 
   // set the token in the cookies
   res.cookie('__Host-refresh_token', newRefreshToken, {httpOnly: true, secure: true, sameSite: 'lax', path: '/'});
   res.cookie('__Host-access_token', newAccessToken, {httpOnly: true, secure: true, sameSite: 'lax', path: '/'});
 
   // return status(200)
-  res.status(200).send("New Tokens successfully generated.");
+  res.status(200).send("New Tokens generated successfully.");
   }catch(err){
     res.status(500).send("Some error occurred at the backend.");
   }
@@ -209,6 +215,7 @@ export const getMe = async (req: Request, res: Response) => {
       }
     }
 
+    console.log("I did not run.")
     // Access Token failed/missing, try REFRESH TOKEN.
     const refreshToken = req.cookies['__Host-refresh_token'];
     
@@ -268,7 +275,7 @@ export const getMe = async (req: Request, res: Response) => {
     // Return success
     return res.status(200).json({ 
       isAuthenticated: true, 
-      user: { id: existingToken.id, username: existingToken.username } 
+      user: { id: existingToken.id, username: existingToken.username, email: existingToken.email } 
     });
 
   } catch (error) {

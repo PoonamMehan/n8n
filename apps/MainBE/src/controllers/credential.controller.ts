@@ -106,6 +106,36 @@ export async function editCredentialHandler (req:Request, res:Response){
     }
 }
 
+export async function getAllCredentialHandler(req: Request, res: Response){
+    try{
+        const allCredentials = await prisma.credentials.findMany();
+        return res.status(200).send(allCredentials);
+    }catch(err: any){
+        return res.status(500).send(`Some err occurred at the BE while fetching the creadentials from DB: ${err.message}`);
+    }
+}
+
+export async function getACredentialHandler(req: Request, res: Response){
+    try{
+        const idParam = Number(req.params.id);
+        if(!Number.isNaN(idParam)){
+            const cred = await prisma.credentials.findUnique({
+                where: {
+                    id: idParam
+                }
+            })
+            if(cred){
+                return res.status(200).send(cred);
+            }
+            return res.status(400).send("No credential with this id exists.");
+        }
+        return res.status(400).send("Invalid credential id.");
+    }catch(err: any){
+        return res.status(500).send(`Some error occurred on our backend: ${err.message}`);
+    }
+}
+// get all credentials
+// get particular credential
 
 
 // Optimize the db

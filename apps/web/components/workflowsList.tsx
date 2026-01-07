@@ -1,9 +1,44 @@
-export const AllWorkflowsList = ({workflowsData}: any)=>{
+'use client'
+import Link from "next/link";
+import { UserIcon, EllipsisVerticalIcon} from "@heroicons/react/24/outline";
+
+interface Workflow{
+    id: number,
+    title: string,
+    enabled: boolean,
+    nodes: object,
+    connections: object,
+    createdAt: string,
+    updatedAt: string,
+    userId: string
+}
+
+
+export const AllWorkflowsList = ({workflowsData, overview}: {workflowsData: Workflow[], overview: boolean})=>{
   // TODO: maybe change the type of workflows data
   // take the data and show it here
+
   return(
     <>
+    {/* TODO: if 0 entries in the row */}
       {/* a list of all the workflows */}
+      {workflowsData.map((w)=>{
+        return(
+          <Link href="">
+            <div>
+              {w.title}
+            </div>
+            <div>
+              {
+              overview && 
+              <button>
+                <UserIcon/><span>Personal</span>
+              </button>
+              }
+              <EllipsisVerticalIcon/>
+            </div>
+          </Link>
+        )})}
     </>
   )
 }

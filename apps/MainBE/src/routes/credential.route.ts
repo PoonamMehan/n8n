@@ -1,10 +1,13 @@
 import {Router} from "express";
-import {addCredentialHandler, deleteCredentialHandler, editCredentialHandler} from "../controllers/credential.controller.js";
+import {addCredentialHandler, deleteCredentialHandler, editCredentialHandler, getAllCredentialHandler, getACredentialHandler} from "../controllers/credential.controller.js";
+import { jwtHandler } from "../middlewares/authorizationMiddleware.js";
 
 const router: Router = Router();
 
-router.route("/").post(addCredentialHandler);
-router.route("/").delete(deleteCredentialHandler);
-router.route("/").put(editCredentialHandler);
+router.route("/").post(jwtHandler, addCredentialHandler);
+router.route("/").get(jwtHandler, getAllCredentialHandler);
+router.route("/:id").get(jwtHandler, getACredentialHandler);
+router.route("/").delete(jwtHandler, deleteCredentialHandler);
+router.route("/").put(jwtHandler, editCredentialHandler);
 
 export default router;
