@@ -3,6 +3,7 @@
 
 // top navbar with following tabs: Workflows            Credentials
 import Link from "next/link";
+import { AllWorkflowsList } from "../../../components/AllWorkflowsList";
 
 export async function WorkflowsOverview(){
   // fetch all the workflows & show: SSR component: 
@@ -22,7 +23,7 @@ export async function WorkflowsOverview(){
     //taoster: unable to fetch workflws right now 
     // disable the two create buttons
     //ask the user to refresh this component
-    console.log("Something went wrong on r end while fetching the workflows: ", err.message)
+    console.log("Something went wrong on our end while fetching the workflows: ", err.message)
   }
 
   return(
@@ -42,7 +43,7 @@ export async function WorkflowsOverview(){
           {/* Show all the workflows that you fetch right here  */}
           {/* A client component. Gets all the existing workflows from this component*/}
           {/* 1 */}
-          <WorkflowsList/>
+          <AllWorkflowsList workflowsData={allWorkflowsData} overview={true}/>
         </div>
       </div>
     </>

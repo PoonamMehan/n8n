@@ -1,0 +1,3 @@
+// redirect to /workflow/new?projectId=personal
+import { redirect } from "next/navigation";
+redirect("/workflow/new?projectId=personal");

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createWorkflow, getWorkflows, getParticularWorkflow, editParticularWorkflow } from "../controllers/workflow.controller.js";
+import { createWorkflow, getWorkflows, getParticularWorkflow, editParticularWorkflow, deleteAParticularWorkflow } from "../controllers/workflow.controller.js";
 import { jwtHandler } from "../middlewares/authorizationMiddleware.js";
 
 
@@ -11,6 +11,7 @@ router.route("/").get(jwtHandler, getWorkflows); // get all the entries in the w
 
 router.route("/:id").get(jwtHandler, getParticularWorkflow);   // just get the particular workflow
 router.route("/:id").put(jwtHandler, editParticularWorkflow);
+router.route("/:id").delete(jwtHandler, deleteAParticularWorkflow);
 // TODO: deleteAParticularWorkflow    (get("/:id"));
 // you start filling in the data to the workflow table to the fields "enabled", "nodes", "connections"
 

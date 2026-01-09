@@ -24,7 +24,7 @@ export const AllWorkflowsList = ({workflowsData, overview}: {workflowsData: Work
       {/* a list of all the workflows */}
       {workflowsData.map((w)=>{
         return(
-          <Link href="">
+          <Link className="mb-3" key={w.id} href={`/workflow/${w.id}`}>
             <div>
               {w.title}
             </div>
