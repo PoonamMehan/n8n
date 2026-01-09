@@ -10,9 +10,10 @@
 
 // figure out the drag and drop placement of nodes
 import { useState, useCallback } from "react";
-import { ReactFlow, addEdge, applyNodeChanges, applyEdgeChanges, Node, OnNodesChange, OnEdgesChange, Edge, OnConnect, useNodesState } from "@xyflow/react";
+import { ReactFlow, addEdge, applyNodeChanges, applyEdgeChanges, Node, OnNodesChange, OnEdgesChange, Edge, OnConnect, useNodesState, Panel } from "@xyflow/react";
 import {N8nStyleActionNode} from "./customActionNode";
 import {N8nStyleTriggerNode} from "./customTriggerNode";
+import { PlusIcon } from "@heroicons/react/24/outline";
 
 interface Workflow{
     id: number,
@@ -50,6 +51,7 @@ export const WorkflowEditorServerComponent = ({workflow}: {workflow: Workflow}) 
 
   return(
     <>
+    {/* TODO: here do the onClick & remove the modal */}
       <div>
         {/* workflow name       &       save button */}
         <div>
@@ -72,23 +74,16 @@ export const WorkflowEditorServerComponent = ({workflow}: {workflow: Workflow}) 
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         fitView
-        nodeTypes={nodeTypes}
-        />
-
-
-        {/* 1: Custom node for a trigger
-            2: Only one trigger ( isTriggerPresent = false & true & false)
-            3: If trigger assign that custom node to it
-            4: 
-            5: Upon "Execute" if trigger is absent, toaster
-            6: As a new node or connection is added -> maintain the state in memory
-            7: As save button pressed -> save it in db
-            8: Add node button right
-            9: 
-            10: zoom buttons
-            11: Execute button
-
-        */}
+        nodeTypes={nodeTypes}>
+          {/* Here onClick should do e.stopPropogation */}
+          <Panel position="center-right" onClick={(e)=>e.stopPropagation()}>
+            <button className="w-10 h-10 outline-neutral-400 outline-1 border-none focus:border-none" onClick={(e: any)=>{e.preventDefault(); setIsOpen(true)}}><PlusIcon/></button>
+          </Panel>
+        </ReactFlow>
+        
+      </div>
+      <div className="">
+        
       </div>
     </>
   )
@@ -100,3 +95,17 @@ export const WorkflowEditorServerComponent = ({workflow}: {workflow: Workflow}) 
 
 // TODO: Optimize this component by converting the main Component to a server Component & creatng different components for Client components.
 // 
+
+{/* 1: Custom node for a trigger
+            2: Only one trigger ( isTriggerPresent = false & true & false)
+            3: If trigger assign that custom node to it
+            4: 
+            5: Upon "Execute" if trigger is absent, toaster
+            6: As a new node or connection is added -> maintain the state in memory
+            7: As save button pressed -> save it in db
+            8: Add node button right
+            9: 
+            10: zoom buttons
+            11: Execute button
+
+*/}
