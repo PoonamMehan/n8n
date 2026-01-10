@@ -1,0 +1,25 @@
+{
+  "name": "@repo/nodes-base",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "exports": {
+    "Available_Action": "./src/Available_Action",
+    "Available_Triggers": "./src/Available_Triggers",
+    "Available_Credentials": "./src/Available_Credentials"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "tsc": "^2.0.4",
+    "typescript": "^5.9.3"
+  }
+}

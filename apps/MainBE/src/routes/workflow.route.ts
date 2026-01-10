@@ -9,7 +9,8 @@ router.route("/").post(jwtHandler, createWorkflow);
 
 router.route("/").get(jwtHandler, getWorkflows); // get all the entries in the workflow table
 
-router.route("/:id").get(jwtHandler, getParticularWorkflow);   // just get the particular workflow
+// router.route("/:id").get(jwtHandler, getParticularWorkflow);   // just get the particular workflow
+router.route("/:id").get( getParticularWorkflow );// just get the particular workflow
 router.route("/:id").put(jwtHandler, editParticularWorkflow);
 router.route("/:id").delete(jwtHandler, deleteAParticularWorkflow);
 // TODO: deleteAParticularWorkflow    (get("/:id"));
