@@ -11,12 +11,16 @@
 // figure out the drag and drop placement of nodes
 'use client';
 import { useState, useCallback, useEffect } from "react";
-import { ReactFlow, addEdge, applyNodeChanges, applyEdgeChanges, Node, OnNodesChange, OnEdgesChange, Edge, OnConnect, useNodesState, Panel } from "@xyflow/react";
+import { ReactFlow, addEdge, applyNodeChanges, applyEdgeChanges, Node, OnNodesChange, OnEdgesChange, Edge, OnConnect, Background, BackgroundVariant, Panel, Controls } from "@xyflow/react";
 import {N8nStyleActionNode} from "./customActionNode";
 import {N8nStyleTriggerNode} from "./customTriggerNode";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { useParams } from "next/navigation";
 import '@xyflow/react/dist/style.css';
+import { Available_Actions } from "./Available_Actions";
+import { Available_Triggers } from "./Available_Triggers";
+import { TriggerIconMap } from "./NodeIcons";
+import Link from "next/link";
 
 interface Workflow{
     id: number,
@@ -85,19 +89,27 @@ export default () => {
   return(
     <>
     {/* TODO: here do the onClick & remove the modal */}
-      <div>
+      {/* Header Section */}
+      <div className="flex h-16 w-full items-center justify-between border-b border-gray-200 bg-white px-6 shadow-sm">
         {/* workflow name       &       save button */}
-        <div>
-          <span>Personal</span>
-          <span>/</span>
-          <span>{workflow && workflow.title}</span>
+        <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
+          <span className="text-gray-400">Personal</span>
+          <span className="text-gray-300">/</span>
+          <span className="text-gray-900">{workflow && workflow.title}</span>
         </div>
         <div>
-          <button onClick={e => {e.preventDefault(), saveWorkflow()}}>Save</button>
+          <button 
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+            onClick={e => {e.preventDefault(), saveWorkflow()}}
+          >
+            Save
+          </button>
         </div>
       </div>
-      <div>
-        {/* TODO: Give this outer div a definite size. */}
+
+      {/* Main Canvas Area */}
+      <div className="relative h-[calc(100vh-64px)] w-full bg-slate-50">
+        {/* TODO: Give this outer div a definite size. (Handled by h-[calc...] above) */}
         {/* react flow          &       nodes modal? */}
         {/* This is definitely a client component, TODO:  we should separately render it for performance boost. */}
         <ReactFlow 
@@ -109,31 +121,62 @@ export default () => {
         fitView
         nodeTypes={nodeTypes}>
           {/*  */}
-          <Panel position="center-right" onClick={(e)=>e.stopPropagation()}>
-            <button className="w-10 h-10 outline-neutral-400 outline-1 border-none focus:border-none" onClick={(e: any)=>{e.preventDefault(); setIsOpen(true)}}><PlusIcon/></button>
+          <Background
+            variant={BackgroundVariant.Dots}
+            gap={24}
+            size={1}
+          />
+          <Controls/>
+          <Panel style={{ left: 1440, top: 150, position: 'absolute' }} onClick={(e)=>e.stopPropagation()}>
+            <button 
+              className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-lg ring-1 ring-gray-900/5 transition hover:bg-gray-50 hover:text-blue-600" 
+              onClick={(e: any)=>{e.preventDefault(); setIsOpen(true)}}
+            >
+              <PlusIcon/>
+            </button>
           </Panel>
         </ReactFlow>
-      </div>
 
-      <div className="">
-        {/* TODO: Here onClick should do e.stopPropogation */}
-        {isOpen && <div>
-          {/* TODO: Actions */}
-          {/* TODO: Trigger */}
-          {/* When clicked, add the node to "nodes" state, with the icon and label & id? */}
-          {/* After adding the node -> the chooseBar will be opened -> as the user clicks -> add the node to the canvas -> open the form to fill in the node's data */}
-          {/* Inside the nodes allow "create credentials" -> add a save button  &  then save the things in the DB */}
-          {/* Node added(position)    $    node form data    $    credentials that are created on the way(SAVE THIS THEN & THERE, SAVEBUTTON*/}
-          {/*  */}
-          {/* import Available_triggers & Available_Nodes from /packages/nodes-base */}
-
-          
-          </div>}
+        {/* Modal / Sidebar Overlay */}
+        <div className={`absolute right-4 top-4 z-50 ${!isOpen ? 'pointer-events-none' : ''}`}>
+          {/* TODO: Here onClick should do e.stopPropogation */}
+          {isOpen && <div className="h-auto w-80 rounded-xl border border-gray-200 bg-white p-4 shadow-2xl">
+            <div className="mb-4 border-b pb-2 text-lg font-bold text-gray-800">
+              <div>TRIGGERS</div>
+              {/* <div>LIST OF TRIGGERS: Clickable, title & description & icn </div> */}
+              <Link href="">{Object.entries(Available_Triggers).map(([key, val])=>(
+                <div key={key}>
+                  <div>{TriggerIconMap[val.icon] || TriggerIconMap['default']}</div>
+                  <div><span>{val.title}</span><span>{val.description}</span></div>
+                </div>
+              ))}</Link>
+            </div>
+            <div className="mb-4 border-b pb-2 text-lg font-bold text-gray-800">
+              <div>Actions</div>
+              {/* <div>LIST OF ACTIONS: Clickable, title & description & Icon   -- --  onClick: open a modal, add the node on the screen & custom name(check the nodes with the same name -> add +1 number at the next node -> the modal finally(LOGIC)</div> */}
+              <div>{Object.entries(Available_Actions).map(([key, val])=>(
+                <Link href="" key={key}>
+                  <div>{TriggerIconMap[val.icon] || TriggerIconMap['default']}</div>
+                  <div><span>{val.title}</span><span>{val.description}</span></div>
+                </Link>
+              ))}</div>
+            </div>
+              {/* import Avail_Triggers & [0].title & [0].description & icon  */}
+            </div>}
+        </div>
       </div>
       {/* When clicked upon action -> check state if anyActionAlreadyExists -> If exists -> Toaster(You cannot add more than one trigger as of now. We will soon introduce this functionality.) */}
     </>
   )
 }
+ {/* TODO: Actions */}
+            {/* TODO: Trigger */}
+            {/* When clicked, add the node to "nodes" state, with the icon and label & id? */}
+            {/* After adding the node -> the chooseBar will be opened -> as the user clicks -> add the node to the canvas -> open the form to fill in the node's data */}
+            {/* Inside the nodes allow "create credentials" -> add a save button  &  then save the things in the DB */}
+            {/* Node added(position)    $    node form data    $    credentials that are created on the way(SAVE THIS THEN & THERE, SAVEBUTTON*/}
+            {/*  */}
+            {/* import Available_triggers & Available_Nodes from /packages/nodes-base */}
 
 
 // nodes modal: Triggers List    &     Actions List
@@ -156,3 +199,8 @@ export default () => {
 
             
 */}
+
+// 2:30
+// TODO: nodes from db, render on the canvas
+// TODO: nodes chosing from sidebar:
+// fetch from packages/nodes-base -> add the list to the sidebar -> allow to be clicked upon & add to "nodes" state & open the modal

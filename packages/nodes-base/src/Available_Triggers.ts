@@ -1,7 +1,8 @@
 interface Triggers_Structure {
     title: string,
     description: string,
-    parameters: object
+    parameters: object,
+    icon: string
 }
 
 type Avail_Triggers_Obj = Record<string, Triggers_Structure>;
@@ -31,7 +32,8 @@ export const Available_Triggers: Avail_Triggers_Obj = {
                 "Allowed Origins (CORS)": "User gives Allowed Origins",
                 "Response Headers": ["Name", "Value"]
             }
-        }
+        },
+        icon: "WebhookIcon"
     }
 }
 
