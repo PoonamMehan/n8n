@@ -5,7 +5,8 @@ import type { ReactNode } from "react";
 type CustomNodeData = {
   nodeTitle: string,
   nodeIcon: ReactNode,
-  nodeName: string
+  nodeName: string,
+  executionData: object
 }
 export type CustomActionNode = Node<CustomNodeData>
 
@@ -13,7 +14,9 @@ export function N8nStyleActionNode({ data }: NodeProps<CustomActionNode>) {
 
   return(
     <>
-    <div>
+    <div onDoubleClick={(e)=>{
+      //TODO: go onto opening the modal
+    }}>
       {/* A box containing node icon */}
       <div className="w-25">
         {data.nodeIcon}
@@ -26,4 +29,4 @@ export function N8nStyleActionNode({ data }: NodeProps<CustomActionNode>) {
     </>
   )
 };
-
+// TODO: onClick=> 

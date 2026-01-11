@@ -4,7 +4,8 @@ import { ReactNode } from "react";
 type CustomNodeData = {
   nodeIcon: ReactNode,
   nodeTitle: string,
-  nodeName: string
+  nodeName: string,
+  executionData: object
 }
 
 export type CustomTriggerNode = Node<CustomNodeData>

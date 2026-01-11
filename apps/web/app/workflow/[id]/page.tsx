@@ -34,14 +34,6 @@ interface Workflow{
     updatedAt: string,
     userId: string
 }
-
-// interface NodeData {
-//   id: string,
-//   position: object,
-//   data: object
-// }
-
-
 // WorkflowEditorServerComponent =
 // export default ({workflow}: {workflow: Workflow}) => {
 
@@ -120,17 +112,17 @@ export default () => {
     }
 
     const addNodeToCanvas = (type: 'actionNode' | 'triggerNode', title: string, icon: string, defaultName: string) => {
+      if(type == 'triggerNode' && isTriggerNodePresent){
+        // Toaster: This version supprts only 1 trigger node. New updates coming!
+        alert('Only 1 trigger node is allowed');
+        return;
+      }
+
       const uId = crypto.randomUUID();
       const { x, y } = calculateCenterOnEditor();
       const randomOffset = Math.random() * 20;
-// find the node name
-// go thru all the nodes 
-// match the 'title'
-// if 0 matches: 1 
-// else last Number+1
-// TODO: we can allow the user to name the nodes themselves as well
+      // TODO: we can allow the user to name the nodes themselves as well & change the logic to "regexp" based
       const newSerialNum = findTheNameForTheNode(title);
-      
       const newNode = {
         id: uId,
         type: type, 
@@ -138,9 +130,8 @@ export default () => {
         data: { nodeTitle: title, nodeIcon: icon, nodeName: `${defaultName} ${newSerialNum}`}
       };
       setNodes((oldNodes) => [...oldNodes, newNode]);
-      // Name the node
-
-      // open the modal (change the url -> with the Info about the node sh wthe modal -> fetch parameters of the node from in-memory variable -> show the form -> )
+      setIsOpen(false);
+      // open the modal (change the url -> with the Info about the node show the modal -> fetch parameters of the node from in-memory variable -> show the form -> )
       // 
   };
 
