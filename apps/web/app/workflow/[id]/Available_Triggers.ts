@@ -2,7 +2,8 @@ interface Triggers_Structure {
     title: string,
     description: string,
     parameters: object,
-    icon: string
+    icon: string,
+    defaultName: string
 }
 
 type Avail_Triggers_Obj = Record<string, Triggers_Structure>;
@@ -11,6 +12,7 @@ type Avail_Triggers_Obj = Record<string, Triggers_Structure>;
 export const Available_Triggers: Avail_Triggers_Obj = {
     "Webhook": {
         title: "Webhook",
+        defaultName: "Webhook",
         description: "Starts the workflow when a webhook is called",
         parameters: {
             "Production URL": "Stores URL string",
@@ -33,7 +35,7 @@ export const Available_Triggers: Avail_Triggers_Obj = {
                 "Response Headers": ["Name", "Value"]
             }
         },
-        icon: "WebhookIcon"
+        icon: "webhook"
     }
 }
 

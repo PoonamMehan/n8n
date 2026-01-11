@@ -3,7 +3,8 @@ import { ReactNode } from "react";
 
 type CustomNodeData = {
   nodeIcon: ReactNode,
-  nodeTitle: string
+  nodeTitle: string,
+  nodeName: string
 }
 
 export type CustomTriggerNode = Node<CustomNodeData>
@@ -13,7 +14,7 @@ export function N8nStyleTriggerNode ({data}: NodeProps<CustomTriggerNode>){
   return(
     <div>
       <div>{data.nodeIcon}</div>
-      <div>{data.nodeTitle}</div>
+      <div>{data.nodeName}</div>
       <Handle type="source" position={Position.Right}/>
     </div>
   )

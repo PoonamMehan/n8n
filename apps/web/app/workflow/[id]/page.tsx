@@ -11,16 +11,18 @@
 // figure out the drag and drop placement of nodes
 'use client';
 import { useState, useCallback, useEffect } from "react";
-import { ReactFlow, addEdge, applyNodeChanges, applyEdgeChanges, Node, OnNodesChange, OnEdgesChange, Edge, OnConnect, Background, BackgroundVariant, Panel, Controls } from "@xyflow/react";
+import { ReactFlow, addEdge, applyNodeChanges, applyEdgeChanges, Node, OnNodesChange, OnEdgesChange, Edge, OnConnect, Background, BackgroundVariant, Panel, Controls, useReactFlow } from "@xyflow/react";
 import {N8nStyleActionNode} from "./customActionNode";
 import {N8nStyleTriggerNode} from "./customTriggerNode";
-import { PlusIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useParams } from "next/navigation";
 import '@xyflow/react/dist/style.css';
 import { Available_Actions } from "./Available_Actions";
 import { Available_Triggers } from "./Available_Triggers";
 import { TriggerIconMap } from "./NodeIcons";
 import Link from "next/link";
+import { CustomActionNode } from "./customActionNode";
+import {CustomTriggerNode} from "./customTriggerNode";
 
 interface Workflow{
     id: number,
@@ -74,6 +76,9 @@ export default () => {
     const [isOpen, setIsOpen] = useState(false);
     const [nodes, setNodes] = useState<Node[]>([]);
     const [edges, setEdges] = useState<Edge[]>([]);
+    const { screenToFlowPosition } = useReactFlow();
+    const [isTriggerNodePresent, setIsTriggerNodePresent] = useState(false);
+    // change this when nodes are fetched -> and change when a new trigger is added -> and change when trigger is deleted
 // TODO: as workflow is fetched, just fill the nodes, edges states & 
 // TODO: allow for tracking of nodes positions change
 // TODO:NODES SAVING 
@@ -85,22 +90,78 @@ export default () => {
       actionNode: N8nStyleActionNode,
       triggerNode: N8nStyleTriggerNode
     }
+    
+
+    // TODO: useEffect(, []) => fetch the workflow and add the nodes to "nodes[]" & connections to "edges[]";
+    // 
+
+    const calculateCenterOnEditor = ()=>{
+      //TODO: take a reference of the Editor component itself for more precise center
+      const centerScreenX = window.innerWidth / 2;
+      const centerScreenY = window.innerHeight / 2;
+      const position = screenToFlowPosition({ 
+        x: centerScreenX, 
+        y: centerScreenY 
+      });
+      return position;
+    }
+
+    const findTheNameForTheNode = (titleMatch: string)=>{
+      let newSerialNum = 0
+      nodes.forEach((val)=>{
+        // val.data.title 
+        // then just count the number of them & add 1 to it and just name the node 
+        if(val.data.title == titleMatch){
+          newSerialNum++;
+        }
+      })
+      newSerialNum++;
+      return newSerialNum;
+    }
+
+    const addNodeToCanvas = (type: 'actionNode' | 'triggerNode', title: string, icon: string, defaultName: string) => {
+      const uId = crypto.randomUUID();
+      const { x, y } = calculateCenterOnEditor();
+      const randomOffset = Math.random() * 20;
+// find the node name
+// go thru all the nodes 
+// match the 'title'
+// if 0 matches: 1 
+// else last Number+1
+// TODO: we can allow the user to name the nodes themselves as well
+      const newSerialNum = findTheNameForTheNode(title);
+      
+      const newNode = {
+        id: uId,
+        type: type, 
+        position: { x: x + randomOffset, y: y + randomOffset }, 
+        data: { nodeTitle: title, nodeIcon: icon, nodeName: `${defaultName} ${newSerialNum}`}
+      };
+      setNodes((oldNodes) => [...oldNodes, newNode]);
+      // Name the node
+
+      // open the modal (change the url -> with the Info about the node sh wthe modal -> fetch parameters of the node from in-memory variable -> show the form -> )
+      // 
+  };
+
+    useEffect(()=>{
+      console.log("isOpen changed: ", isOpen)
+    }, [isOpen]);
 
   return(
     <>
-    {/* TODO: here do the onClick & remove the modal */}
       {/* Header Section */}
-      <div className="flex h-16 w-full items-center justify-between border-b border-gray-200 bg-white px-6 shadow-sm">
-        {/* workflow name       &       save button */}
+      <div className="flex h-16 w-full items-center justify-between border-b border-gray-200 bg-white px-6 shadow-sm" onClick={(e)=>{setIsOpen(false)}}>
         <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
           <span className="text-gray-400">Personal</span>
           <span className="text-gray-300">/</span>
           <span className="text-gray-900">{workflow && workflow.title}</span>
         </div>
         <div>
+          {/* TODO: Write a function which will save the workflow(nodes, edges, nodes' form info, credentials(separately)) in DB*/}
           <button 
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-            onClick={e => {e.preventDefault(), saveWorkflow()}}
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+            onClick={e => {e.preventDefault(); saveWorkflow()}}
           >
             Save
           </button>
@@ -109,7 +170,6 @@ export default () => {
 
       {/* Main Canvas Area */}
       <div className="relative h-[calc(100vh-64px)] w-full bg-slate-50">
-        {/* TODO: Give this outer div a definite size. (Handled by h-[calc...] above) */}
         {/* react flow          &       nodes modal? */}
         {/* This is definitely a client component, TODO:  we should separately render it for performance boost. */}
         <ReactFlow 
@@ -117,17 +177,18 @@ export default () => {
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
+        onConnect={ onConnect }
         fitView
-        nodeTypes={nodeTypes}>
-          {/*  */}
+        nodeTypes={nodeTypes}
+        onClick={(e)=>{setIsOpen(false)}}
+        >
           <Background
             variant={BackgroundVariant.Dots}
             gap={24}
             size={1}
           />
           <Controls/>
-          <Panel style={{ left: 1440, top: 150, position: 'absolute' }} onClick={(e)=>e.stopPropagation()}>
+          <Panel position="top-right" onClick={(e)=>e.stopPropagation()}>
             <button 
               className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-lg ring-1 ring-gray-900/5 transition hover:bg-gray-50 hover:text-blue-600" 
               onClick={(e: any)=>{e.preventDefault(); setIsOpen(true)}}
@@ -137,27 +198,31 @@ export default () => {
           </Panel>
         </ReactFlow>
 
-        {/* Modal / Sidebar Overlay */}
-        <div className={`absolute right-4 top-4 z-50 ${!isOpen ? 'pointer-events-none' : ''}`}>
-          {/* TODO: Here onClick should do e.stopPropogation */}
+        {/* Sidebar overlay*/}
+        <div onClick={(e)=>{e.stopPropagation()}} className={`absolute right-4 top-4 z-50 ${!isOpen ? 'pointer-events-none' : ''}`}>
           {isOpen && <div className="h-auto w-80 rounded-xl border border-gray-200 bg-white p-4 shadow-2xl">
-            <div className="mb-4 border-b pb-2 text-lg font-bold text-gray-800">
-              <div>TRIGGERS</div>
+            <div className="mb-4 border-b border-gray-100 pb-2">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-xs font-bold uppercase tracking-wider text-gray-500">TRIGGERS</div>
+                <button className="text-gray-400 hover:bg-slate-100 hover:text-gray-600 rounded p-1 transition-colors" onClick={(e: any)=>{e.preventDefault(); setIsOpen(false)}}>
+                  <XMarkIcon className="h-5 w-5"/>
+                </button>
+              </div>
               {/* <div>LIST OF TRIGGERS: Clickable, title & description & icn </div> */}
-              <Link href="">{Object.entries(Available_Triggers).map(([key, val])=>(
-                <div key={key}>
-                  <div>{TriggerIconMap[val.icon] || TriggerIconMap['default']}</div>
-                  <div><span>{val.title}</span><span>{val.description}</span></div>
-                </div>
-              ))}</Link>
+              <div className="block space-y-1 mb-4">{Object.entries(Available_Triggers).map(([key, val])=>(
+                <Link href="" onClick={(e)=>addNodeToCanvas('triggerNode', val.title, val.icon, val.defaultName)} key={key} className="group flex items-center gap-3 rounded-lg p-2 hover:bg-slate-50 transition-all cursor-pointer">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-slate-100 text-gray-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">{TriggerIconMap[val.icon] || TriggerIconMap['default']}</div>
+                  <div className="flex flex-col"><span className="text-sm font-semibold text-gray-700">{val.title}</span><span className="text-xs text-gray-400 line-clamp-1">{val.description}</span></div>
+                </Link>
+              ))}</div>
             </div>
-            <div className="mb-4 border-b pb-2 text-lg font-bold text-gray-800">
-              <div>Actions</div>
+            <div className="mb-2 pb-2"> 
+              <div className="text-xs font-bold uppercase tracking-wider text-gray-500">Actions</div>
               {/* <div>LIST OF ACTIONS: Clickable, title & description & Icon   -- --  onClick: open a modal, add the node on the screen & custom name(check the nodes with the same name -> add +1 number at the next node -> the modal finally(LOGIC)</div> */}
-              <div>{Object.entries(Available_Actions).map(([key, val])=>(
-                <Link href="" key={key}>
-                  <div>{TriggerIconMap[val.icon] || TriggerIconMap['default']}</div>
-                  <div><span>{val.title}</span><span>{val.description}</span></div>
+              <div className="space-y-1">{Object.entries(Available_Actions).map(([key, val])=>(
+                <Link href="" onClick={(e)=>addNodeToCanvas( 'actionNode', val.title, val.icon, val.defaultName)} key={key} className="group flex items-center gap-3 rounded-lg p-2 hover:bg-slate-50 transition-all cursor-pointer">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-slate-100 text-gray-500 group-hover:bg-orange-100 group-hover:text-orange-600 transition-colors">{TriggerIconMap[val.icon] || TriggerIconMap['default']}</div>
+                  <div className="flex flex-col"><span className="text-sm font-semibold text-gray-700">{val.title}</span><span className="text-xs text-gray-400 line-clamp-1">{val.description}</span></div>
                 </Link>
               ))}</div>
             </div>
@@ -200,7 +265,8 @@ export default () => {
             
 */}
 
-// 2:30
 // TODO: nodes from db, render on the canvas
 // TODO: nodes chosing from sidebar:
 // fetch from packages/nodes-base -> add the list to the sidebar -> allow to be clicked upon & add to "nodes" state & open the modal
+// TODO: logic to delete a node & its adjacent edges 
+// TODO: if trigger is deleted then set isTriggerNodePresent = false

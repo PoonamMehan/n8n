@@ -4,7 +4,8 @@ import type { ReactNode } from "react";
 
 type CustomNodeData = {
   nodeTitle: string,
-  nodeIcon: ReactNode
+  nodeIcon: ReactNode,
+  nodeName: string
 }
 export type CustomActionNode = Node<CustomNodeData>
 
@@ -18,7 +19,7 @@ export function N8nStyleActionNode({ data }: NodeProps<CustomActionNode>) {
         {data.nodeIcon}
       </div>
       {/* An invisible bordered box to show labels under the node */}
-      <div>{data.nodeTitle}</div>
+      <div>{data.nodeName}</div>
       <Handle type="target" position={Position.Left}/>
       <Handle type="source" position={Position.Right}/>
     </div>

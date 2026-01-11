@@ -1,6 +1,7 @@
 interface Actions_Structure {
     title: string,
     description: string,
+    defaultName: string,
     parameters: object,
     icon: string
 }
@@ -11,6 +12,7 @@ export const Available_Actions: Avail_Actions_Obj = {
     "Telegram": {
         title: "Telegram",
         description: "",
+        defaultName: "Send a Chat message",
         parameters: {
             "Send a chat action": {
                 "Paramters": {
