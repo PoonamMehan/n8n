@@ -23,6 +23,7 @@ import { TriggerIconMap } from "./NodeIcons";
 import Link from "next/link";
 import { CustomActionNode } from "./customActionNode";
 import {CustomTriggerNode} from "./customTriggerNode";
+import { NodeForm } from "./NodeForm";
 
 
 interface Workflow{
@@ -41,11 +42,11 @@ interface Workflow{
 // TODO: make this a server component
 export const WorkflowClientComponent = () => {
   const [workflow, setWorkflow ] = useState<Workflow>();
-  const { id } = useParams();
+  const { id } = useParams<{id: string[]}>();
   useEffect(()=>{
     try{
       console.log("Started fetching...");
-      const workflowId = id;
+      const workflowId = id[0];
       (async()=>{
         const fetchedWorkflow = await fetch(`http://localhost:8000/api/v1/workflow/${workflowId}`);
         const fetchedWorkflowData = await fetchedWorkflow.json();
@@ -124,7 +125,8 @@ export const WorkflowClientComponent = () => {
     }
 
     const addNodeToCanvas = (type: 'actionNode' | 'triggerNode', title: string, icon: string, defaultName: string) => {
-      console.log("type of the node: ", type, "& isTriggerNodePresent: ", isTriggerNodePresent);
+      console.log("type of the node: ", type, "& isTriggerNodePresent: ", isTriggerNodePresent); 
+
       if(type == 'triggerNode' && isTriggerNodePresent){
         // Toaster: This version supprts only 1 trigger node. New updates coming!
         alert('Only 1 trigger node is allowed');
@@ -155,6 +157,15 @@ export const WorkflowClientComponent = () => {
     useEffect(()=>{
       console.log("isOpen changed: ", isOpen)
     }, [isOpen]);
+
+    function formDataHandler(formData: Record<string, any>){
+      
+    }
+
+    function formClosingHandler(){
+      setActiveNodeForm(null);
+    }
+
 
   return(
     <>
@@ -257,6 +268,15 @@ export const WorkflowClientComponent = () => {
               </div>
               <div>
                   {/* Parse the parameters & just go thru them -> each parameter with a React element + all the options */}
+                  {/* Render the component, send a callback -> that callback will take all the objects in a variable -> the variable will be used to add the data to the "nodes" state -> when the cross is pressed or outside the component is pressed and the form is exited from the screen -> we call the callback with the updated values at the last time in the form -> then add those values in the "nodes" state */}
+                  {/* To e.propgate thingy: inside the activeNodeForm -> activeCredentialForm -> When cross clicked use a callback -> when outside clicked that div will live in here */}
+
+                  {/* cmponent that will render the nodes form here -> then add the nodes form -> will take a callback that will update the activeCredentialForm here */}
+                  {/* TODO: later add a global store for state management */}
+                  {/* COMPONENT */} 
+                  {/* send type & title to render right node form */};
+                  {/*  */}
+                  <NodeForm formDataHandler={formDataHandler} formClosingHandler={formClosingHandler} title={activeNodeForm.data.nodeTitle} type={activeNodeForm.type!} />
               </div> 
             </div>
           </div>

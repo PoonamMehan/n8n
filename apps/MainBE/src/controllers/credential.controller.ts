@@ -134,6 +134,25 @@ export async function getACredentialHandler(req: Request, res: Response){
         return res.status(500).send(`Some error occurred on our backend: ${err.message}`);
     }
 }
+
+export const getACredentialWithPlatformHandler = async (req: Request, res: Response)=>{
+	try{
+		const {platform} = req.params;
+		if(!platform){
+			console.log("Incorrect credential platform.");
+			return res.status(400).send(`Give a valid platform to find the credentials for.`);
+		}
+		const allCredentials = await prisma.credentials.findMany({
+			where: {
+				platform: platform 
+			}
+		})
+		return res.status(200).send(allCredentials);
+	}catch(err: any){
+		console.log("Some err occurred on the backend: ", err);
+		res.status(500).send(`Some error happened on the backend while fetching the credentials: ${err.message}`);
+	}
+}
 // get all credentials
 // get particular credential
 
