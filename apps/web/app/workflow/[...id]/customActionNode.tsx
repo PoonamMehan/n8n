@@ -29,4 +29,3 @@ export function N8nStyleActionNode({ data }: NodeProps<CustomActionNode>) {
     </>
   )
 };
-// TODO: onClick=> 

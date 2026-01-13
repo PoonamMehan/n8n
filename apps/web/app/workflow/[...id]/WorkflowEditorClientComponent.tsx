@@ -158,15 +158,16 @@ export const WorkflowClientComponent = () => {
       console.log("isOpen changed: ", isOpen)
     }, [isOpen]);
 
-    function formDataHandler(formData: Record<string, any>){
-      
+    function formDataHandler(formData: Record<string, any>, id: string){
+      console.log("Form Data: ", formData);
+      nodes.forEach((node)=>{
+        if(node.id == id){
+          node.data.executionData = formData;
+        }
+      })
     }
 
-    function formClosingHandler(){
-      setActiveNodeForm(null);
-    }
-
-
+    
   return(
     <>
       {/* Header Section */}
@@ -276,7 +277,7 @@ export const WorkflowClientComponent = () => {
                   {/* COMPONENT */} 
                   {/* send type & title to render right node form */};
                   {/*  */}
-                  <NodeForm formDataHandler={formDataHandler} formClosingHandler={formClosingHandler} title={activeNodeForm.data.nodeTitle} type={activeNodeForm.type!} />
+                  <NodeForm formDataHandler={formDataHandler} title={activeNodeForm.data.nodeTitle} type={activeNodeForm.type!} alreadyFilledValues={activeNodeForm.data.executionData} nodeId={activeNodeForm.id} />
               </div> 
             </div>
           </div>

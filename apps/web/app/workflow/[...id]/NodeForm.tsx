@@ -4,40 +4,91 @@ import { Available_Actions } from "./Available_Actions";
 import {useState, useEffect, useRef} from "react";
 
 interface NodeFormProps {
-  formDataHandler: (formData: Record<string, any>) => void;
-  formClosingHandler: () => void;
-  title: string;
-  type: string;
+  formDataHandler: (formData: Record<string, any>, id: string) => void,
+  title: string,
+  type: string,
+  alreadyFilledValues: Record<string, any>,
+  nodeId: string
 }
 
 
-export const NodeForm = ({ formDataHandler, formClosingHandler, title, type}: NodeFormProps) => {
+export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, nodeId}: NodeFormProps) => {
   const [formValues, setFormValues] = useState<Record<string, any>>({});
   const triggerData = Available_Triggers[title];
   const valuesRef = useRef(formValues);
+  const actionData = Available_Actions[title];
+   const [credentialOptions, setCredentialOptions] = useState<Record<string, any[]>>({});
 
 
   useEffect(() => {
-    if (triggerData) {
+    const loadData = async () => {
       const defaults: Record<string, any> = {};
-      triggerData.parameters.forEach((param) => {
-        defaults[param.label] = param.default;
-      });
-      setFormValues(defaults);
-    }
-  }, [title, triggerData]);
+    
+      if (type === "triggerNode" && triggerData) {
+        triggerData.parameters.forEach((param) => {
+          defaults[param.label] = param.default;
+        });
 
-  const handleInputChange = (label: string, value: string) => {
+        // after adding the default values of the form in our app -> add the values that were previously added by the user
+        Object.entries(alreadyFilledValues).map(([key, val])=>{
+          defaults[key] = val;
+        })
+        setFormValues(defaults);
+      }
+
+      if (type === "actionNode" && actionData) {
+
+        const firstOperationKey = Object.keys(actionData.parameters)[0];
+        const params = actionData.parameters[( firstOperationKey as string )]?.Parameters || [];
+        const newCredOptions: Record<string, any[]> = {};
+
+        for (const param of params) {
+          defaults[param.label] = param.default || "";
+          if (param.isCredential && param.fetch) {
+            try {
+              const res = await fetch(param.fetch.url, { method: param.fetch.method });
+              const data = await res.json(); // [{id: "1", name: "My Bot"}, ...]
+              
+              newCredOptions[param.label] = Array.isArray(data) ? data : [];
+                const fetchedList = Array.isArray(data) ? data : [];
+  
+              newCredOptions[param.label] = fetchedList;
+              if (fetchedList.length > 0) {
+                defaults[param.label] = fetchedList[0].id || fetchedList[0].name;
+              } else {
+                defaults[param.label] = "CREATE_NEW";
+              }
+              
+            } catch (error) {
+              console.error(`Error fetching credentials for ${param.label}`, error);
+              newCredOptions[param.label] = [];
+              defaults[param.label] = "CREATE_NEW";
+            }
+          }
+        }
+        Object.entries(alreadyFilledValues).map(([key, val])=>{
+          defaults[key] = val;
+        })
+        setCredentialOptions(newCredOptions);
+        setFormValues(defaults);
+      }
+    };
+
+    loadData();
+  }, [title, type, triggerData, actionData]);
+
+const handleInputChange = (label: string, value: string, isCredential = false, platform?: string) => {
+    // Special check for the "Create New" option
+    if (isCredential && value === "CREATE_NEW") {
+      console.log(`OPEN MODAL for platform: ${platform}`);
+      // Don't update state here, just open the modal
+      return;
+    }
+
     setFormValues((prev) => ({
       ...prev,
       [label]: value,
     }));
-  };
-
-  const onSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    formDataHandler(formValues); // Pass data back to parent
-    formClosingHandler();
   };
 
   useEffect(()=>{
@@ -46,24 +97,25 @@ export const NodeForm = ({ formDataHandler, formClosingHandler, title, type}: No
 
   useEffect(()=>{
     return ()=>{
-      formDataHandler(valuesRef.current);
+      console.log(" The form Data sent from the NodeForm component: ", valuesRef.current);
+      formDataHandler(valuesRef.current,nodeId);
     }
-  },[])
+  },[]);
+
+  let firstOperationKey;
+  let actionNodeParams;
+  if(actionData){
+    firstOperationKey = Object.keys(actionData.parameters)[0];
+    actionNodeParams = actionData.parameters[(firstOperationKey as string)]?.Parameters || [];
+  }
 
   return type === "triggerNode" && triggerData ? (
     <div className="flex flex-col h-full" onClick={(e)=>{e.stopPropagation()}}>
-      {/* Header */}
+     
       <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
         <h2 className="text-lg font-bold text-gray-800">{triggerData.title}</h2>
-        <button 
-          onClick={(e)=>onSave(e)}
-          className="text-gray-400 hover:text-gray-600"
-        >
-          ✕
-        </button>
+        
       </div>
-
-      {/* Scrollable Form Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
         <p className="text-sm text-gray-500 mb-4">{triggerData.description}</p>
 
@@ -93,7 +145,6 @@ export const NodeForm = ({ formDataHandler, formClosingHandler, title, type}: No
             );
           }
           
-
           else if (val.element === 'select') {
             return (
               <div key={index}>
@@ -137,9 +188,66 @@ export const NodeForm = ({ formDataHandler, formClosingHandler, title, type}: No
         })}
       </div>
     </div>
-  ) : (
+  ) : (actionData && type === "actionNode" && actionNodeParams) ?(
     <>  
+       <form onSubmit={(e)=>e.preventDefault()} className="flex flex-col gap-4 p-4 h-full overflow-y-auto">
+        <div className="border-b pb-2">
+           <h3 className="font-bold text-lg">{actionData.title}</h3>
+           <p className="text-xs text-gray-500">{actionData.defaultName}</p>
+        </div>
+
+        {actionNodeParams.map((param, idx) => {
+          return (
+            <div key={idx} className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-700">{param.label}</label>
+              
+              {param.element === "select" && (
+                <select
+                  className="border border-gray-300 p-2 rounded text-sm focus:outline-none focus:border-blue-500"
+                  value={formValues[param.label] || ""}
+                  onChange={(e) => handleInputChange(param.label, e.target.value, param.isCredential, param.platform)}
+                >
+                
+                  {param.isCredential ? (
+                    <>
+                     
+                      {credentialOptions[param.label]?.map((opt: any) => (
+                        <option key={opt.id} value={opt.id}>{opt.name || opt.id}</option>
+                      ))}
+                  
+                      {credentialOptions[param.label]?.length! > 0  && <option disabled>──────────</option>}
+
+                      <option value="CREATE_NEW" className="text-blue-600 font-bold">
+                        + Create New Credential...
+                      </option>
+                    </>
+                  ) : (
       
+                    param.options?.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))
+                  )}
+                </select>
+              )}
+
+              {param.element === "input" && (
+                <input
+                  type="text"
+                  className="border border-gray-300 p-2 rounded text-sm focus:outline-none focus:border-blue-500"
+                  value={formValues[param.label] || ""}
+                  onChange={(e) => handleInputChange(param.label, e.target.value)}
+                  placeholder={typeof param.default === 'string' ? param.default : ''}
+                />
+              )}
+            </div>
+          );
+        })}
+      </form>
+    </>
+  ):(
+    <>
+      <div>Some wrong form opened.</div>
     </>
   )
+  
 }

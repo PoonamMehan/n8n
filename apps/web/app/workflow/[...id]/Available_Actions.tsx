@@ -2,8 +2,28 @@ interface Actions_Structure {
     title: string,
     description: string,
     defaultName: string,
-    parameters: object,
+    parameters: Record<string, ActionOperation>
     icon: string
+}
+
+interface FetchConfig {
+  url: string;
+  method: "GET" | "POST" | "PUT" | "DELETE";
+}
+
+interface ActionParameterField {
+  label: string;
+  element: "input" | "select" | "textarea" | "checkbox"; 
+  default?: string | number | boolean;
+  options?: string[];
+  isCredential?: boolean;
+  platform?: string; 
+  fetch?: FetchConfig;
+}
+
+interface ActionOperation {
+  Parameters: ActionParameterField[]; 
+  Settings?: object
 }
 
 type Avail_Actions_Obj = Record<string, Actions_Structure>;
@@ -16,7 +36,7 @@ export const Available_Actions: Avail_Actions_Obj = {
 			defaultName: "Send a Chat message",
 			parameters: {
 				"Send a chat action": {
-					"Paramters": [
+					"Parameters": [
 						{
 							label: "Credential to connect with",
 							isCredential: true,
