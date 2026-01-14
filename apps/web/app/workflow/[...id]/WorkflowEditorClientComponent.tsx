@@ -43,10 +43,11 @@ interface Workflow{
 export const WorkflowClientComponent = () => {
   const [workflow, setWorkflow ] = useState<Workflow>();
   const { id } = useParams<{id: string[]}>();
+  const workflowId = id[0];
+  const [ isSaved, setIsSaved ] = useState(true);
   useEffect(()=>{
     try{
       console.log("Started fetching...");
-      const workflowId = id[0];
       (async()=>{
         const fetchedWorkflow = await fetch(`http://localhost:8000/api/v1/workflow/${workflowId}`);
         const fetchedWorkflowData = await fetchedWorkflow.json();
@@ -55,7 +56,12 @@ export const WorkflowClientComponent = () => {
           // TODO: Could not fetch the workflow: Toaster, & redirect maybe on the /home/workflows;
           console.log(`Some error occurred while fetcing the workflow: ${fetchedWorkflowData}`);
         }
+        // set edges and nodes
+        setEdges(fetchedWorkflowData.connections);
+        setNodes(fetchedWorkflowData.nodes);
         console.log("Workflow: ", fetchedWorkflowData);
+        console.log("Workflow Edges: ", fetchedWorkflowData.connections);
+        console.log("Workflow Nodes: ", fetchedWorkflowData.nodes);
         setWorkflow(fetchedWorkflowData);
       })();
     }catch(err: any){
@@ -63,8 +69,34 @@ export const WorkflowClientComponent = () => {
     }     
   },[])
 
-  const saveWorkflow = () => {
-    
+  const saveWorkflow = async () => {
+    //store all the "nodes" & "edges" into the db
+    // 
+
+    console.log("Edges: ", edges);
+    try{
+      const updatedWorkflow = await fetch(`http://localhost:8000/api/v1/workflow/${workflowId}`,{
+      method: "PUT",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        connections: edges,
+        nodes: nodes
+      })
+      } )
+
+      console.log("updatedworkfow: ", updatedWorkflow);
+      if(!updatedWorkflow.ok){
+        setIsSaved(false);
+        return;
+      }
+      setIsSaved(true);
+    }catch(err: any){
+      console.log("Failed to save Workflow in the db.");
+      setIsSaved(false);
+    }
+    //TODO: isSaved has to be checked before the user leaves this page. 
   }
     // /api/v1/workflow/:id      (put, :id) 
     const [isOpen, setIsOpen] = useState(false);
@@ -87,7 +119,12 @@ export const WorkflowClientComponent = () => {
       triggerNode: N8nStyleTriggerNode
     }
     
+    useEffect(()=>{
+      setIsSaved(false);
+    }, [nodes, edges]);
 
+
+  
     // TODO: useEffect(, []) => fetch the workflow and add the nodes to "nodes[]" & connections to "edges[]";
     // 
 
@@ -167,7 +204,6 @@ export const WorkflowClientComponent = () => {
       })
     }
 
-    
   return(
     <>
       {/* Header Section */}

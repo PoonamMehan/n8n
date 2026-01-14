@@ -26,7 +26,14 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
     
       if (type === "triggerNode" && triggerData) {
         triggerData.parameters.forEach((param) => {
-          defaults[param.label] = param.default;
+          if (param.element === 'custom_webhook_url_renderer') {
+            console
+             defaults[param.label] = `${param.default}${nodeId}`;
+          }else if (param.label === "Path") {
+            defaults[param.label] = nodeId;
+          }else {
+             defaults[param.label] = param.default;
+          }
         });
 
         // after adding the default values of the form in our app -> add the values that were previously added by the user
@@ -75,7 +82,7 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
     };
 
     loadData();
-  }, [title, type, triggerData, actionData]);
+  }, [title, type, triggerData, actionData]); 
 
 const handleInputChange = (label: string, value: string, isCredential = false, platform?: string) => {
     // Special check for the "Create New" option
@@ -114,7 +121,6 @@ const handleInputChange = (label: string, value: string, isCredential = false, p
      
       <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
         <h2 className="text-lg font-bold text-gray-800">{triggerData.title}</h2>
-        
       </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
         <p className="text-sm text-gray-500 mb-4">{triggerData.description}</p>
@@ -177,7 +183,7 @@ const handleInputChange = (label: string, value: string, isCredential = false, p
                   </div>
                  
                   <div className="flex-1 px-3 py-2 text-xs text-gray-600 truncate font-mono select-all">
-                    {formValues[val.label] || val.default}
+                    {formValues[val.label] || `${val.default}${nodeId}`}
                   </div>
                 </div>
               </div>

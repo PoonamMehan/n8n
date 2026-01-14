@@ -77,10 +77,15 @@ export async function getParticularWorkflow(req:Request, res:Response){
 }
 
 export async function editParticularWorkflow(req:Request, res:Response){
-    const {title, enabled, nodes, connections, id} = req.body;
+    const {title, enabled, nodes, connections} = req.body;
+		const { id } = req.params;
     if(!id){
         return res.status(400).send("No such workfl exists with this userId.");
     }
+		const workflowId = Number(id);
+	  if(Number.isNaN(workflowId)){
+			return res.status(450).send("No workflow exists with this id.");
+		}
 
     let finalData: FinalData = {};
     if(title){
@@ -99,7 +104,7 @@ export async function editParticularWorkflow(req:Request, res:Response){
     try{
         const updatedWorkflow = await prisma.workflow.update({
             where: {
-                id: id
+                id: workflowId
             },
             data: finalData
         })
