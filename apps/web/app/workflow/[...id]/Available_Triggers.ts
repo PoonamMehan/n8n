@@ -16,8 +16,6 @@ export interface TriggerParameter {
   readOnly?: boolean;
 }
 
-
-
 type Avail_Triggers_Obj = Record<string, Triggers_Structure>;
 
 // object containing the Available triggers

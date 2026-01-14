@@ -2,6 +2,7 @@
 import { Available_Triggers } from "./Available_Triggers";
 import { Available_Actions } from "./Available_Actions";
 import {useState, useEffect, useRef} from "react";
+import { Credential_DbTable_Structure, Available_Credential_Apps, Credentials_Structure } from "./Available_Credentials";
 
 interface NodeFormProps {
   formDataHandler: (formData: Record<string, any>, id: string) => void,
@@ -11,14 +12,17 @@ interface NodeFormProps {
   nodeId: string
 }
 
-
 export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, nodeId}: NodeFormProps) => {
   const [formValues, setFormValues] = useState<Record<string, any>>({});
   const triggerData = Available_Triggers[title];
   const valuesRef = useRef(formValues);
   const actionData = Available_Actions[title];
-   const [credentialOptions, setCredentialOptions] = useState<Record<string, any[]>>({});
+  const [credentialOptions, setCredentialOptions] = useState<Record<string, any[]>>({});
 
+
+  const [credentialsData, setCredentialsData] = useState< Credentials_Structure | null>(null);
+  const [isCredentialFormOpen, setIsCredentialFormOpen] = useState(false);
+  const [credentialsFormValues, setCredentialsFormValues] = useState<Credential_DbTable_Structure>(); 
 
   useEffect(() => {
     const loadData = async () => {
@@ -55,9 +59,7 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
             try {
               const res = await fetch(param.fetch.url, { method: param.fetch.method });
               const data = await res.json(); // [{id: "1", name: "My Bot"}, ...]
-              
-              newCredOptions[param.label] = Array.isArray(data) ? data : [];
-                const fetchedList = Array.isArray(data) ? data : [];
+              const fetchedList = Array.isArray(data) ? data : [];
   
               newCredOptions[param.label] = fetchedList;
               if (fetchedList.length > 0) {
@@ -108,6 +110,23 @@ const handleInputChange = (label: string, value: string, isCredential = false, p
       formDataHandler(valuesRef.current,nodeId);
     }
   },[]);
+
+  const openCredentialCreationForm = (credentialPlatform: string)=>{
+    // setthe state "isCredentialFormOpen" to true
+    // open the modal
+    // let the user add the values -> "Save" button clicked -> add to the db -> then upon the exit of the modal -> setIsCredentialFormOpen(false) -> refetch all the credentials -> and get the latest credential (maybe just one credential fetch request) -> select the latest id as the selected credetnial -> every other credential, which is selected has to be selected using its id 
+    
+    let defaults: Record<string, any> = {};
+    const  = Available_Credential_Apps[credentialPlatform]!;
+    
+    // for naming the credential check all the credentials present before.
+    credentialsData
+
+    
+    // if new form is opening via Create Credential -> then add the default values from "Available_Credential_Apps[title]!" "
+    setIsCredentialFormOpen(true);
+
+  } 
 
   let firstOperationKey;
   let actionNodeParams;
@@ -223,8 +242,8 @@ const handleInputChange = (label: string, value: string, isCredential = false, p
                   
                       {credentialOptions[param.label]?.length! > 0  && <option disabled>──────────</option>}
 
-                      <option value="CREATE_NEW" className="text-blue-600 font-bold">
-                        + Create New Credential...
+                      <option value="CREATE_NEW" className="text-blue-600 font-bold" onClick={(e)=>{e.preventDefault(); openCredentialCreationForm(param.platform!)}} > {/*we have to make sure that it is not selectable, just clickable once there are other credentials to choose from*/} 
+                        + Create New Credential
                       </option>
                     </>
                   ) : (
