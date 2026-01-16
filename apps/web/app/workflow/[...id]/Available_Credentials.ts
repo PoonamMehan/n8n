@@ -9,7 +9,6 @@ export interface Credentials_Structure {
 type Avail_Credentials_Obj = Record<string, Credentials_Structure>;
 
 export interface Credential_DbTable_Structure {
-  id: number,
   title: string, //the actual name to be shown on the top
   platform: string, //the name given by the node forms to find the credential 
   data: Record<string, any>   //have description as one of the keys

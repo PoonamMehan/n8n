@@ -21,47 +21,54 @@ export async function addCredentialHandler(req: Request, res: Response){
     // finalData.usersSharing = d.usersSharing;
     // according to the name of the credential came in payload, Predefined Interface, take that and get all the credential info
 
-    //WHEN WE WILL USE THOSE CREDENTIALS THEN WE WILL THRW THE ERROR THAT THE CREDENTIAL IS NOT COMPLETE.
+    //WHEN  WE WILL USE THOSE CREDENTIALS THEN WE WILL THRW THE ERROR THAT THE CREDENTIAL IS NOT COMPLETE.
+    console.log(d);
+
+    if(!d.title || !d.platform || !d.data || !d.userId){
+        return res.status(400).send({errorMesasge: "Invalid payload sent."});
+    }
     try{
         const addedCredential = await prisma.credentials.create({
             data: {
                 title: d.title,
                 platform: d.platform,
                 data: d.data,
-                user: d.userId
+                userId: d.userId
             }
         })
 
         if(addedCredential){
-            res.status(200).send(addedCredential);
+            return res.status(200).send(addedCredential);
         }else{
-            res.send(500).send(`Credential wasn't properly added to the db, db reply: ${addedCredential}`)
+            return res.send(500).send(`Credential wasn't properly added to the db, db reply: ${addedCredential}`)
         }
     }catch(err){
-        res.status(500).send(`Some error occured while making entry to the db. Err: ${err}`);
+        return res.status(500).send(`Some error occured while making entry to the db. Err: ${err}`);
     }
 }
 
 export function deleteCredentialHandler (req: Request, res: Response){
     //delete the credential based on its id
-    const {id} = req.body;
-
-    if(id){
+    const {id} = req.params;
+    const credId = Number(id);
+    if(!Number.isNaN(credId)){
         try{
             const fetchedCred = prisma.credentials.delete({
                 where: {
-                    id: id
+                    id: credId
                 }
             })
             res.status(200).send(fetchedCred);
         }catch(err: any){
             if(err){
                 if(err.code === 'P2025'){
-                    res.status(400).send("No credential with this id existed in the db.");
+                    return res.status(400).send("No credential with this id existed in the db.");
                 }
             }
-            res.status(500).send(`Some error ocurred while deleting the credential from the db: ${err}`);
+            return res.status(500).send(`Some error ocurred while deleting the credential from the db: ${err}`);
         }
+    }else{
+
     }
 }
 

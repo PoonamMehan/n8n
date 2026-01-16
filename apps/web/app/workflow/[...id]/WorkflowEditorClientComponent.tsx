@@ -300,7 +300,7 @@ export const WorkflowClientComponent = () => {
               {/* THE NODE FORM CONTENT GOES HERE */}
               <div className="p-6">
                  {/* You can now pass activeNode.id or activeNode.data to your form component */}
-                 <h2 className="text-lg font-bold">Configure {activeNodeForm.data.nodeName}</h2>
+                 <h2 className="text-lg font-bold">{activeNodeForm.data.nodeName}</h2>
                  <button className="absolute top-4 right-4" onClick={() => setActiveNodeForm(null)}><XMarkIcon className="h-6 w-6"/></button>
               </div>
               <div>
