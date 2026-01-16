@@ -28,7 +28,7 @@ export const Available_Triggers: Avail_Triggers_Obj = {
 							{
 							label: "Webhook URL",
 							element: "custom_webhook_url_renderer", 
-							default: "http://localhost:8000/webhook",
+							default: "http://localhost:8000/webhook/",
 							description: "This is the URL you need to trigger to start this workflow."
 							},
 							{
