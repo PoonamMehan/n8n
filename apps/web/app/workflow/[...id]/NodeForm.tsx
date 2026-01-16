@@ -2,7 +2,7 @@
 import { Available_Triggers } from "./Available_Triggers";
 import { Available_Actions } from "./Available_Actions";
 import {useState, useEffect, useRef} from "react";
-import { Credential_DbTable_Structure, Available_Credential_Apps, Credentials_Structure } from "./Available_Credentials";
+import { Available_Credential_Apps } from "./Available_Credentials";
 
 interface NodeFormProps {
   formDataHandler: (formData: Record<string, any>, id: string) => void,
@@ -185,7 +185,7 @@ const handleInputChange = (label: string, value: string, isCredential = false, p
       }
       // We need to find which parameter in the main form triggered this modal
       // to update the specific dropdown list.
-      const actionParams = actionData?.parameters[Object.keys(actionData.parameters)[0]?]?.Parameters || [];
+      const actionParams = actionData?.parameters[Object.keys(actionData.parameters)[0]!]?.Parameters || [];
       const parentParam = actionParams.find(p => p.platform === currentCredentialPlatform);
 
       if (parentParam) {
