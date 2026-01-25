@@ -233,6 +233,7 @@ export type WorkflowWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Workflow"> | Date | string
   userId?: Prisma.StringFilter<"Workflow"> | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  webhook?: Prisma.XOR<Prisma.WebhookNullableScalarRelationFilter, Prisma.WebhookWhereInput> | null
 }
 
 export type WorkflowOrderByWithRelationInput = {
@@ -245,6 +246,7 @@ export type WorkflowOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
+  webhook?: Prisma.WebhookOrderByWithRelationInput
 }
 
 export type WorkflowWhereUniqueInput = Prisma.AtLeast<{
@@ -260,6 +262,7 @@ export type WorkflowWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Workflow"> | Date | string
   userId?: Prisma.StringFilter<"Workflow"> | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  webhook?: Prisma.XOR<Prisma.WebhookNullableScalarRelationFilter, Prisma.WebhookWhereInput> | null
 }, "id" | "title">
 
 export type WorkflowOrderByWithAggregationInput = {
@@ -300,6 +303,7 @@ export type WorkflowCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutWorkflowsInput
+  webhook?: Prisma.WebhookCreateNestedOneWithoutCorresponding_workflowInput
 }
 
 export type WorkflowUncheckedCreateInput = {
@@ -311,6 +315,7 @@ export type WorkflowUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   userId: string
+  webhook?: Prisma.WebhookUncheckedCreateNestedOneWithoutCorresponding_workflowInput
 }
 
 export type WorkflowUpdateInput = {
@@ -321,6 +326,7 @@ export type WorkflowUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutWorkflowsNestedInput
+  webhook?: Prisma.WebhookUpdateOneWithoutCorresponding_workflowNestedInput
 }
 
 export type WorkflowUncheckedUpdateInput = {
@@ -332,6 +338,7 @@ export type WorkflowUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  webhook?: Prisma.WebhookUncheckedUpdateOneWithoutCorresponding_workflowNestedInput
 }
 
 export type WorkflowCreateManyInput = {
@@ -402,6 +409,11 @@ export type WorkflowSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
 }
 
+export type WorkflowScalarRelationFilter = {
+  is?: Prisma.WorkflowWhereInput
+  isNot?: Prisma.WorkflowWhereInput
+}
+
 export type WorkflowListRelationFilter = {
   every?: Prisma.WorkflowWhereInput
   some?: Prisma.WorkflowWhereInput
@@ -430,6 +442,20 @@ export type IntFieldUpdateOperationsInput = {
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type WorkflowCreateNestedOneWithoutWebhookInput = {
+  create?: Prisma.XOR<Prisma.WorkflowCreateWithoutWebhookInput, Prisma.WorkflowUncheckedCreateWithoutWebhookInput>
+  connectOrCreate?: Prisma.WorkflowCreateOrConnectWithoutWebhookInput
+  connect?: Prisma.WorkflowWhereUniqueInput
+}
+
+export type WorkflowUpdateOneRequiredWithoutWebhookNestedInput = {
+  create?: Prisma.XOR<Prisma.WorkflowCreateWithoutWebhookInput, Prisma.WorkflowUncheckedCreateWithoutWebhookInput>
+  connectOrCreate?: Prisma.WorkflowCreateOrConnectWithoutWebhookInput
+  upsert?: Prisma.WorkflowUpsertWithoutWebhookInput
+  connect?: Prisma.WorkflowWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.WorkflowUpdateToOneWithWhereWithoutWebhookInput, Prisma.WorkflowUpdateWithoutWebhookInput>, Prisma.WorkflowUncheckedUpdateWithoutWebhookInput>
 }
 
 export type WorkflowCreateNestedManyWithoutUserInput = {
@@ -474,6 +500,64 @@ export type WorkflowUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.WorkflowScalarWhereInput | Prisma.WorkflowScalarWhereInput[]
 }
 
+export type WorkflowCreateWithoutWebhookInput = {
+  title: string
+  enabled?: boolean
+  nodes?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  connections?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutWorkflowsInput
+}
+
+export type WorkflowUncheckedCreateWithoutWebhookInput = {
+  id?: number
+  title: string
+  enabled?: boolean
+  nodes?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  connections?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  userId: string
+}
+
+export type WorkflowCreateOrConnectWithoutWebhookInput = {
+  where: Prisma.WorkflowWhereUniqueInput
+  create: Prisma.XOR<Prisma.WorkflowCreateWithoutWebhookInput, Prisma.WorkflowUncheckedCreateWithoutWebhookInput>
+}
+
+export type WorkflowUpsertWithoutWebhookInput = {
+  update: Prisma.XOR<Prisma.WorkflowUpdateWithoutWebhookInput, Prisma.WorkflowUncheckedUpdateWithoutWebhookInput>
+  create: Prisma.XOR<Prisma.WorkflowCreateWithoutWebhookInput, Prisma.WorkflowUncheckedCreateWithoutWebhookInput>
+  where?: Prisma.WorkflowWhereInput
+}
+
+export type WorkflowUpdateToOneWithWhereWithoutWebhookInput = {
+  where?: Prisma.WorkflowWhereInput
+  data: Prisma.XOR<Prisma.WorkflowUpdateWithoutWebhookInput, Prisma.WorkflowUncheckedUpdateWithoutWebhookInput>
+}
+
+export type WorkflowUpdateWithoutWebhookInput = {
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  nodes?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  connections?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutWorkflowsNestedInput
+}
+
+export type WorkflowUncheckedUpdateWithoutWebhookInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  nodes?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  connections?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+}
+
 export type WorkflowCreateWithoutUserInput = {
   title: string
   enabled?: boolean
@@ -481,6 +565,7 @@ export type WorkflowCreateWithoutUserInput = {
   connections?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  webhook?: Prisma.WebhookCreateNestedOneWithoutCorresponding_workflowInput
 }
 
 export type WorkflowUncheckedCreateWithoutUserInput = {
@@ -491,6 +576,7 @@ export type WorkflowUncheckedCreateWithoutUserInput = {
   connections?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  webhook?: Prisma.WebhookUncheckedCreateNestedOneWithoutCorresponding_workflowInput
 }
 
 export type WorkflowCreateOrConnectWithoutUserInput = {
@@ -550,6 +636,7 @@ export type WorkflowUpdateWithoutUserInput = {
   connections?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  webhook?: Prisma.WebhookUpdateOneWithoutCorresponding_workflowNestedInput
 }
 
 export type WorkflowUncheckedUpdateWithoutUserInput = {
@@ -560,6 +647,7 @@ export type WorkflowUncheckedUpdateWithoutUserInput = {
   connections?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  webhook?: Prisma.WebhookUncheckedUpdateOneWithoutCorresponding_workflowNestedInput
 }
 
 export type WorkflowUncheckedUpdateManyWithoutUserInput = {
@@ -584,6 +672,7 @@ export type WorkflowSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   updatedAt?: boolean
   userId?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  webhook?: boolean | Prisma.Workflow$webhookArgs<ExtArgs>
 }, ExtArgs["result"]["workflow"]>
 
 export type WorkflowSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -624,6 +713,7 @@ export type WorkflowSelectScalar = {
 export type WorkflowOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "enabled" | "nodes" | "connections" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["workflow"]>
 export type WorkflowInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  webhook?: boolean | Prisma.Workflow$webhookArgs<ExtArgs>
 }
 export type WorkflowIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -636,6 +726,7 @@ export type $WorkflowPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   name: "Workflow"
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
+    webhook: Prisma.$WebhookPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1041,6 +1132,7 @@ readonly fields: WorkflowFieldRefs;
 export interface Prisma__WorkflowClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  webhook<T extends Prisma.Workflow$webhookArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workflow$webhookArgs<ExtArgs>>): Prisma.Prisma__WebhookClient<runtime.Types.Result.GetResult<Prisma.$WebhookPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1471,6 +1563,25 @@ export type WorkflowDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Limit how many Workflows to delete.
    */
   limit?: number
+}
+
+/**
+ * Workflow.webhook
+ */
+export type Workflow$webhookArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Webhook
+   */
+  select?: Prisma.WebhookSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Webhook
+   */
+  omit?: Prisma.WebhookOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WebhookInclude<ExtArgs> | null
+  where?: Prisma.WebhookWhereInput
 }
 
 /**

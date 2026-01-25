@@ -85,7 +85,7 @@ export const WorkflowClientComponent = () => {
         nodes: nodes
       })
       } )
-
+      
       console.log("updatedworkfow: ", updatedWorkflow);
       if(!updatedWorkflow.ok){
         setIsSaved(false);

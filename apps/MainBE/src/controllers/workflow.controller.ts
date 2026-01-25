@@ -35,10 +35,11 @@ export async function createWorkflow(req:Request, res:Response){
 					"userId": userId
 			}
 			});
-			res.status(200).send(`Successfully entry made in the workflow table. Data: ${JSON.stringify(workflow)}`);
+
+		return res.status(200).send(`Successfully entry made in the workflow table. Data: ${JSON.stringify(workflow)}`);
 	}catch(error){
 			console.log("Error while making an entry in the Workflow table: ", error);
-			res.status(500).send(`Error happened at the backend while creating an entry in the Workflow db. Err: ${error}`);
+			return res.status(500).send(`Error happened at the backend while creating an entry in the Workflow db. Err: ${error}`);
 	}
 }
 
@@ -72,7 +73,8 @@ export async function getParticularWorkflow(req:Request, res:Response){
 				res.status(400).send("No record found with this id!")
 		}
 	}catch(err: any){
-			res.status(500).send(`Some error occurred while fetching the workflow from the db. Err: ${err.message}`)
+		console.log("Error fetching workflow: ", err);
+			res.status(500).send({success: false, data: null, error: `Some error occurred while fetching the workflow from the db. Err: ${err.message}`})
 	}
 }
 
@@ -102,18 +104,40 @@ export async function editParticularWorkflow(req:Request, res:Response){
     }
 
     try{
-        const updatedWorkflow = await prisma.workflow.update({
-            where: {
-                id: workflowId
-            },
-            data: finalData
-        })
+			// TODO: add a transaction here:
+			const updatedWorkflow = await prisma.workflow.update({
+					where: {
+							id: workflowId
+					},
+					data: finalData
+			})
 
-        res.status(200).send(updatedWorkflow);
+			//TODO: ideally this should be a transaction
+			if(finalData.nodes){
+				finalData.nodes.forEach(async (node: any) => {
+					if(node.type == "triggerNode" && node.data.nodeTitle == "Webhook"){
+						const savedWebhook = await prisma.webhook.upsert({
+							where: {
+								id: node.id
+							},
+							update: {path: node.data.executionData.Path}, //TODO: maybe make these field names consistent and lowercased/camel cased
+							create: {
+								id: node.id,
+								corresponding_workflow_id: workflowId,
+								path: node.id
+							}
+						})
+					}
+				})
+			}
+			
+			// if this workflow has a webhook trigger, then we need to create a webhook entry in the "webhook" table.
+			
+      return res.status(200).send(updatedWorkflow);
     }catch(err: any){
         if(err){
             if(err.code === 'P2025'){
-                res.status(500).send(`No entry in db found with this id. Err: ${err}`);
+                return res.status(500).send(`No entry in db found with this id. Err: ${err}`);
             }
         }
         console.log(`Error happened while trying to update the row in db: ${err}`);

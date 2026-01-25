@@ -20,58 +20,65 @@ enum AllWebhookMethods {
   PUT
 }
 
-model Workflow{
-  id            Int      @id @default(autoincrement())
-  title         String   @unique
-  enabled       Boolean  @default(false)
-  nodes         Json     @db.JsonB       @default("{}")
-  connections   Json     @db.JsonB       @default("{}")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt      @default(now())
-  userId        String   
-  user          User      @relation(fields: [userId], references: [id])
+model Workflow {
+  id          Int      @id @default(autoincrement())
+  title       String   @unique
+  enabled     Boolean  @default(false)
+  nodes       Json     @default("{}") @db.JsonB
+  connections Json     @default("{}") @db.JsonB
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  webhook     Webhook?
 }
+
 //TODO: we can add ProjectId (which is just projectname) in Workflow table
 
-model Webhook{
-  id                              Int                 @id  @default(autoincrement())
-  title                           String 
-  production_url                  String
-  http_method                     AllWebhookMethods   @default(POST)
-  path                            String
-  authentication_method           String
-  authentication_credentials_id   Int?
-  corresponding_workflow_id       Int  
-  response_code                   Int?
-  no_response_body                Boolean?
-  response_data                   Json?                @db.JsonB
-  allowed_origins                 Json?                @db.JsonB
-  response_headers                Json?                @db.JsonB
+// TODO: I think we don't need to make id field an index (@id)
+model Webhook {
+  id                        String   @id @default(uuid())
+  // title                         String
+  // production_url                String
+  // http_method                   AllWebhookMethods @default(POST)
+  path                          String            @unique //we will use this to find the webhook
+  // authentication                String
+  // authentication_method         String?
+  // authentication_credentials_id Int?
+  corresponding_workflow_id Int      @unique
+  // respond                       String
+  // response_code                 Int?
+  // no_response_body              Boolean?
+  // response_data                 Json?             @db.JsonB
+  // allowed_origins               Json?             @db.JsonB
+  // response_headers              Json?             @db.JsonB
+  corresponding_workflow    Workflow @relation(fields: [corresponding_workflow_id], references: [id], onDelete: Cascade)
 }
+
 // SHOULD THE TITLE BE UNIQUE?
 // SHOULD THE PRODUCTION TITLE BE UNIQUE? 
 
-model Credentials{
-  id          Int       @id            @default(autoincrement())
-  title       String    
-  platform    String
-  data        Json      @db.JsonB
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt      @default(now())
-  userId      String  
-  user        User      @relation(fields: [userId], references: [id])
+model Credentials {
+  id        Int      @id @default(autoincrement())
+  title     String
+  platform  String
+  data      Json     @db.JsonB
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
 
   @@index([platform])
 }
 
-model User{
-  id           String       @id  @default(uuid())
-  username     String       @unique
-  email        String       @unique 
-  password     String       
-  sessions     String[]     @default([])    
-  workflows    Workflow[]   
-  credentials  Credentials[]  
+model User {
+  id          String        @id @default(uuid())
+  username    String        @unique
+  email       String        @unique
+  password    String
+  sessions    String[]      @default([])
+  workflows   Workflow[]
+  credentials Credentials[]
 }
 
 // model Available_Triggers{

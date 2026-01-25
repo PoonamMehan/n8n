@@ -1,0 +1,26 @@
+{
+  "name": "ExecutionBE",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node dist/index.js",
+    "build": "tsc -b",
+    "dev": "tsx watch src/index.ts"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace: *"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@repo/db": "workspace:^",
+    "kafkajs": "^2.2.4",
+    "tsc": "^2.0.4",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "type": "module"
+}

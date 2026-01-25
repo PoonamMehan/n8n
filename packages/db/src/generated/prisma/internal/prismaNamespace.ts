@@ -758,18 +758,8 @@ export type WorkflowScalarFieldEnum = (typeof WorkflowScalarFieldEnum)[keyof typ
 
 export const WebhookScalarFieldEnum = {
   id: 'id',
-  title: 'title',
-  production_url: 'production_url',
-  http_method: 'http_method',
   path: 'path',
-  authentication_method: 'authentication_method',
-  authentication_credentials_id: 'authentication_credentials_id',
-  corresponding_workflow_id: 'corresponding_workflow_id',
-  response_code: 'response_code',
-  no_response_body: 'no_response_body',
-  response_data: 'response_data',
-  allowed_origins: 'allowed_origins',
-  response_headers: 'response_headers'
+  corresponding_workflow_id: 'corresponding_workflow_id'
 } as const
 
 export type WebhookScalarFieldEnum = (typeof WebhookScalarFieldEnum)[keyof typeof WebhookScalarFieldEnum]
@@ -814,14 +804,6 @@ export const JsonNullValueInput = {
 export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
-export const NullableJsonNullValueInput = {
-  DbNull: DbNull,
-  JsonNull: JsonNull
-} as const
-
-export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
-
-
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -837,14 +819,6 @@ export const JsonNullValueFilter = {
 } as const
 
 export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
-
-
-export const NullsOrder = {
-  first: 'first',
-  last: 'last'
-} as const
-
-export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
 
@@ -913,20 +887,6 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
-    
-
-
-/**
- * Reference to a field of type 'AllWebhookMethods'
- */
-export type EnumAllWebhookMethodsFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AllWebhookMethods'>
-    
-
-
-/**
- * Reference to a field of type 'AllWebhookMethods[]'
- */
-export type ListEnumAllWebhookMethodsFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AllWebhookMethods[]'>
     
 
 

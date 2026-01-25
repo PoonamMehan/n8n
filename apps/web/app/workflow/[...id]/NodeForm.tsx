@@ -140,7 +140,7 @@ const handleInputChange = (label: string, value: string, isCredential = false, p
     
     // Set internal name for the credential (shown in dropdowns)
     defaults["name"] = `${credAppConfig.defaultName} ${existingCount + 1}`;
-      console.log("NAME: ",defaults["name"])
+    console.log("NAME: ",defaults["name"])
     // Set defaults for the credential fields (Access Token, etc.)
     credAppConfig.parameters.forEach(param => {
       defaults[param.label] = param.default;

@@ -27,117 +27,57 @@ export type AggregateWebhook = {
 }
 
 export type WebhookAvgAggregateOutputType = {
-  id: number | null
-  authentication_credentials_id: number | null
   corresponding_workflow_id: number | null
-  response_code: number | null
 }
 
 export type WebhookSumAggregateOutputType = {
-  id: number | null
-  authentication_credentials_id: number | null
   corresponding_workflow_id: number | null
-  response_code: number | null
 }
 
 export type WebhookMinAggregateOutputType = {
-  id: number | null
-  title: string | null
-  production_url: string | null
-  http_method: $Enums.AllWebhookMethods | null
+  id: string | null
   path: string | null
-  authentication_method: string | null
-  authentication_credentials_id: number | null
   corresponding_workflow_id: number | null
-  response_code: number | null
-  no_response_body: boolean | null
 }
 
 export type WebhookMaxAggregateOutputType = {
-  id: number | null
-  title: string | null
-  production_url: string | null
-  http_method: $Enums.AllWebhookMethods | null
+  id: string | null
   path: string | null
-  authentication_method: string | null
-  authentication_credentials_id: number | null
   corresponding_workflow_id: number | null
-  response_code: number | null
-  no_response_body: boolean | null
 }
 
 export type WebhookCountAggregateOutputType = {
   id: number
-  title: number
-  production_url: number
-  http_method: number
   path: number
-  authentication_method: number
-  authentication_credentials_id: number
   corresponding_workflow_id: number
-  response_code: number
-  no_response_body: number
-  response_data: number
-  allowed_origins: number
-  response_headers: number
   _all: number
 }
 
 
 export type WebhookAvgAggregateInputType = {
-  id?: true
-  authentication_credentials_id?: true
   corresponding_workflow_id?: true
-  response_code?: true
 }
 
 export type WebhookSumAggregateInputType = {
-  id?: true
-  authentication_credentials_id?: true
   corresponding_workflow_id?: true
-  response_code?: true
 }
 
 export type WebhookMinAggregateInputType = {
   id?: true
-  title?: true
-  production_url?: true
-  http_method?: true
   path?: true
-  authentication_method?: true
-  authentication_credentials_id?: true
   corresponding_workflow_id?: true
-  response_code?: true
-  no_response_body?: true
 }
 
 export type WebhookMaxAggregateInputType = {
   id?: true
-  title?: true
-  production_url?: true
-  http_method?: true
   path?: true
-  authentication_method?: true
-  authentication_credentials_id?: true
   corresponding_workflow_id?: true
-  response_code?: true
-  no_response_body?: true
 }
 
 export type WebhookCountAggregateInputType = {
   id?: true
-  title?: true
-  production_url?: true
-  http_method?: true
   path?: true
-  authentication_method?: true
-  authentication_credentials_id?: true
   corresponding_workflow_id?: true
-  response_code?: true
-  no_response_body?: true
-  response_data?: true
-  allowed_origins?: true
-  response_headers?: true
   _all?: true
 }
 
@@ -228,19 +168,9 @@ export type WebhookGroupByArgs<ExtArgs extends runtime.Types.Extensions.Internal
 }
 
 export type WebhookGroupByOutputType = {
-  id: number
-  title: string
-  production_url: string
-  http_method: $Enums.AllWebhookMethods
+  id: string
   path: string
-  authentication_method: string
-  authentication_credentials_id: number | null
   corresponding_workflow_id: number
-  response_code: number | null
-  no_response_body: boolean | null
-  response_data: runtime.JsonValue | null
-  allowed_origins: runtime.JsonValue | null
-  response_headers: runtime.JsonValue | null
   _count: WebhookCountAggregateOutputType | null
   _avg: WebhookAvgAggregateOutputType | null
   _sum: WebhookSumAggregateOutputType | null
@@ -267,70 +197,33 @@ export type WebhookWhereInput = {
   AND?: Prisma.WebhookWhereInput | Prisma.WebhookWhereInput[]
   OR?: Prisma.WebhookWhereInput[]
   NOT?: Prisma.WebhookWhereInput | Prisma.WebhookWhereInput[]
-  id?: Prisma.IntFilter<"Webhook"> | number
-  title?: Prisma.StringFilter<"Webhook"> | string
-  production_url?: Prisma.StringFilter<"Webhook"> | string
-  http_method?: Prisma.EnumAllWebhookMethodsFilter<"Webhook"> | $Enums.AllWebhookMethods
+  id?: Prisma.StringFilter<"Webhook"> | string
   path?: Prisma.StringFilter<"Webhook"> | string
-  authentication_method?: Prisma.StringFilter<"Webhook"> | string
-  authentication_credentials_id?: Prisma.IntNullableFilter<"Webhook"> | number | null
   corresponding_workflow_id?: Prisma.IntFilter<"Webhook"> | number
-  response_code?: Prisma.IntNullableFilter<"Webhook"> | number | null
-  no_response_body?: Prisma.BoolNullableFilter<"Webhook"> | boolean | null
-  response_data?: Prisma.JsonNullableFilter<"Webhook">
-  allowed_origins?: Prisma.JsonNullableFilter<"Webhook">
-  response_headers?: Prisma.JsonNullableFilter<"Webhook">
+  corresponding_workflow?: Prisma.XOR<Prisma.WorkflowScalarRelationFilter, Prisma.WorkflowWhereInput>
 }
 
 export type WebhookOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  title?: Prisma.SortOrder
-  production_url?: Prisma.SortOrder
-  http_method?: Prisma.SortOrder
   path?: Prisma.SortOrder
-  authentication_method?: Prisma.SortOrder
-  authentication_credentials_id?: Prisma.SortOrderInput | Prisma.SortOrder
   corresponding_workflow_id?: Prisma.SortOrder
-  response_code?: Prisma.SortOrderInput | Prisma.SortOrder
-  no_response_body?: Prisma.SortOrderInput | Prisma.SortOrder
-  response_data?: Prisma.SortOrderInput | Prisma.SortOrder
-  allowed_origins?: Prisma.SortOrderInput | Prisma.SortOrder
-  response_headers?: Prisma.SortOrderInput | Prisma.SortOrder
+  corresponding_workflow?: Prisma.WorkflowOrderByWithRelationInput
 }
 
 export type WebhookWhereUniqueInput = Prisma.AtLeast<{
-  id?: number
+  id?: string
+  path?: string
+  corresponding_workflow_id?: number
   AND?: Prisma.WebhookWhereInput | Prisma.WebhookWhereInput[]
   OR?: Prisma.WebhookWhereInput[]
   NOT?: Prisma.WebhookWhereInput | Prisma.WebhookWhereInput[]
-  title?: Prisma.StringFilter<"Webhook"> | string
-  production_url?: Prisma.StringFilter<"Webhook"> | string
-  http_method?: Prisma.EnumAllWebhookMethodsFilter<"Webhook"> | $Enums.AllWebhookMethods
-  path?: Prisma.StringFilter<"Webhook"> | string
-  authentication_method?: Prisma.StringFilter<"Webhook"> | string
-  authentication_credentials_id?: Prisma.IntNullableFilter<"Webhook"> | number | null
-  corresponding_workflow_id?: Prisma.IntFilter<"Webhook"> | number
-  response_code?: Prisma.IntNullableFilter<"Webhook"> | number | null
-  no_response_body?: Prisma.BoolNullableFilter<"Webhook"> | boolean | null
-  response_data?: Prisma.JsonNullableFilter<"Webhook">
-  allowed_origins?: Prisma.JsonNullableFilter<"Webhook">
-  response_headers?: Prisma.JsonNullableFilter<"Webhook">
-}, "id">
+  corresponding_workflow?: Prisma.XOR<Prisma.WorkflowScalarRelationFilter, Prisma.WorkflowWhereInput>
+}, "id" | "path" | "corresponding_workflow_id">
 
 export type WebhookOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  title?: Prisma.SortOrder
-  production_url?: Prisma.SortOrder
-  http_method?: Prisma.SortOrder
   path?: Prisma.SortOrder
-  authentication_method?: Prisma.SortOrder
-  authentication_credentials_id?: Prisma.SortOrderInput | Prisma.SortOrder
   corresponding_workflow_id?: Prisma.SortOrder
-  response_code?: Prisma.SortOrderInput | Prisma.SortOrder
-  no_response_body?: Prisma.SortOrderInput | Prisma.SortOrder
-  response_data?: Prisma.SortOrderInput | Prisma.SortOrder
-  allowed_origins?: Prisma.SortOrderInput | Prisma.SortOrder
-  response_headers?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.WebhookCountOrderByAggregateInput
   _avg?: Prisma.WebhookAvgOrderByAggregateInput
   _max?: Prisma.WebhookMaxOrderByAggregateInput
@@ -342,287 +235,200 @@ export type WebhookScalarWhereWithAggregatesInput = {
   AND?: Prisma.WebhookScalarWhereWithAggregatesInput | Prisma.WebhookScalarWhereWithAggregatesInput[]
   OR?: Prisma.WebhookScalarWhereWithAggregatesInput[]
   NOT?: Prisma.WebhookScalarWhereWithAggregatesInput | Prisma.WebhookScalarWhereWithAggregatesInput[]
-  id?: Prisma.IntWithAggregatesFilter<"Webhook"> | number
-  title?: Prisma.StringWithAggregatesFilter<"Webhook"> | string
-  production_url?: Prisma.StringWithAggregatesFilter<"Webhook"> | string
-  http_method?: Prisma.EnumAllWebhookMethodsWithAggregatesFilter<"Webhook"> | $Enums.AllWebhookMethods
+  id?: Prisma.StringWithAggregatesFilter<"Webhook"> | string
   path?: Prisma.StringWithAggregatesFilter<"Webhook"> | string
-  authentication_method?: Prisma.StringWithAggregatesFilter<"Webhook"> | string
-  authentication_credentials_id?: Prisma.IntNullableWithAggregatesFilter<"Webhook"> | number | null
   corresponding_workflow_id?: Prisma.IntWithAggregatesFilter<"Webhook"> | number
-  response_code?: Prisma.IntNullableWithAggregatesFilter<"Webhook"> | number | null
-  no_response_body?: Prisma.BoolNullableWithAggregatesFilter<"Webhook"> | boolean | null
-  response_data?: Prisma.JsonNullableWithAggregatesFilter<"Webhook">
-  allowed_origins?: Prisma.JsonNullableWithAggregatesFilter<"Webhook">
-  response_headers?: Prisma.JsonNullableWithAggregatesFilter<"Webhook">
 }
 
 export type WebhookCreateInput = {
-  title: string
-  production_url: string
-  http_method?: $Enums.AllWebhookMethods
+  id?: string
   path: string
-  authentication_method: string
-  authentication_credentials_id?: number | null
-  corresponding_workflow_id: number
-  response_code?: number | null
-  no_response_body?: boolean | null
-  response_data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  allowed_origins?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  response_headers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  corresponding_workflow: Prisma.WorkflowCreateNestedOneWithoutWebhookInput
 }
 
 export type WebhookUncheckedCreateInput = {
-  id?: number
-  title: string
-  production_url: string
-  http_method?: $Enums.AllWebhookMethods
+  id?: string
   path: string
-  authentication_method: string
-  authentication_credentials_id?: number | null
   corresponding_workflow_id: number
-  response_code?: number | null
-  no_response_body?: boolean | null
-  response_data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  allowed_origins?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  response_headers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type WebhookUpdateInput = {
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  production_url?: Prisma.StringFieldUpdateOperationsInput | string
-  http_method?: Prisma.EnumAllWebhookMethodsFieldUpdateOperationsInput | $Enums.AllWebhookMethods
+  id?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
-  authentication_method?: Prisma.StringFieldUpdateOperationsInput | string
-  authentication_credentials_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  corresponding_workflow_id?: Prisma.IntFieldUpdateOperationsInput | number
-  response_code?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  no_response_body?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  response_data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  allowed_origins?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  response_headers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  corresponding_workflow?: Prisma.WorkflowUpdateOneRequiredWithoutWebhookNestedInput
 }
 
 export type WebhookUncheckedUpdateInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  production_url?: Prisma.StringFieldUpdateOperationsInput | string
-  http_method?: Prisma.EnumAllWebhookMethodsFieldUpdateOperationsInput | $Enums.AllWebhookMethods
+  id?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
-  authentication_method?: Prisma.StringFieldUpdateOperationsInput | string
-  authentication_credentials_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   corresponding_workflow_id?: Prisma.IntFieldUpdateOperationsInput | number
-  response_code?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  no_response_body?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  response_data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  allowed_origins?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  response_headers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type WebhookCreateManyInput = {
-  id?: number
-  title: string
-  production_url: string
-  http_method?: $Enums.AllWebhookMethods
+  id?: string
   path: string
-  authentication_method: string
-  authentication_credentials_id?: number | null
   corresponding_workflow_id: number
-  response_code?: number | null
-  no_response_body?: boolean | null
-  response_data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  allowed_origins?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  response_headers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type WebhookUpdateManyMutationInput = {
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  production_url?: Prisma.StringFieldUpdateOperationsInput | string
-  http_method?: Prisma.EnumAllWebhookMethodsFieldUpdateOperationsInput | $Enums.AllWebhookMethods
+  id?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
-  authentication_method?: Prisma.StringFieldUpdateOperationsInput | string
-  authentication_credentials_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  corresponding_workflow_id?: Prisma.IntFieldUpdateOperationsInput | number
-  response_code?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  no_response_body?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  response_data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  allowed_origins?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  response_headers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type WebhookUncheckedUpdateManyInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  production_url?: Prisma.StringFieldUpdateOperationsInput | string
-  http_method?: Prisma.EnumAllWebhookMethodsFieldUpdateOperationsInput | $Enums.AllWebhookMethods
+  id?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
-  authentication_method?: Prisma.StringFieldUpdateOperationsInput | string
-  authentication_credentials_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   corresponding_workflow_id?: Prisma.IntFieldUpdateOperationsInput | number
-  response_code?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  no_response_body?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
-  response_data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  allowed_origins?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  response_headers?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+}
+
+export type WebhookNullableScalarRelationFilter = {
+  is?: Prisma.WebhookWhereInput | null
+  isNot?: Prisma.WebhookWhereInput | null
 }
 
 export type WebhookCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  title?: Prisma.SortOrder
-  production_url?: Prisma.SortOrder
-  http_method?: Prisma.SortOrder
   path?: Prisma.SortOrder
-  authentication_method?: Prisma.SortOrder
-  authentication_credentials_id?: Prisma.SortOrder
   corresponding_workflow_id?: Prisma.SortOrder
-  response_code?: Prisma.SortOrder
-  no_response_body?: Prisma.SortOrder
-  response_data?: Prisma.SortOrder
-  allowed_origins?: Prisma.SortOrder
-  response_headers?: Prisma.SortOrder
 }
 
 export type WebhookAvgOrderByAggregateInput = {
-  id?: Prisma.SortOrder
-  authentication_credentials_id?: Prisma.SortOrder
   corresponding_workflow_id?: Prisma.SortOrder
-  response_code?: Prisma.SortOrder
 }
 
 export type WebhookMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  title?: Prisma.SortOrder
-  production_url?: Prisma.SortOrder
-  http_method?: Prisma.SortOrder
   path?: Prisma.SortOrder
-  authentication_method?: Prisma.SortOrder
-  authentication_credentials_id?: Prisma.SortOrder
   corresponding_workflow_id?: Prisma.SortOrder
-  response_code?: Prisma.SortOrder
-  no_response_body?: Prisma.SortOrder
 }
 
 export type WebhookMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  title?: Prisma.SortOrder
-  production_url?: Prisma.SortOrder
-  http_method?: Prisma.SortOrder
   path?: Prisma.SortOrder
-  authentication_method?: Prisma.SortOrder
-  authentication_credentials_id?: Prisma.SortOrder
   corresponding_workflow_id?: Prisma.SortOrder
-  response_code?: Prisma.SortOrder
-  no_response_body?: Prisma.SortOrder
 }
 
 export type WebhookSumOrderByAggregateInput = {
-  id?: Prisma.SortOrder
-  authentication_credentials_id?: Prisma.SortOrder
   corresponding_workflow_id?: Prisma.SortOrder
-  response_code?: Prisma.SortOrder
 }
 
-export type EnumAllWebhookMethodsFieldUpdateOperationsInput = {
-  set?: $Enums.AllWebhookMethods
+export type WebhookCreateNestedOneWithoutCorresponding_workflowInput = {
+  create?: Prisma.XOR<Prisma.WebhookCreateWithoutCorresponding_workflowInput, Prisma.WebhookUncheckedCreateWithoutCorresponding_workflowInput>
+  connectOrCreate?: Prisma.WebhookCreateOrConnectWithoutCorresponding_workflowInput
+  connect?: Prisma.WebhookWhereUniqueInput
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
+export type WebhookUncheckedCreateNestedOneWithoutCorresponding_workflowInput = {
+  create?: Prisma.XOR<Prisma.WebhookCreateWithoutCorresponding_workflowInput, Prisma.WebhookUncheckedCreateWithoutCorresponding_workflowInput>
+  connectOrCreate?: Prisma.WebhookCreateOrConnectWithoutCorresponding_workflowInput
+  connect?: Prisma.WebhookWhereUniqueInput
 }
 
-export type NullableBoolFieldUpdateOperationsInput = {
-  set?: boolean | null
+export type WebhookUpdateOneWithoutCorresponding_workflowNestedInput = {
+  create?: Prisma.XOR<Prisma.WebhookCreateWithoutCorresponding_workflowInput, Prisma.WebhookUncheckedCreateWithoutCorresponding_workflowInput>
+  connectOrCreate?: Prisma.WebhookCreateOrConnectWithoutCorresponding_workflowInput
+  upsert?: Prisma.WebhookUpsertWithoutCorresponding_workflowInput
+  disconnect?: Prisma.WebhookWhereInput | boolean
+  delete?: Prisma.WebhookWhereInput | boolean
+  connect?: Prisma.WebhookWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.WebhookUpdateToOneWithWhereWithoutCorresponding_workflowInput, Prisma.WebhookUpdateWithoutCorresponding_workflowInput>, Prisma.WebhookUncheckedUpdateWithoutCorresponding_workflowInput>
+}
+
+export type WebhookUncheckedUpdateOneWithoutCorresponding_workflowNestedInput = {
+  create?: Prisma.XOR<Prisma.WebhookCreateWithoutCorresponding_workflowInput, Prisma.WebhookUncheckedCreateWithoutCorresponding_workflowInput>
+  connectOrCreate?: Prisma.WebhookCreateOrConnectWithoutCorresponding_workflowInput
+  upsert?: Prisma.WebhookUpsertWithoutCorresponding_workflowInput
+  disconnect?: Prisma.WebhookWhereInput | boolean
+  delete?: Prisma.WebhookWhereInput | boolean
+  connect?: Prisma.WebhookWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.WebhookUpdateToOneWithWhereWithoutCorresponding_workflowInput, Prisma.WebhookUpdateWithoutCorresponding_workflowInput>, Prisma.WebhookUncheckedUpdateWithoutCorresponding_workflowInput>
+}
+
+export type WebhookCreateWithoutCorresponding_workflowInput = {
+  id?: string
+  path: string
+}
+
+export type WebhookUncheckedCreateWithoutCorresponding_workflowInput = {
+  id?: string
+  path: string
+}
+
+export type WebhookCreateOrConnectWithoutCorresponding_workflowInput = {
+  where: Prisma.WebhookWhereUniqueInput
+  create: Prisma.XOR<Prisma.WebhookCreateWithoutCorresponding_workflowInput, Prisma.WebhookUncheckedCreateWithoutCorresponding_workflowInput>
+}
+
+export type WebhookUpsertWithoutCorresponding_workflowInput = {
+  update: Prisma.XOR<Prisma.WebhookUpdateWithoutCorresponding_workflowInput, Prisma.WebhookUncheckedUpdateWithoutCorresponding_workflowInput>
+  create: Prisma.XOR<Prisma.WebhookCreateWithoutCorresponding_workflowInput, Prisma.WebhookUncheckedCreateWithoutCorresponding_workflowInput>
+  where?: Prisma.WebhookWhereInput
+}
+
+export type WebhookUpdateToOneWithWhereWithoutCorresponding_workflowInput = {
+  where?: Prisma.WebhookWhereInput
+  data: Prisma.XOR<Prisma.WebhookUpdateWithoutCorresponding_workflowInput, Prisma.WebhookUncheckedUpdateWithoutCorresponding_workflowInput>
+}
+
+export type WebhookUpdateWithoutCorresponding_workflowInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  path?: Prisma.StringFieldUpdateOperationsInput | string
+}
+
+export type WebhookUncheckedUpdateWithoutCorresponding_workflowInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  path?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 
 
 export type WebhookSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  title?: boolean
-  production_url?: boolean
-  http_method?: boolean
   path?: boolean
-  authentication_method?: boolean
-  authentication_credentials_id?: boolean
   corresponding_workflow_id?: boolean
-  response_code?: boolean
-  no_response_body?: boolean
-  response_data?: boolean
-  allowed_origins?: boolean
-  response_headers?: boolean
+  corresponding_workflow?: boolean | Prisma.WorkflowDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["webhook"]>
 
 export type WebhookSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  title?: boolean
-  production_url?: boolean
-  http_method?: boolean
   path?: boolean
-  authentication_method?: boolean
-  authentication_credentials_id?: boolean
   corresponding_workflow_id?: boolean
-  response_code?: boolean
-  no_response_body?: boolean
-  response_data?: boolean
-  allowed_origins?: boolean
-  response_headers?: boolean
+  corresponding_workflow?: boolean | Prisma.WorkflowDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["webhook"]>
 
 export type WebhookSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  title?: boolean
-  production_url?: boolean
-  http_method?: boolean
   path?: boolean
-  authentication_method?: boolean
-  authentication_credentials_id?: boolean
   corresponding_workflow_id?: boolean
-  response_code?: boolean
-  no_response_body?: boolean
-  response_data?: boolean
-  allowed_origins?: boolean
-  response_headers?: boolean
+  corresponding_workflow?: boolean | Prisma.WorkflowDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["webhook"]>
 
 export type WebhookSelectScalar = {
   id?: boolean
-  title?: boolean
-  production_url?: boolean
-  http_method?: boolean
   path?: boolean
-  authentication_method?: boolean
-  authentication_credentials_id?: boolean
   corresponding_workflow_id?: boolean
-  response_code?: boolean
-  no_response_body?: boolean
-  response_data?: boolean
-  allowed_origins?: boolean
-  response_headers?: boolean
 }
 
-export type WebhookOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "production_url" | "http_method" | "path" | "authentication_method" | "authentication_credentials_id" | "corresponding_workflow_id" | "response_code" | "no_response_body" | "response_data" | "allowed_origins" | "response_headers", ExtArgs["result"]["webhook"]>
+export type WebhookOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "path" | "corresponding_workflow_id", ExtArgs["result"]["webhook"]>
+export type WebhookInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  corresponding_workflow?: boolean | Prisma.WorkflowDefaultArgs<ExtArgs>
+}
+export type WebhookIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  corresponding_workflow?: boolean | Prisma.WorkflowDefaultArgs<ExtArgs>
+}
+export type WebhookIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  corresponding_workflow?: boolean | Prisma.WorkflowDefaultArgs<ExtArgs>
+}
 
 export type $WebhookPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Webhook"
-  objects: {}
+  objects: {
+    corresponding_workflow: Prisma.$WorkflowPayload<ExtArgs>
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
-    id: number
-    title: string
-    production_url: string
-    http_method: $Enums.AllWebhookMethods
+    id: string
     path: string
-    authentication_method: string
-    authentication_credentials_id: number | null
     corresponding_workflow_id: number
-    response_code: number | null
-    no_response_body: boolean | null
-    response_data: runtime.JsonValue | null
-    allowed_origins: runtime.JsonValue | null
-    response_headers: runtime.JsonValue | null
   }, ExtArgs["result"]["webhook"]>
   composites: {}
 }
@@ -1017,6 +823,7 @@ readonly fields: WebhookFieldRefs;
  */
 export interface Prisma__WebhookClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  corresponding_workflow<T extends Prisma.WorkflowDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkflowDefaultArgs<ExtArgs>>): Prisma.Prisma__WorkflowClient<runtime.Types.Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1046,19 +853,9 @@ export interface Prisma__WebhookClient<T, Null = never, ExtArgs extends runtime.
  * Fields of the Webhook model
  */
 export interface WebhookFieldRefs {
-  readonly id: Prisma.FieldRef<"Webhook", 'Int'>
-  readonly title: Prisma.FieldRef<"Webhook", 'String'>
-  readonly production_url: Prisma.FieldRef<"Webhook", 'String'>
-  readonly http_method: Prisma.FieldRef<"Webhook", 'AllWebhookMethods'>
+  readonly id: Prisma.FieldRef<"Webhook", 'String'>
   readonly path: Prisma.FieldRef<"Webhook", 'String'>
-  readonly authentication_method: Prisma.FieldRef<"Webhook", 'String'>
-  readonly authentication_credentials_id: Prisma.FieldRef<"Webhook", 'Int'>
   readonly corresponding_workflow_id: Prisma.FieldRef<"Webhook", 'Int'>
-  readonly response_code: Prisma.FieldRef<"Webhook", 'Int'>
-  readonly no_response_body: Prisma.FieldRef<"Webhook", 'Boolean'>
-  readonly response_data: Prisma.FieldRef<"Webhook", 'Json'>
-  readonly allowed_origins: Prisma.FieldRef<"Webhook", 'Json'>
-  readonly response_headers: Prisma.FieldRef<"Webhook", 'Json'>
 }
     
 
@@ -1075,6 +872,10 @@ export type WebhookFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Omit specific fields from the Webhook
    */
   omit?: Prisma.WebhookOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WebhookInclude<ExtArgs> | null
   /**
    * Filter, which Webhook to fetch.
    */
@@ -1094,6 +895,10 @@ export type WebhookFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Extension
    */
   omit?: Prisma.WebhookOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WebhookInclude<ExtArgs> | null
+  /**
    * Filter, which Webhook to fetch.
    */
   where: Prisma.WebhookWhereUniqueInput
@@ -1111,6 +916,10 @@ export type WebhookFindFirstArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Omit specific fields from the Webhook
    */
   omit?: Prisma.WebhookOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WebhookInclude<ExtArgs> | null
   /**
    * Filter, which Webhook to fetch.
    */
@@ -1160,6 +969,10 @@ export type WebhookFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extensions
    */
   omit?: Prisma.WebhookOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WebhookInclude<ExtArgs> | null
+  /**
    * Filter, which Webhook to fetch.
    */
   where?: Prisma.WebhookWhereInput
@@ -1208,6 +1021,10 @@ export type WebhookFindManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
    */
   omit?: Prisma.WebhookOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WebhookInclude<ExtArgs> | null
+  /**
    * Filter, which Webhooks to fetch.
    */
   where?: Prisma.WebhookWhereInput
@@ -1251,6 +1068,10 @@ export type WebhookCreateArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    */
   omit?: Prisma.WebhookOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WebhookInclude<ExtArgs> | null
+  /**
    * The data needed to create a Webhook.
    */
   data: Prisma.XOR<Prisma.WebhookCreateInput, Prisma.WebhookUncheckedCreateInput>
@@ -1284,6 +1105,10 @@ export type WebhookCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensi
    */
   data: Prisma.WebhookCreateManyInput | Prisma.WebhookCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WebhookIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1298,6 +1123,10 @@ export type WebhookUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    * Omit specific fields from the Webhook
    */
   omit?: Prisma.WebhookOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WebhookInclude<ExtArgs> | null
   /**
    * The data needed to update a Webhook.
    */
@@ -1350,6 +1179,10 @@ export type WebhookUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensi
    * Limit how many Webhooks to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WebhookIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1364,6 +1197,10 @@ export type WebhookUpsertArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    * Omit specific fields from the Webhook
    */
   omit?: Prisma.WebhookOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WebhookInclude<ExtArgs> | null
   /**
    * The filter to search for the Webhook to update in case it exists.
    */
@@ -1390,6 +1227,10 @@ export type WebhookDeleteArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    * Omit specific fields from the Webhook
    */
   omit?: Prisma.WebhookOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WebhookInclude<ExtArgs> | null
   /**
    * Filter which Webhook to delete.
    */
@@ -1422,4 +1263,8 @@ export type WebhookDefaultArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Omit specific fields from the Webhook
    */
   omit?: Prisma.WebhookOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WebhookInclude<ExtArgs> | null
 }
