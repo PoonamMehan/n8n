@@ -17,6 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "@repo/db": "workspace:^",
+    "axios": "^1.13.3",
     "kafkajs": "^2.2.4",
     "tsc": "^2.0.4",
     "tsx": "^4.21.0",

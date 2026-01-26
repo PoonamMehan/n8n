@@ -20,21 +20,21 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
   const [credentialOptions, setCredentialOptions] = useState<Record<string, any[]>>({});
   const [isCredentialFormOpen, setIsCredentialFormOpen] = useState(false);
   const [currentCredentialPlatform, setCurrentCredentialPlatform] = useState<string | null>(null);
-  const [credentialsFormValues, setCredentialsFormValues] = useState<Record<string, any>>({}); 
+  const [credentialsFormValues, setCredentialsFormValues] = useState<Record<string, any>>({});
 
   useEffect(() => {
     const loadData = async () => {
       const defaults: Record<string, any> = {};
-    
+
       if (type === "triggerNode" && triggerData) {
 
         triggerData.parameters.forEach((param) => {
           if (param.element === 'custom_webhook_url_renderer') {
-             defaults[param.label] = `${param.default}${nodeId}`;
+            defaults[param.label] = `${param.default}${nodeId}`;
           }else if (param.label === "Path") {
             defaults[param.label] = nodeId;
           }else {
-             defaults[param.label] = param.default;
+            defaults[param.label] = param.default;
           }
         });
 
@@ -62,56 +62,70 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
               } else {
                 defaults[param.label] = "";
               }
-              
+
             } catch (error) {
               console.error(`Error fetching credentials for ${param.label}`, error);
               newCredOptions[param.label] = [];
-              defaults[param.label] = "CREATE_NEW"; // TODO: shouldn't we make it "" ?
+              defaults[param.label] = "";
             }
           }
         }
-        Object.entries(alreadyFilledValues).map(([key, val])=>{
-          defaults[key] = val;
-        })
+        // Apply previously saved values, but validate credentials still exist
+        Object.entries(alreadyFilledValues).forEach(([key, val]) => {
+          // Check if this key is a credential field
+          const isCredentialField = newCredOptions[key] !== undefined;
+
+          if (isCredentialField) {
+            // Only use saved value if credential still exists in fetched list
+            const credentialStillExists = newCredOptions[key]?.some((cred: any) => cred.id === val);
+            if (credentialStillExists) {
+              defaults[key] = val;
+            }
+            // Otherwise keep the default (empty string or first available)
+          } else {
+            // Non-credential field, use saved value directly
+            defaults[key] = val;
+          }
+        });
         setCredentialOptions(newCredOptions);
         setFormValues(defaults);
       }
     };
 
     loadData();
-  }, [title, type, triggerData, actionData]); 
+  }, [title, type, triggerData, actionData]);
 
-const handleInputChange = (label: string, value: string, isCredential = false, platform?: string) => {
-  // Special check for the "Create New" option
-  if (isCredential && value === "CREATE_NEW") {
-    // Logic to open the modal
-    if (platform) {
-      openCredentialCreationForm(platform);
+  const handleInputChange = (label: string, value: string, isCredential = false, platform?: string) => {
+    // Special check for the "Create New" option
+    if (isCredential && value === "CREATE_NEW") {
+      // Logic to open the modal
+      if (platform) {
+        openCredentialCreationForm(platform);
+      }
+      // Don't update state of the main form to "CREATE_NEW", keep the old value until they save the new one
+      return;
     }
-    // Don't update state of the main form to "CREATE_NEW", keep the old value until they save the new one
-    return;
-  }
 
-  setFormValues((prev) => ({
-    ...prev,
-    [label]: value,
-  }));
-};
+    setFormValues((prev) => ({
+      ...prev,
+      [label]: value,
+    }));
+  };
 
-  useEffect(()=>{
+  useEffect(() => {
     valuesRef.current = formValues;
   }, [formValues]);
 
-  useEffect(()=>{
-    return ()=>{
+  useEffect(() => {
+    return () => {
       console.log(" The form Data sent from the NodeForm component: ", valuesRef.current);
       formDataHandler(valuesRef.current, nodeId);
     }
-  },[]);
+  }, []);
 
-  const openCredentialCreationForm = (credentialPlatform: string)=>{
+  const openCredentialCreationForm = (credentialPlatform: string) => {
     const credAppConfig = Available_Credential_Apps[credentialPlatform];
-    
+
     if (!credAppConfig) return;
 
     let defaults: Record<string, any> = {};
@@ -121,35 +135,35 @@ const handleInputChange = (label: string, value: string, isCredential = false, p
     let existingCount = 0;
     if (actionData) { //TODO: change the method we find the name for a new credential
       const firstOperationKey = Object.keys(actionData.parameters)[0];
-      const params = actionData.parameters[( firstOperationKey as string )]?.Parameters || [];
+      const params = actionData.parameters[(firstOperationKey as string)]?.Parameters || [];
       const parentParam = params.find(p => p.platform === credentialPlatform);
-      
+
       if (parentParam && credentialOptions[parentParam.label]) {
         // console.log("NAME: ", (credentialOptions[parentParam.label])![0].data.name);
         const regex = /^(?<name>.+?)\s+(?<number>\d+)$/
         credentialOptions[parentParam.label]?.forEach(cred => {
           const currentCredName = cred.data.name;
           const match = currentCredName.match(regex);
-          if(match.groups.name == credAppConfig.defaultName && match.groups.name){
+          if (match.groups.name == credAppConfig.defaultName && match.groups.name) {
             existingCount = Math.max(existingCount, Number(match.groups.number));
             console.log("NUMBER: ", existingCount);
           }
         })
       }
     }
-    
+
     // Set internal name for the credential (shown in dropdowns)
     defaults["name"] = `${credAppConfig.defaultName} ${existingCount + 1}`;
-    console.log("NAME: ",defaults["name"])
+    console.log("NAME: ", defaults["name"])
     // Set defaults for the credential fields (Access Token, etc.)
     credAppConfig.parameters.forEach(param => {
       defaults[param.label] = param.default;
     });
-    
+
     setCredentialsFormValues(defaults);
     setCurrentCredentialPlatform(credentialPlatform);
     setIsCredentialFormOpen(true);
-  } 
+  }
   // TODO:  only save the id of selected credential, and refretch all the credentials -> so that when a cred is deleted we are not shing that as an option.
   const handleCredentialInputChange = (label: string, value: string) => {
     setCredentialsFormValues(prev => ({
@@ -178,7 +192,7 @@ const handleInputChange = (label: string, value: string, isCredential = false, p
         body: JSON.stringify(payload)
       });
 
-      const savedCredential = await response.json(); 
+      const savedCredential = await response.json();
       if (!response.ok) {
         console.log("Error while saving the credential: ", savedCredential);
         return;
@@ -194,15 +208,15 @@ const handleInputChange = (label: string, value: string, isCredential = false, p
           ...prev,
           [parentParam.label]: [
             ...(prev[parentParam.label] || []),
-            { id: savedCredential.id, name: savedCredential.data.name } 
+            { id: savedCredential.id, name: savedCredential.data.name }
           ]
         }));
-      // Structure of credentialOptions: credentialOptions = {
-      //   [label: string]: Array<{
-      //     id: string | number
-      //     name: string
-      //   }>
-      // }
+        // Structure of credentialOptions: credentialOptions = {
+        //   [label: string]: Array<{
+        //     id: string | number
+        //     name: string
+        //   }>
+        // }
 
         // Automatically select the new credential in the main form
         handleInputChange(parentParam.label, savedCredential.id);
@@ -212,7 +226,7 @@ const handleInputChange = (label: string, value: string, isCredential = false, p
       setIsCredentialFormOpen(false);
       setCredentialsFormValues({}); // Clear form
 
-     } catch (error) {
+    } catch (error) {
       console.error("Save failed:", error);
       alert("Failed to save credential");
     }
@@ -220,13 +234,13 @@ const handleInputChange = (label: string, value: string, isCredential = false, p
 
   let firstOperationKey;
   let actionNodeParams;
-  if(actionData){
+  if (actionData) {
     firstOperationKey = Object.keys(actionData.parameters)[0];
     actionNodeParams = actionData.parameters[(firstOperationKey as string)]?.Parameters || [];
   };
 
   return type === "triggerNode" && triggerData ? (
-    <div className="flex flex-col h-full" onClick={(e)=>{e.stopPropagation()}}>
+    <div className="flex flex-col h-full" onClick={(e) => { e.stopPropagation() }}>
       <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
         <h2 className="text-lg font-bold text-gray-800">{triggerData.title}</h2>
       </div>
@@ -248,8 +262,8 @@ const handleInputChange = (label: string, value: string, isCredential = false, p
                   readOnly={val.readOnly}
                   onChange={(e) => handleInputChange(val.label, e.target.value)}
                   className={`w-full rounded border px-3 py-2 text-sm outline-none transition-all 
-                    ${val.readOnly 
-                      ? "bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed" 
+                    ${val.readOnly
+                      ? "bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed"
                       : "border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     }`}
                 />
@@ -294,12 +308,12 @@ const handleInputChange = (label: string, value: string, isCredential = false, p
         })}
       </div>
     </div>
-  ) : (actionData && type === "actionNode" && actionNodeParams) ?(
-    <>  
-       <form onSubmit={(e)=>e.preventDefault()} className="flex flex-col gap-4 p-4 h-full overflow-y-auto relative">
+  ) : (actionData && type === "actionNode" && actionNodeParams) ? (
+    <>
+      <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-4 p-4 h-full overflow-y-auto relative">
         <div className="border-b pb-2">
-           <h3 className="font-bold text-lg">{actionData.title}</h3>
-           <p className="text-xs text-gray-500">{actionData.defaultName}</p>
+          <h3 className="font-bold text-lg">{actionData.title}</h3>
+          <p className="text-xs text-gray-500">{actionData.defaultName}</p>
         </div>
         {actionNodeParams.map((param, idx) => {
           return (
@@ -317,8 +331,8 @@ const handleInputChange = (label: string, value: string, isCredential = false, p
                       {credentialOptions[param.label]?.map((opt: any) => (
                         <option key={opt.id} value={opt.id}>{opt.name || opt.id}</option>
                       ))}
-                      {credentialOptions[param.label]?.length! > 0  && <option disabled>──────────</option>}
-                      <option value="CREATE_NEW" className="text-blue-600 font-bold" onClick={(e)=>{e.preventDefault(); setIsCredentialFormOpen(true)}}> 
+                      {credentialOptions[param.label]?.length! > 0 && <option disabled>──────────</option>}
+                      <option value="CREATE_NEW" className="text-blue-600 font-bold" onClick={(e) => { e.preventDefault(); setIsCredentialFormOpen(true) }}>
                         + Create New Credential
                       </option>
                     </>
@@ -352,13 +366,13 @@ const handleInputChange = (label: string, value: string, isCredential = false, p
                 <span className="font-bold text-gray-800">{Available_Credential_Apps[currentCredentialPlatform]?.title}</span>
               </div>
               <div className="flex gap-2">
-                 <button 
+                <button
                   onClick={() => setIsCredentialFormOpen(false)}
                   className="rounded px-3 py-1 text-sm text-gray-600 hover:bg-gray-200"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleSaveCredential}
                   className="rounded bg-blue-600 px-4 py-1 text-sm font-semibold text-white hover:bg-blue-700"
                 >
@@ -367,40 +381,40 @@ const handleInputChange = (label: string, value: string, isCredential = false, p
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-               <div className="flex flex-col gap-1">
-                  <label className="text-sm font-semibold text-gray-700">Name</label>
-                  <input 
-                    type="text"
-                    className="border border-gray-300 p-2 rounded text-sm focus:outline-none focus:border-blue-500"
-                    value={credentialsFormValues["name"] || ""}
-                    disabled={true}
-                  />
-               </div>
-               {Available_Credential_Apps[currentCredentialPlatform]?.parameters.map((param, idx) => (
-                  <div key={idx} className="flex flex-col gap-1">
-                    <label className="text-sm font-semibold text-gray-700">{param.label}</label>
-                    {param.element === "input" && (
-                      <input 
-                        type="text"
-                        className={`border border-gray-300 p-2 rounded text-sm focus:outline-none focus:border-blue-500 ${param.readOnly ? 'bg-gray-100 text-gray-500' : ''}`}
-                        value={credentialsFormValues[param.label] || ""}
-                        readOnly={param.readOnly}
-                        onChange={(e) => handleCredentialInputChange(param.label, e.target.value)}
-                        placeholder={param.default}
-                      />
-                    )}
-                  </div>
-               ))}
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-gray-700">Name</label>
+                <input
+                  type="text"
+                  className="border border-gray-300 p-2 rounded text-sm focus:outline-none focus:border-blue-500"
+                  value={credentialsFormValues["name"] || ""}
+                  disabled={true}
+                />
+              </div>
+              {Available_Credential_Apps[currentCredentialPlatform]?.parameters.map((param, idx) => (
+                <div key={idx} className="flex flex-col gap-1">
+                  <label className="text-sm font-semibold text-gray-700">{param.label}</label>
+                  {param.element === "input" && (
+                    <input
+                      type="text"
+                      className={`border border-gray-300 p-2 rounded text-sm focus:outline-none focus:border-blue-500 ${param.readOnly ? 'bg-gray-100 text-gray-500' : ''}`}
+                      value={credentialsFormValues[param.label] || ""}
+                      readOnly={param.readOnly}
+                      onChange={(e) => handleCredentialInputChange(param.label, e.target.value)}
+                      placeholder={param.default}
+                    />
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}
 
       </form>
     </>
-  ):(
+  ) : (
     <>
       <div>Some wrong form opened.</div>
     </>
   )
-  
+
 }
