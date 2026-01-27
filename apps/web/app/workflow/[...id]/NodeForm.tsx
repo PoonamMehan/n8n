@@ -1,7 +1,7 @@
 'use client'
 import { Available_Triggers } from "./Available_Triggers";
 import { Available_Actions } from "./Available_Actions";
-import {useState, useEffect, useRef} from "react";
+import { useState, useEffect, useRef } from "react";
 import { Available_Credential_Apps } from "./Available_Credentials";
 
 interface NodeFormProps {
@@ -12,7 +12,7 @@ interface NodeFormProps {
   nodeId: string
 }
 
-export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, nodeId}: NodeFormProps) => {
+export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, nodeId }: NodeFormProps) => {
   const [formValues, setFormValues] = useState<Record<string, any>>({});
   const triggerData = Available_Triggers[title];
   const valuesRef = useRef(formValues);
@@ -46,7 +46,7 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
       }
       if (type === "actionNode" && actionData) {
         const firstOperationKey = Object.keys(actionData.parameters)[0];
-        const params = actionData.parameters[( firstOperationKey as string )]?.Parameters || [];
+        const params = actionData.parameters[(firstOperationKey as string)]?.Parameters || [];
         const newCredOptions: Record<string, any[]> = {};
 
         for (const param of params) {
@@ -347,6 +347,14 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
                 <input
                   type="text"
                   className="border border-gray-300 p-2 rounded text-sm focus:outline-none focus:border-blue-500"
+                  value={formValues[param.label] || ""}
+                  onChange={(e) => handleInputChange(param.label, e.target.value)}
+                  placeholder={typeof param.default === 'string' ? param.default : ''}
+                />
+              )}
+              {param.element === "textarea" && (
+                <textarea
+                  className="border border-gray-300 p-2 rounded text-sm focus:outline-none focus:border-blue-500 min-h-[100px]"
                   value={formValues[param.label] || ""}
                   onChange={(e) => handleInputChange(param.label, e.target.value)}
                   placeholder={typeof param.default === 'string' ? param.default : ''}

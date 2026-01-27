@@ -5,29 +5,26 @@
 import Link from "next/link";
 import { AllWorkflowsList } from "../../../components/AllWorkflowsList";
 
-export async function WorkflowsOverview(){
+export default async function WorkflowsOverview() {
   // fetch all the workflows & show: SSR component: 
   let allWorkflowsData;
+  // SSR data fetching
+  try {
+    const getWorkflows = await fetch("http://localhost:8000/api/v1/workflow", {
+      method: "GET"
+    })
 
-  try{
-    const getWorkflows = await fetch("/api/v1/workflow", {
-    method: "GET"
-  })
-  //send the number of workflows to the "createNewWorkflow" component.
-  if(getWorkflows.ok){
-    console.log("Workflows fetching successful");
-    allWorkflowsData = await getWorkflows.json();
-    console.log("Fetched workflows: ", allWorkflowsData);
-  }
-  }catch(err: any){
-    //taoster: unable to fetch workflws right now 
-    // disable the two create buttons
-    //ask the user to refresh this component
+    if (getWorkflows.ok) {
+      console.log("Workflows fetching successful");
+      allWorkflowsData = await getWorkflows.json();
+      console.log("Fetched workflows: ", allWorkflowsData);
+    }
+  } catch (err: any) {
     console.log("Something went wrong on our end while fetching the workflows: ", err.message)
   }
 
-  return(
-    <>  
+  return (
+    <>
       {/* TODO: make this dropdown re-usable and a separate component */}
       {/* TODO: add the dropdown */}
       <div>
@@ -43,7 +40,7 @@ export async function WorkflowsOverview(){
           {/* Show all the workflows that you fetch right here  */}
           {/* A client component. Gets all the existing workflows from this component*/}
           {/* 1 */}
-          <AllWorkflowsList workflowsData={allWorkflowsData} overview={true}/>
+          <AllWorkflowsList workflowsData={allWorkflowsData} overview={true} />
         </div>
       </div>
     </>
