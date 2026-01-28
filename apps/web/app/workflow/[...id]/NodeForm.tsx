@@ -3,6 +3,7 @@ import { Available_Triggers } from "./Available_Triggers";
 import { Available_Actions } from "./Available_Actions";
 import { useState, useEffect, useRef } from "react";
 import { Available_Credential_Apps } from "./Available_Credentials";
+import { TriggerIconMap } from "./NodeIcons";
 
 interface NodeFormProps {
   formDataHandler: (formData: Record<string, any>, id: string) => void,
@@ -31,15 +32,15 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
         triggerData.parameters.forEach((param) => {
           if (param.element === 'custom_webhook_url_renderer') {
             defaults[param.label] = `${param.default}${nodeId}`;
-          }else if (param.label === "Path") {
+          } else if (param.label === "Path") {
             defaults[param.label] = nodeId;
-          }else {
+          } else {
             defaults[param.label] = param.default;
           }
         });
 
         // after adding the default values of the form in our app -> add the values that were previously added by the user
-        Object.entries(alreadyFilledValues).map(([key, val])=>{
+        Object.entries(alreadyFilledValues).map(([key, val]) => {
           defaults[key] = val;
         })
         setFormValues(defaults);
@@ -181,7 +182,7 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
       title: Available_Credential_Apps[currentCredentialPlatform]?.title, // e.g., "Telegram API"
       platform: currentCredentialPlatform, // e.g., "TelegramAPI"
       data: credentialsFormValues, // e.g., { name: "My Bot", "Access Token": "123..." }
-      userId: "933680c6-5d6f-4f0a-92c8-72c3eca5ea31"
+      userId: "933680c6-5d6f-4f0a-92c8-72c3eca5ea31" //TODO: don't hard code it
     };
 
     try {
@@ -239,6 +240,65 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
     actionNodeParams = actionData.parameters[(firstOperationKey as string)]?.Parameters || [];
   };
 
+  const handleCredentialButtonClick = (label: string, credentialName: string) => {
+    if (label == "Sign in with Google") {
+      // window.open()
+      const width = 500;
+      const height = 600;
+      const left = window.screen.width / 2 - width / 2;
+      const top = window.screen.height / 2 - height / 2;
+      const popup = window.open(
+        `http://localhost:8000/api/v1/auth/google/login?name=${credentialName}`,
+        "GoogleAuth",
+        `width=${width},height=${height},left=${left},top=${top}`
+      );
+    }
+  }
+
+  useEffect(() => {
+    const handleGoogleAuthSuccessEvent = (event: MessageEvent) => {
+      if (event.origin != "http://localhost:8000") return;
+
+      if (event.data.status === "success" && event.data.credential) {
+        const newCred = event.data.credential;
+        console.log("Google Auth Success: ", newCred);
+
+        //find the parent parameter to update
+        const currentActionData = Available_Actions[title];
+        if (currentActionData) {
+          const firstOperationKey = Object.keys(currentActionData.parameters)[0];
+          const actionParams = currentActionData.parameters[(firstOperationKey as string)]?.Parameters || [];
+          const parentParam = actionParams.find(p => p.platform === newCred.platform);
+
+          if (parentParam) {
+            //add new credential to options
+            setCredentialOptions(prev => ({
+              ...prev,
+              [parentParam.label]: [
+                ...(prev[parentParam.label] || []),
+                { id: newCred.id, name: newCred.name }
+              ]
+            }));
+
+            //Select the new credential
+            setFormValues(prev => ({
+              ...prev,
+              [parentParam.label]: newCred.id
+            }));
+
+            //close the modal
+            setIsCredentialFormOpen(false);
+            setCredentialsFormValues({});
+          }
+        }
+      }
+    }
+    window.addEventListener("message", handleGoogleAuthSuccessEvent);
+    return () => {
+      window.removeEventListener("message", handleGoogleAuthSuccessEvent);
+    }
+  }, [title])
+  
   return type === "triggerNode" && triggerData ? (
     <div className="flex flex-col h-full" onClick={(e) => { e.stopPropagation() }}>
       <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
@@ -410,6 +470,31 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
                       onChange={(e) => handleCredentialInputChange(param.label, e.target.value)}
                       placeholder={param.default}
                     />
+                  )}
+                  {param.element === "button" && (
+                    <button
+                      className="flex items-center justify-center gap-2 rounded border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      onClick={(e) => { e.preventDefault(); handleCredentialButtonClick(param.label, credentialsFormValues["name"]) }}
+                    >
+                      {param.icon && TriggerIconMap[param.icon] && (
+                        <span>{TriggerIconMap[param.icon]}</span>
+                      )}
+                      <span>{param.label}</span>
+                    </button>
+                  )}
+                  {param.element === "select" && (
+                    <select
+                      className="border border-gray-300 p-2 rounded text-sm focus:outline-none focus:border-blue-500"
+                      value={credentialsFormValues[param.label] || param.default || ""}
+                      onChange={(e) => handleCredentialInputChange(param.label, e.target.value)}
+                      disabled={param.readOnly}
+                    >
+                      {param.options?.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
                   )}
                 </div>
               ))}

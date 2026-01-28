@@ -33,7 +33,7 @@ export async function addCredentialHandler(req: Request, res: Response){
                 title: d.title,
                 platform: d.platform,
                 data: d.data,
-                userId: d.userId
+                userId: d.userId //TODO: don't hard code it -> JWT HANDLER 
             }
         })
 

@@ -16,9 +16,11 @@ export interface Credential_DbTable_Structure {
 
 export interface CredentialParameterField{
   label: string,
-  element: "input" | "select",
+  element: "input" | "select" | "button",
   default: string,
-  readOnly?: boolean
+  readOnly?: boolean,
+  options?: string[],
+  icon?: string
 }
 
 export const Available_Credential_Apps: Avail_Credentials_Obj = {
@@ -74,5 +76,25 @@ export const Available_Credential_Apps: Avail_Credentials_Obj = {
         ],
         defaultName: "JWT Auth account",
         icon: ""
+    },
+    GmailAccount: {
+      title: "Gmail Account",
+      description: "",
+      defaultName: "Gmail Account",
+      parameters: [
+        // {
+        //   label: "Allowed HTTP request domains",
+        //   element: "select",
+        //   options: ["All"],
+        //   default: "All"
+        // },
+        {
+          label: "Sign in with Google",
+          element: "button",
+          default: "",
+          icon: "google"
+        }
+      ],
+      icon: "gmail"
     }
 }

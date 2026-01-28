@@ -4,7 +4,7 @@ import { prisma } from "@repo/db";
 import { z } from "zod";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
-
+import { google } from "googleapis";
 
 const signupSchema = z.object({
   username: z.string(),
@@ -305,3 +305,86 @@ export const generateTokenForWsConnection = (req: Request, res: Response) => {
     return res.status(500).send("Internal Server Error");
   }
 }
+
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  "http://localhost:8000/api/v1/auth/google/callback"
+);
+
+export const googleAuthRequestHandler = (req: Request, res: Response) => {
+  let name = req.query.name;
+  if (!name) name = crypto.randomUUID();
+  const url = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    prompt: 'consent',
+    scope: [
+      'https://www.googleapis.com/auth/gmail.send',
+      'https://mail.google.com/',
+      'https://www.googleapis.com/auth/userinfo.email'
+    ],
+    state: name as string
+  });
+
+  res.redirect(url);
+};
+
+export const googleAuthCallbackHandler = async (req: Request, res: Response) => {
+  // const userId = req.userId; //TODO: UNCOMMET THIS
+  const userId = "933680c6-5d6f-4f0a-92c8-72c3eca5ea31"
+  console.log("userId in googleAuthCallbackHandler: ", userId);
+  if (!userId) {
+    return res.status(401).send("Unauthorized");
+  }
+  const { code, state } = req.query;
+  try {
+    // swap Code for Tokens
+    if (!code) {
+      return res.status(400).send("No code provided");
+    }
+    const { tokens } = await oauth2Client.getToken(code as string);
+    oauth2Client.setCredentials(tokens);
+
+    const oauth2 = google.oauth2({ auth: oauth2Client, version: 'v2' });
+    const userInfo = await oauth2.userinfo.get();
+    const email = userInfo.data.email;
+    // save to Your Database (Prisma/Mongoose)
+    // You need to know WHICH user this is. 
+    // Typically, you read the cookie, or the 'state' param you passed earlier.
+    const createdCredential = await prisma.credentials.create({
+      data: {
+        userId: userId, // TODO: don't hard code it -> JWT HANDLER  
+        title: "Gmail Account",
+        platform: "GmailAccount",
+        data: { tokens: JSON.stringify(tokens), name: state as string, email }
+      }
+    });
+    console.log("createdCredential: ", createdCredential);
+
+    const html = `
+      <html>
+        <body>
+          <script>
+            window.opener.postMessage({
+              status: "success",
+              credential: {
+                id: ${createdCredential.id},
+                name: "${state as string}",
+                platform: "GmailAccount"
+              }
+            }, "http://localhost:3000");
+            window.close();
+          </script>
+          <p>Authentication successful! Closing...</p>
+        </body>
+      </html>
+    `;
+    res.send(html);
+
+
+  } catch (error) {
+    console.error("Google OAuth Error:", error);
+    console.error(error);
+    res.send('<script>window.close();</script>');
+  }
+};
