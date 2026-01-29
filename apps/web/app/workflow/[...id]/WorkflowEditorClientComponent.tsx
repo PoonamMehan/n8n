@@ -14,6 +14,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useSelector } from 'react-redux';
 import { RootState } from '../../ReduxStore/store';
 import { ReactFlow, addEdge, applyNodeChanges, applyEdgeChanges, ReactFlowProvider, Node, OnNodesChange, OnEdgesChange, Edge, OnConnect, Background, BackgroundVariant, Panel, Controls, useReactFlow } from "@xyflow/react";
+import type {Connection} from "@xyflow/react";
 import { N8nStyleActionNode } from "./customActionNode";
 import { N8nStyleTriggerNode } from "./customTriggerNode";
 import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
@@ -26,7 +27,7 @@ import Link from "next/link";
 import { CustomActionNode } from "./customActionNode";
 import { CustomTriggerNode } from "./customTriggerNode";
 import { NodeForm } from "./NodeForm";
-
+import { N8nStyleAIAgentNode, N8nStyleToolNode } from "./customAIAgentNodes";
 
 interface Workflow {
   id: number,
@@ -125,7 +126,7 @@ export const WorkflowClientComponent = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, getNode } = useReactFlow();
   const [isTriggerNodePresent, setIsTriggerNodePresent] = useState(false);
   // TODO: HANDLE THIS  
   const [activeNodeForm, setActiveNodeForm] = useState<CustomActionNode | null>(null);
@@ -139,7 +140,9 @@ export const WorkflowClientComponent = () => {
   const onConnect: OnConnect = useCallback((params) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)), []);
   const nodeTypes = {
     actionNode: N8nStyleActionNode,
-    triggerNode: N8nStyleTriggerNode
+    triggerNode: N8nStyleTriggerNode,
+    aiAgentNode: N8nStyleAIAgentNode,
+    toolNode: N8nStyleToolNode
   }
 
   useEffect(() => {
@@ -227,6 +230,19 @@ export const WorkflowClientComponent = () => {
     })
   }
 
+  const isValidConnection = (connection: Connection) => {
+    const sourceNode = getNode(connection.source);
+    const targetNode = getNode(connection.target);
+    if (!sourceNode || !targetNode) return false;
+    if (sourceNode.type == 'aiAgentNode' && connection.sourceHandle == "tools"){
+      return targetNode.type == 'toolNode';
+    }
+    if(targetNode.type == 'toolNode'){
+      return sourceNode.type == 'aiAgentNode' && connection.sourceHandle == 'tools';
+    }
+    return true;
+  }
+  
   return (
     <>
       {/* Header Section */}
@@ -258,6 +274,7 @@ export const WorkflowClientComponent = () => {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           fitView
+          isValidConnection={isValidConnection}
           nodeTypes={nodeTypes}
           onClick={(e) => { setIsOpen(false) }}
           // Logic: When a node is clicked, set the activeNode state to open the modal
