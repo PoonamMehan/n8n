@@ -130,8 +130,38 @@ export const Available_Actions: Avail_Actions_Obj = {
 			}
 		},
 		icon: "gmail"
+	},
+	"AI Agent": {
+		title: "AI Agent",
+		description: "",
+		defaultName: "AI Agent",
+		parameters: {
+			"AI Agent": {
+				"Parameters": [
+					{
+						label: "Credential to connect with",
+						isCredential: true,
+						element: "select",
+						fetch: {
+							url: "http://localhost:8000/api/v1/credential/platform/AIAgent", //TODO: change this to the actual url
+							method: "GET"
+						},
+						platform: "LLMapi"
+					},
+					{
+						label: "System Prompt",
+						element: "textarea",
+						default: ""
+					},
+					{
+						label: "Prompt (User Message)",
+						element: "textarea",
+						default: ""
+					}
+				]
+			}
+		},
+		icon: "aiAgent"
 	}
 }
 // TODO: send this file to the packages common folder
-
-// 
