@@ -23,7 +23,7 @@ export function N8nStyleTriggerNode({ data }: NodeProps<CustomTriggerNode>) {
       <div className="text-xs font-bold text-slate-700 uppercase tracking-wide">
         {data.nodeName || "AI Agent"}
       </div>
-
+          
       <Handle
         type="target"
         position={Position.Left}
@@ -48,4 +48,3 @@ export function N8nStyleTriggerNode({ data }: NodeProps<CustomTriggerNode>) {
     </div>
   )
 }
-
