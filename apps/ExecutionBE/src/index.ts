@@ -227,12 +227,18 @@ try {
                 const triggerNode = nodes.find((n: any) => n.id === triggerId);
                 if (triggerNode) {
                   // Store webhook payload using the actual node name so {{Webhook 1.body.message}} works
-                  const triggerNodeName = triggerNode.data.nodeName || 'Webhook';
+                  const triggerNodeName = triggerNode.data.nodeName;
                   dataWithEveryNode[triggerNodeName] = { body: payload };
                   console.log("Stored payload under key: ", triggerNodeName, dataWithEveryNode[triggerNodeName]);
                 }
 
-                //TODO: here use Websocket to tell that trigger ndoe has run successfully -> add the payload to the db/redis
+                //TODO: here use WebSocket to tell that trigger node has run successfully -> add the payload to the db/redis
+                if (userId) {
+                  const userWSClient = wsClients.get(userId);
+                  if (userWSClient) {
+                    userWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: true, workflowId, nodeName: triggerNode?.data.nodeName, data: 'Node ran successfully!' }));
+                  }
+                }
 
                 // go onto processing the connections -> BFS -> then in a queue add the nodes sequentially
                 const helperQueue: string[] = []; //TODO: implement an efficent Q: use linked list
@@ -241,19 +247,36 @@ try {
 
                 let currNodeId = triggerId;
                 if (edges && nodes) {
-                  while (true) {
-                    edges.forEach((currConnection: { id: string, source: string, target: string }) => {
-                      if (currConnection.source == currNodeId && !visited.has(currConnection.target)) {
-                        helperQueue.push(currConnection.target);
-                        visited.add(currConnection.target);
-                      }
-                    })
-                    if (helperQueue.length == 0) {
-                      break;
+                  // First add trigger's children to queue
+                  edges.forEach((e: any) => {
+                    if (e.source === currNodeId && !visited.has(e.target)) {
+                      helperQueue.push(e.target);
+                      visited.add(e.target);
                     }
-                    currNodeId = helperQueue.shift();
-                    serializedNodesForExecution.push(currNodeId);
+                  });
 
+                  while (helperQueue.length > 0) {
+                    const nodeId = helperQueue.shift()!;
+                    const parents = edges.filter((e: any) => e.target === nodeId).map((e: any) => e.source);
+
+                    const allParentsProcessed = parents.every((p: string) =>
+                      p === triggerId || serializedNodesForExecution.includes(p)
+                    );
+
+                    if (allParentsProcessed) {
+                      serializedNodesForExecution.push(nodeId);
+
+                      //add its children to queue
+                      edges.forEach((e: any) => {
+                        if (e.source === nodeId && !visited.has(e.target)) {
+                          helperQueue.push(e.target);
+                          visited.add(e.target);
+                        }
+                      });
+                    } else {
+                      //not ready yet, push back to end of queue
+                      helperQueue.push(nodeId);
+                    }
                   }
 
                   // Helper to resolve {{NodeName.property}}
@@ -307,7 +330,6 @@ try {
 
                       console.log("Execution Data: ", executionData, " currNodeId: ", currNodeId);
                       const nodeTitle = currNodeInfo.data.nodeTitle;
-                      // const executor = nodeTitle ? nodeTitleToExecutionFunction[nodeTitle] : undefined;
                       let result = null;
                       if (nodeTitle && nodeTitleToExecutionFunction[nodeTitle]) {
                         console.log("bruh bruh bruh");
@@ -327,16 +349,8 @@ try {
                   }
                   //take every edge and search thru it and if source is same as the currNodeId -> add the target to the helperQueue ->
                   // now out of the .forEach -> take the first element from the helperQueue(if not empty) -> add its id to the serializedNodesForExecution -> remove it from the helperQueue -> remove it from the the helperQueue -> set currNodeId to the removed element -> repeat until the helperQueue is empty
-
                 }
-
                 console.log("Serialized nodes for execution: ", serializedNodesForExecution);
-                // TODO: make "nodes" an bject with nodeIds as keys 
-
-                // run them nodes one by one
-
-                // if one fails(add the reason to the redis -> show on the frontend logs(maybe upon hovering over the nodes X or Y) -> show n the FE that the node X or Y) -> continue onto the next -> complete the workflow 
-                // status: running | completed | failed -> log: failed or successful 
               }
             } catch (err) {
               console.log("Error in finding workflow: ", err);
@@ -354,5 +368,5 @@ try {
 }
 
 // TODO: IMPROVEMENTS:
-// Redis: 
+// Redis:
 // DB executions table: to show execution history (so user can check why a particular node failed on a particular date) (what was the data involved with a particular Execution ID)
