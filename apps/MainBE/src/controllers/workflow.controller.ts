@@ -102,7 +102,7 @@ export async function editParticularWorkflow(req:Request, res:Response){
     if(connections){
         finalData.connections = connections
     }
-
+		
     try{
 			// TODO: add a transaction here:
 			const updatedWorkflow = await prisma.workflow.update({

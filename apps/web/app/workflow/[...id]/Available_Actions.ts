@@ -143,10 +143,10 @@ export const Available_Actions: Avail_Actions_Obj = {
 						isCredential: true,
 						element: "select",
 						fetch: {
-							url: "http://localhost:8000/api/v1/credential/platform/AIAgent", //TODO: change this to the actual url
+							url: "http://localhost:8000/api/v1/credential/platform/LLMApiKey", 
 							method: "GET"
 						},
-						platform: "LLMapi"
+						platform: "LLMApiKey"
 					},
 					{
 						label: "System Prompt",

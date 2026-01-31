@@ -14,7 +14,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useSelector } from 'react-redux';
 import { RootState } from '../../ReduxStore/store';
 import { ReactFlow, addEdge, applyNodeChanges, applyEdgeChanges, ReactFlowProvider, Node, OnNodesChange, OnEdgesChange, Edge, OnConnect, Background, BackgroundVariant, Panel, Controls, useReactFlow } from "@xyflow/react";
-import type {Connection} from "@xyflow/react";
+import type { Connection } from "@xyflow/react";
 import { N8nStyleActionNode } from "./customActionNode";
 import { N8nStyleTriggerNode } from "./customTriggerNode";
 import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
@@ -28,6 +28,7 @@ import { CustomActionNode } from "./customActionNode";
 import { CustomTriggerNode } from "./customTriggerNode";
 import { NodeForm } from "./NodeForm";
 import { N8nStyleAIAgentNode, N8nStyleToolNode } from "./customAIAgentNodes";
+import { Available_Tools } from "./Available_Tools";
 
 interface Workflow {
   id: number,
@@ -55,13 +56,12 @@ export const WorkflowClientComponent = () => {
       console.log("SUBSCRIBING TO WORKFLOW: ", workflowId);
       socket.send(JSON.stringify({ type: 'SUBSCRIBE', workflowId }));
 
-      socket.onmessage = (event: any)=>{
+      socket.onmessage = (event: any) => {
         console.log("Message: ", JSON.parse(event.data));
         alert(JSON.parse(event.data));
       }
     }
 
-    
     return () => {
       if (socket && socket.readyState === WebSocket.OPEN && workflowId) {
         console.log("UNSUBSCRIBING FROM WORKFLOW: ", workflowId);
@@ -187,7 +187,7 @@ export const WorkflowClientComponent = () => {
     return newSerialNum;
   }
 
-  const addNodeToCanvas = (type: 'actionNode' | 'triggerNode', title: string, icon: string, defaultName: string) => {
+  const addNodeToCanvas = (type: 'actionNode' | 'triggerNode' | 'aiAgentNode' | 'toolNode', title: string, icon: string, defaultName: string) => {
     console.log("type of the node: ", type, "& isTriggerNodePresent: ", isTriggerNodePresent);
 
     if (type == 'triggerNode' && isTriggerNodePresent) {
@@ -230,19 +230,19 @@ export const WorkflowClientComponent = () => {
     })
   }
 
-  const isValidConnection = (connection: Connection) => {
+  const isValidConnection = (connection: Connection | Edge) => {
     const sourceNode = getNode(connection.source);
     const targetNode = getNode(connection.target);
     if (!sourceNode || !targetNode) return false;
-    if (sourceNode.type == 'aiAgentNode' && connection.sourceHandle == "tools"){
+    if (sourceNode.type == 'aiAgentNode' && connection.sourceHandle == "tools") {
       return targetNode.type == 'toolNode';
     }
-    if(targetNode.type == 'toolNode'){
+    if (targetNode.type == 'toolNode') {
       return sourceNode.type == 'aiAgentNode' && connection.sourceHandle == 'tools';
     }
     return true;
   }
-  
+
   return (
     <>
       {/* Header Section */}
@@ -313,11 +313,20 @@ export const WorkflowClientComponent = () => {
                 </Link>
               ))}</div>
             </div>
-            <div className="mb-2 pb-2">
+            <div className="mb-4 border-b border-gray-100 pb-2">
               <div className="text-xs font-bold uppercase tracking-wider text-gray-500">Actions</div>
               {/* <div>LIST OF ACTIONS: Clickable, title & description & Icon   -- --  onClick: open a modal, add the node on the screen & custom name(check the nodes with the same name -> add +1 number at the next node -> the modal finally(LOGIC)</div> */}
               <div className="space-y-1">{Object.entries(Available_Actions).map(([key, val]) => (
-                <Link href="" onClick={(e) => addNodeToCanvas('actionNode', val.title, val.icon, val.defaultName)} key={key} className="group flex items-center gap-3 rounded-lg p-2 hover:bg-slate-50 transition-all cursor-pointer">
+                <Link href="" onClick={(e) => addNodeToCanvas(val.title === "AI Agent" ? 'aiAgentNode' : 'actionNode', val.title, val.icon, val.defaultName)} key={key} className="group flex items-center gap-3 rounded-lg p-2 hover:bg-slate-50 transition-all cursor-pointer">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-slate-100 text-gray-500 group-hover:bg-orange-100 group-hover:text-orange-600 transition-colors">{TriggerIconMap[val.icon] || TriggerIconMap['default']}</div>
+                  <div className="flex flex-col"><span className="text-sm font-semibold text-gray-700">{val.title}</span><span className="text-xs text-gray-400 line-clamp-1">{val.description}</span></div>
+                </Link>
+              ))}</div>
+            </div>
+            <div className="mb-2 pb-2">
+              <div className="text-xs font-bold uppercase tracking-wider text-gray-500">Tools</div>
+              <div className="space-y-1">{Object.entries(Available_Tools).map(([key, val]) => (
+                <Link href="" onClick={(e) => addNodeToCanvas('toolNode', val.title, val.icon, val.defaultName)} key={key} className="group flex items-center gap-3 rounded-lg p-2 hover:bg-slate-50 transition-all cursor-pointer">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-slate-100 text-gray-500 group-hover:bg-orange-100 group-hover:text-orange-600 transition-colors">{TriggerIconMap[val.icon] || TriggerIconMap['default']}</div>
                   <div className="flex flex-col"><span className="text-sm font-semibold text-gray-700">{val.title}</span><span className="text-xs text-gray-400 line-clamp-1">{val.description}</span></div>
                 </Link>
@@ -353,7 +362,7 @@ export const WorkflowClientComponent = () => {
                 {/* COMPONENT */}
                 {/* send type & title to render right node form */};
                 {/*  */}
-                <NodeForm formDataHandler={formDataHandler} title={activeNodeForm.data.nodeTitle} type={activeNodeForm.type!} alreadyFilledValues={activeNodeForm.data.executionData} nodeId={activeNodeForm.id} />
+                <NodeForm formDataHandler={formDataHandler} title={activeNodeForm.data.nodeTitle} type={activeNodeForm.type!} alreadyFilledValues={activeNodeForm.data.executionData} nodeId={activeNodeForm.id} nodes={nodes} />
               </div>
             </div>
           </div>

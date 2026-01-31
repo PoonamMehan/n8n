@@ -1,27 +1,32 @@
 'use client'
 import { Available_Triggers } from "./Available_Triggers";
 import { Available_Actions } from "./Available_Actions";
+import { Available_Tools } from "./Available_Tools";
 import { useState, useEffect, useRef } from "react";
 import { Available_Credential_Apps } from "./Available_Credentials";
 import { TriggerIconMap } from "./NodeIcons";
+import { MdClose } from "react-icons/md";
 
 interface NodeFormProps {
   formDataHandler: (formData: Record<string, any>, id: string) => void,
   title: string,
   type: string,
   alreadyFilledValues: Record<string, any>,
-  nodeId: string
+  nodeId: string,
+  nodes: any[]
 }
 
-export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, nodeId }: NodeFormProps) => {
+export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, nodeId, nodes }: NodeFormProps) => {
   const [formValues, setFormValues] = useState<Record<string, any>>({});
   const triggerData = Available_Triggers[title];
   const valuesRef = useRef(formValues);
   const actionData = Available_Actions[title];
+  const toolData = Available_Tools[title];
   const [credentialOptions, setCredentialOptions] = useState<Record<string, any[]>>({});
   const [isCredentialFormOpen, setIsCredentialFormOpen] = useState(false);
   const [currentCredentialPlatform, setCurrentCredentialPlatform] = useState<string | null>(null);
   const [credentialsFormValues, setCredentialsFormValues] = useState<Record<string, any>>({});
+  const [activeParamForVariable, setActiveParamForVariable] = useState<string | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -45,9 +50,11 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
         })
         setFormValues(defaults);
       }
-      if (type === "actionNode" && actionData) {
-        const firstOperationKey = Object.keys(actionData.parameters)[0];
-        const params = actionData.parameters[(firstOperationKey as string)]?.Parameters || [];
+
+      const nodeData = (type === "actionNode" || type === "aiAgentNode") ? actionData : (type === "toolNode" ? toolData : null);
+      if (nodeData && (type === "actionNode" || type === "aiAgentNode" || type === "toolNode")) {
+        const firstOperationKey = Object.keys(nodeData.parameters)[0];
+        const params = nodeData.parameters[(firstOperationKey as string)]?.Parameters || [];
         const newCredOptions: Record<string, any[]> = {};
 
         for (const param of params) {
@@ -78,7 +85,7 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
 
           if (isCredentialField) {
             // Only use saved value if credential still exists in fetched list
-            const credentialStillExists = newCredOptions[key]?.some((cred: any) => cred.id === val);
+            const credentialStillExists = newCredOptions[key]?.some((cred: any) => String(cred.id) === String(val));
             if (credentialStillExists) {
               defaults[key] = val;
             }
@@ -94,7 +101,7 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
     };
 
     loadData();
-  }, [title, type, triggerData, actionData]);
+  }, [title, type, triggerData, actionData, toolData]);
 
   const handleInputChange = (label: string, value: string, isCredential = false, platform?: string) => {
     // Special check for the "Create New" option
@@ -112,6 +119,16 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
       [label]: value,
     }));
   };
+
+  const handleVariableSelection = (variable: string) => {
+    if (activeParamForVariable) {
+      setFormValues((prev) => ({
+        ...prev,
+        [activeParamForVariable]: (prev[activeParamForVariable] || "") + variable
+      }));
+      setActiveParamForVariable(null);
+    }
+  }
 
   useEffect(() => {
     valuesRef.current = formValues;
@@ -134,10 +151,10 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
     // Calculate Default Name (e.g., Telegram Account 2)
     // Find the parameter label in the *main form* that uses this platform to check how many exist
     let existingCount = 0;
-    if (actionData) { //TODO: change the method we find the name for a new credential
-      const firstOperationKey = Object.keys(actionData.parameters)[0];
-      const params = actionData.parameters[(firstOperationKey as string)]?.Parameters || [];
-      const parentParam = params.find(p => p.platform === credentialPlatform);
+    if (currentNodeData) { //TODO: change the method we find the name for a new credential
+      const firstOperationKey = Object.keys(currentNodeData.parameters)[0];
+      const params = currentNodeData.parameters[(firstOperationKey as string)]?.Parameters || [];
+      const parentParam = params.find((p: any) => p.platform === credentialPlatform);
 
       if (parentParam && credentialOptions[parentParam.label]) {
         // console.log("NAME: ", (credentialOptions[parentParam.label])![0].data.name);
@@ -200,8 +217,8 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
       }
       // We need to find which parameter in the main form triggered this modal
       // to update the specific dropdown list.
-      const actionParams = actionData?.parameters[Object.keys(actionData.parameters)[0]!]?.Parameters || [];
-      const parentParam = actionParams.find(p => p.platform === currentCredentialPlatform);
+      const nodeParams = currentNodeData?.parameters[Object.keys(currentNodeData.parameters)[0]!]?.Parameters || [];
+      const parentParam = nodeParams.find((p: any) => p.platform === currentCredentialPlatform);
 
       if (parentParam) {
         // Add the new credential to the dropdown list
@@ -234,10 +251,11 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
   };
 
   let firstOperationKey;
-  let actionNodeParams;
-  if (actionData) {
-    firstOperationKey = Object.keys(actionData.parameters)[0];
-    actionNodeParams = actionData.parameters[(firstOperationKey as string)]?.Parameters || [];
+  let nodeParams;
+  const currentNodeData = actionData || toolData;
+  if (currentNodeData) {
+    firstOperationKey = Object.keys(currentNodeData.parameters)[0];
+    nodeParams = currentNodeData.parameters[(firstOperationKey as string)]?.Parameters || [];
   };
 
   const handleCredentialButtonClick = (label: string, credentialName: string) => {
@@ -298,7 +316,7 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
       window.removeEventListener("message", handleGoogleAuthSuccessEvent);
     }
   }, [title])
-  
+
   return type === "triggerNode" && triggerData ? (
     <div className="flex flex-col h-full" onClick={(e) => { e.stopPropagation() }}>
       <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
@@ -368,17 +386,27 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
         })}
       </div>
     </div>
-  ) : (actionData && type === "actionNode" && actionNodeParams) ? (
+  ) : (currentNodeData && (type === "actionNode" || type === "aiAgentNode" || type === "toolNode") && nodeParams) ? (
     <>
       <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-4 p-4 h-full overflow-y-auto relative">
         <div className="border-b pb-2">
-          <h3 className="font-bold text-lg">{actionData.title}</h3>
-          <p className="text-xs text-gray-500">{actionData.defaultName}</p>
+          <h3 className="font-bold text-lg">{currentNodeData.title}</h3>
+          <p className="text-xs text-gray-500">{currentNodeData.defaultName}</p>
         </div>
-        {actionNodeParams.map((param, idx) => {
+        {nodeParams.map((param: any, idx: number) => {
           return (
             <div key={idx} className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-700">{param.label}</label>
+              {param.element === "input" || param.element === "textarea" ? (
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-semibold text-gray-700">{param.label}</label>
+                  <button type="button" onClick={() => setActiveParamForVariable(param.label)} className="text-xs text-blue-500 hover:text-blue-700">
+                    + Variable
+                  </button>
+                </div>
+              ) : (
+                <label className="text-sm font-semibold text-gray-700">{param.label}</label>
+              )}
+              
               {param.element === "select" && (
                 <select
                   className="border border-gray-300 p-2 rounded text-sm focus:outline-none focus:border-blue-500"
@@ -397,7 +425,7 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
                       </option>
                     </>
                   ) : (
-                    param.options?.map((opt) => (
+                    param.options?.map((opt: any) => (
                       <option key={opt} value={opt}>{opt}</option>
                     ))
                   )}
@@ -424,10 +452,54 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
           );
         })}
 
+        {activeParamForVariable && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm" onClick={() => setActiveParamForVariable(null)}>
+            <div className="w-72 rounded-xl bg-white p-4 shadow-xl border border-gray-200" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-bold text-gray-700">Select Variable</span>
+                <button onClick={() => setActiveParamForVariable(null)}><MdClose className="h-4 w-4 text-gray-400" /></button>
+              </div>
+              <div className="space-y-3 max-h-72 overflow-y-auto">
+                {nodes
+                  .filter(n => n.id !== nodeId && n.type === "triggerNode")
+                  .map((n) => (
+                    <div key={n.id} className="border border-gray-100 rounded-lg p-2">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="text-xs font-bold bg-gray-100 px-1 rounded text-gray-500">{n.data.nodeTitle}</div>
+                        <div className="truncate text-sm font-medium text-gray-700">{n.data.nodeName}</div>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        <button
+                          onClick={() => handleVariableSelection(`{{${n.data.nodeName || 'Node'}.body}}`)}
+                          className="px-2 py-1 text-xs bg-blue-50 text-blue-600 rounded hover:bg-blue-100"
+                        >
+                          .body
+                        </button>
+                        <button
+                          onClick={() => handleVariableSelection(`{{${n.data.nodeName || 'Node'}.body.message}}`)}
+                          className="px-2 py-1 text-xs bg-blue-50 text-blue-600 rounded hover:bg-blue-100"
+                        >
+                          .body.message
+                        </button>
+                        <button
+                          onClick={() => handleVariableSelection(`{{${n.data.nodeName || 'Node'}.body.text}}`)}
+                          className="px-2 py-1 text-xs bg-blue-50 text-blue-600 rounded hover:bg-blue-100"
+                        >
+                          .body.text
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                {nodes.filter(n => n.type === "triggerNode").length === 0 && <div className="text-xs text-gray-400 italic">No trigger nodes found.</div>}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Credential Modal */}
         {isCredentialFormOpen && currentCredentialPlatform && (
           <div className="absolute inset-0 z-50 flex flex-col bg-white">
-
+            {/* Credential Modal Content */}
             <div className="flex items-center justify-between border-b border-gray-200 bg-slate-50 px-4 py-3">
               <div className="flex flex-col">
                 <span className="text-xs font-bold uppercase text-gray-500">New Credential</span>

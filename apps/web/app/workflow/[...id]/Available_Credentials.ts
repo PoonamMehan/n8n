@@ -96,5 +96,18 @@ export const Available_Credential_Apps: Avail_Credentials_Obj = {
         }
       ],
       icon: "gmail"
+    },
+    LLMApiKey: {
+      title: "LLM API Key",
+      description: "",
+      defaultName: "LLM API Key",
+      parameters: [
+        {
+          label: "API Key",
+          element: "input",
+          default: ""
+        }
+      ],
+      icon: "aiAgent"
     }
 }

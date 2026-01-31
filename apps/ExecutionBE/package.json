@@ -16,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@repo/db": "workspace:^",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/nodemailer": "^7.0.9",
