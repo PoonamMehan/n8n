@@ -1,20 +1,13 @@
-// TODO: webhook & telegram basic execution
-// TODO: await gmail node
-// TODO: AI node + tools 
-// TODO: UI
-// TODO: redis
-
-
-//kafka consumer: 
+// Kafka consumer: 
 import { Kafka } from "kafkajs";
 import { prisma } from "@repo/db";
-import axios from "axios";
 import { WebSocketServer } from "ws";
 import type { WebSocket } from "ws";
 import jwt from "jsonwebtoken";
-import nodemailer from "nodemailer";
 import "dotenv/config";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { telegramNodeExecutor } from "./Executors/telegramExecutor.js";
+import { gmailNodeExecutor } from "./Executors/gmailExecutor.js";
+import { aiAgentNodeExecutor } from "./Executors/aiAgentExecutor.js";
 
 const wsClients = new Map<string, WebSocket>();
 const workflowIdToUserId = new Map<string, string>();
@@ -39,468 +32,16 @@ interface Nodes {
   },
   selected: boolean
 }
+
 interface Edges {
   id: string,
   source: string,
   target: string
 }
 
-// Node executor functions
-async function telegramNodeExecutor(executionData: any, workflowId: string, nodeName: string) {
-
-  let currWSClient = null;
-  //TODO: send WS message that we started running this node
-  console.log("YAHA YAHA YAHA ", workflowIdToUserId.get(workflowId));
-  if (workflowIdToUserId.get(workflowId)) {
-    // or .has?
-    const userId = workflowIdToUserId.get(workflowId);
-    console.log("User ID FOR WS CONNECTION: ", userId);
-    if (userId) {
-      currWSClient = wsClients.get(userId);
-    }
-    //TODO: we can save ourselves from redundantly writing this again and again.
-    if (currWSClient) {
-      console.log("EXECUTION DATA: ", executionData);
-      currWSClient.send(JSON.stringify({ type: 'NODE_STARTED', workflowId, nodeName: nodeName }));
-    }
-  }
-
-  if (!executionData['Chat Id']) {
-    console.log("No chat ID")
-    if (currWSClient) {
-      currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: { 'Chat Id': 'No chat ID' } }));
-    }
-    return;
-  }
-
-  if (!executionData['Credential to connect with']) {
-    console.log("No credential");
-    if (currWSClient) {
-      console.log("Sending WS message that node failed due to no credential");
-      currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: { 'Credential to connect with': 'No credential' } }));
-    }
-    return;
-  }
-  if (!executionData.Text) {
-    console.log("No text to send");
-    if (currWSClient) {
-      currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: { 'Text': 'No text to send' } }));
-    }
-    return
-  }
-
-  //TODO: handle this credential finder correctly
-  const credential = await prisma.credentials.findUnique({
-    where: {
-      id: Number(executionData['Credential to connect with'])
-    }
-  })
-  if (!credential) {
-    console.log("No credential found for this id");
-    if (currWSClient) {
-      currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: { 'Credential to connect with': 'No credential found for this id' } }));
-    }
-    return;
-  }
-
-  try {
-    // Use the token from credential.data, not the credential ID
-    const token = (credential.data as any)?.['Access Token'];
-    if (!token) {
-      console.log("No access token in credential");
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: { 'Credential to connect with': 'No access token in credential' } }));
-      }
-      return;
-    }
-
-    const url = `https://api.telegram.org/bot${token}/sendMessage`;
-
-    const response = await axios.post(url, {
-      chat_id: executionData['Chat Id'],
-      text: executionData.Text,
-      parse_mode: 'HTML'
-    });
-
-    console.log("Message sent successfully:", response.data);
-    if (currWSClient) {
-      console.log("I AM TOH RUNNING");
-      currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: true, workflowId, nodeName: nodeName, data: 'Node ran successfully!' }));
-    }
-    return { status: 'success', data: response.data };
-    // TODO: send WS message that we finished running this node -> successful
-
-  } catch (error: any) {
-    console.error("Telegram API Error:", error.response?.data || error.message);
-    if (currWSClient) {
-      currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: 'Node failed due to some issue at our end!' }));
-    }
-    return { status: 'failed', error: error.response?.data || error.message };
-  }
-
-}
-
-const gmailNodeExecutor = async (executionData: any, workflowId: string, nodeName: string) => {
-  console.log("GMAIL NODE EXECUTOR");
-  let currWSClient = null;
-
-  try {
-    if (workflowIdToUserId.get(workflowId)) {
-      const userId = workflowIdToUserId.get(workflowId);
-      if (userId) {
-        currWSClient = wsClients.get(userId);
-      }
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ type: 'NODE_STARTED', workflowId, nodeName: nodeName }));
-      }
-    }
-
-    // credential
-    const cred = executionData['Credential to connect with'];
-    if (!cred) {
-      console.log("No credential");
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: { 'Credential to connect with': 'No credential provided' } }));
-      }
-      return;
-    }
-
-    const credential = await prisma.credentials.findUnique({
-      where: {
-        id: Number(cred)
-      }
-    })
-    if (!credential) {
-      console.log("No credential found");
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: { 'Credential to connect with': 'Credential not found in database' } }));
-      }
-      return;
-    }
-
-    // user's email, refresh token
-    const credData = credential.data as any;
-    const email = credData["email"];
-
-    let refreshToken;
-    let accessToken;
-    try {
-      const tokens = JSON.parse(credData["tokens"]);
-      refreshToken = tokens.refresh_token;
-      accessToken = tokens.access_token;
-    } catch (e) {
-      console.log("Error parsing tokens", e);
-    }
-
-    if (!email || !refreshToken || !accessToken) {
-      console.log("Credential is missing some data.");
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: { 'Credential to connect with': 'Credential corrupt or missing data' } }));
-      }
-      return;
-    }
-
-    console.log("refresh token: ", refreshToken);
-    console.log("ENV1: ", process.env.GOOGLE_CLIENT_ID)
-    console.log("ENV2: ", process.env.GOOGLE_CLIENT_SECRET)
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        type: 'OAuth2',
-        user: email,
-        clientId: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        refreshToken: refreshToken,
-        accessToken: accessToken,
-      },
-    });
-
-    // to
-    const to = executionData['To'];
-    if (!to) {
-      console.log("No destination email provided");
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: { 'To': 'No destination email provided' } }));
-      }
-      return;
-    }
-
-    // subject
-    let subject = executionData['Subject'];
-    if (!subject) {
-      subject = ""
-    }
-
-    // message
-    let message = executionData['Message'];
-    if (!message) {
-      message = ""
-    }
-    console.log("Email data", email, to, subject, message);
-
-    try {
-      const info = await transporter.sendMail({
-        from: email,
-        to,
-        subject,
-        text: message
-      });
-
-      console.log("Email sent successfully:", info);
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: true, workflowId, nodeName: nodeName, data: `Email sent to ${to}` }));
-      }
-      return { status: 'success', data: info };
-
-    } catch (error: any) {
-      console.error("Gmail Send Error:", error);
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: `Failed to send email: ${error.message}` }));
-      }
-      return { status: 'failed', error: error.message };
-    }
-  } catch (error: any) {
-    console.error("Gmail Send Error:", error);
-    if (currWSClient) {
-      currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: `Failed to send email: ${error.message}` }));
-    }
-    return { status: 'failed', error: error.message };
-  }
-}
 
 
-
-
-async function generateContent(prompt: string, systemPrompt: string, apiKey: string) {
-  console.log("I AM HERE TO GENERATE ANSWER FROM THE LLM.");
-  // let genAI = (() => {
-  //   const geminiApiKey = apiKey;
-  //   if (!geminiApiKey) {
-  //     console.log("No gemini api key");
-  //     return null;
-  //   }
-  //   return new GoogleGenerativeAI(geminiApiKey);
-  // })();
-  // console.log("genAI: ", genAI);
-  console.log("api key: ", apiKey);
-  try {
-    // if (!genAI) {
-    //   console.log("There is no gemini client.");
-    //   return { status: "failed", error: "No gemini client." };
-    // }
-
-    // const modelConfig = {
-    //   model: "gemini-1.5-flash",
-    //   generationConfig: {
-    //     temperature: 0.7,
-    //     maxOutputTokens: 500,
-    //   },
-    // };
-
-    // const model = genAI.getGenerativeModel({
-    //   model: modelConfig.model,
-    //   systemInstruction: systemPrompt,
-    //   generationConfig: modelConfig.generationConfig
-    // });
-    console.log('Asking LLM');
-    console.log('Prompt: ', prompt);
-    const response = await fetch("https://apifreellm.com/api/v1/chat", {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        message: `System Prompt: "${systemPrompt}" User Prompt: "${prompt}"`
-      })
-    }
-    )
-
-    const respData = await response.json();
-    if (respData.success) {
-      const text = respData.response;
-      console.log("Generated content: ", text);
-      return { status: "success", text };
-    } else {
-      console.log("Failed to generate content", respData)
-      return { status: "failed", error: "Failed to generate content" }
-    }
-
-    // const result = await model.generateContent(prompt);
-    // const response = result.response;
-    // const text = response.text();
-
-    // console.log("Response: ", text);
-    // return { status: "success", text };
-
-  } catch (error: any) {
-    console.error("Error generating content:", error.message);
-    return { status: "failed", error: error.message }
-  }
-}
-
-const aiAgentNodeExecutor = async (executionData: any, workflowId: string, nodeName: string, nodeId: any, edges: any, nodes: any) => {
-  let currWSClient = null;
-  console.log("I am in AI Agent Node Executor")
-  // Setup WebSocket client for notifications
-  if (workflowIdToUserId.get(workflowId)) {
-    const userId = workflowIdToUserId.get(workflowId);
-    if (userId) {
-      currWSClient = wsClients.get(userId);
-    }
-    if (currWSClient) {
-      currWSClient.send(JSON.stringify({ type: 'NODE_STARTED', workflowId, nodeName: nodeName }));
-    }
-  }
-
-  try {
-    const cred = executionData['Credential to connect with'];
-    if (!cred) {
-      console.log("No credential");
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: { 'Credential to connect with': 'No credential provided' } }));
-      }
-      return;
-    }
-
-    const credential = await prisma.credentials.findUnique({
-      where: {
-        id: Number(cred)
-      }
-    });
-
-    if (!credential) {
-      console.log("No credential found.");
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: { 'Credential to connect with': 'Credential not found in database' } }));
-      }
-      return;
-    }
-
-    const credData = credential.data as any;
-    const apiKey = credData['API Key'];
-    if (!apiKey) {
-      console.log("Credential is invalid. No API Key found.");
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: { 'Credential to connect with': 'No API Key found in credential' } }));
-      }
-      return;
-    }
-
-    //tools:
-    //find the tools using edges
-    let toolsIds: string[] = [];
-    for (const edge of edges) {
-      if (edge && edge.source === nodeId && edge.sourceHandle === "tools") {
-        toolsIds.push(edge.target);
-      }
-    }
-
-    // Find the tool nodes
-    let tools = nodes.filter((node: any) => toolsIds.includes(node.id));
-    console.log("Tools: ", tools);
-    //filter out relevant tools info to send to the LLM: toolsInfoForLLM
-    let toolsInfoForLLM = [];
-    for (const tool of tools) {
-      const toolInfo = { id: tool.id, nodeName: tool.data.nodeName };
-      toolsInfoForLLM.push(toolInfo);
-    }
-    console.log("toolsInfoForLLM: ", toolsInfoForLLM);
-
-    //send toolsInfoForLLM to the LLM
-    //sys prompt
-    //send as the sys prompt to the LLM
-    const sysPrompt = executionData['System Prompt'] || '';
-    const systemPrompt = `You are an AI agent in a workflow automation app. Based on this system prompt: "${sysPrompt}" you must decide which tools to run.
-    You will receive a user prompt and a list of available tools. Return ONLY a JSON array of tool IDs that should run. 
-    Available tools: ${JSON.stringify(toolsInfoForLLM)}
-    Examples:
-    - If tools should run: ["7f3c1e2b-9a4e-4c9d-8c7f-6b2a4f0d1e93", "c8a2d4f1-3e9b-45c7-b6a1-0d8f4e2a9c35"]
-    - If one tool should run: ["1b6e9f24-7d3c-4a8e-9f0b-2c5e1d7a4b98"]
-    - If no tools should run: []
-    IMPORTANT: Return ONLY the JSON array, nothing else. Use double quotes for strings.`;
-    //user's prompt
-    const userPrompt = executionData["Prompt (User Message)"] || '';
-
-    const response = await generateContent(userPrompt, systemPrompt, apiKey);
-    if (response.status === "failed") {
-      console.log("Failed to get response from AI.");
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: 'Failed to get response from AI' }));
-      }
-      return;
-    }
-
-    const toolsToRunText = response.text;
-    if (!toolsToRunText) {
-      console.log("Failed to get response from AI.");
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: 'Empty response from AI' }));
-      }
-      return;
-    }
-
-    // Parse the JSON array from LLM response
-    let toolsToRun: string[] = [];
-    try {//TODO: correct this: 
-      // Clean up the response - remove any markdown code blocks if present
-      let cleanedResponse = toolsToRunText.trim();
-      if (cleanedResponse.startsWith('```')) {
-        cleanedResponse = cleanedResponse.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
-      }
-      // Replace single quotes with double quotes for valid JSON
-      // cleanedResponse = cleanedResponse.replace(/'/g, '"');
-      toolsToRun = JSON.parse(cleanedResponse);
-    } catch (parseError) {
-      console.log("Failed to parse AI response as JSON:", toolsToRunText);
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: `Failed to parse AI response: ${toolsToRunText}` }));
-      }
-      return;
-    }
-
-    console.log("Tools to run:", toolsToRun);
-
-    //run all the tools (by calling the functions)
-    for (const toolId of toolsToRun) {
-      const tool = tools.find((t: any) => t.id === toolId);
-      if (!tool) {
-        console.log(`Tool not found: ${toolId}`);
-        continue;
-      }
-
-      // Use nodeTitle to lookup the execution function
-      const toolTitle = tool.data.nodeTitle;
-      const toolExecutionFunction = nodeTitleToExecutionFunction[toolTitle];
-      if (!toolExecutionFunction) {
-        console.log(`No execution function found for tool: ${toolTitle}`);
-        continue;
-      }
-
-      await toolExecutionFunction(tool.data.executionData, workflowId, tool.data.nodeName);
-    }
-
-    console.log("AI Agent execution completed.");
-    if (currWSClient) {
-      currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: true, workflowId, nodeName: nodeName, data: `AI Agent completed. Ran ${toolsToRun.length} tool(s).` }));
-    }
-    return { status: 'success', toolsRan: toolsToRun.length };
-
-  } catch (error: any) {
-    console.error("AI Agent Error:", error);
-    if (currWSClient) {
-      currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: `AI Agent failed: ${error.message}` }));
-    }
-    return { status: 'failed', error: error.message };
-  }
-};
-
-
-
-
-
-
-const nodeTitleToExecutionFunction: Record<string, (data: any, data2: any, data3: any, data4?: any, data5?: any, data6?: any) => Promise<any>> = {
+const nodeTitleToExecutionFunction: Record<string, (data: Map<string, WebSocket>, data2: Map<string, string>, data3: any, data4: any, data5: any, data6?: any, data7?: any, data8?: any) => Promise<any>> = {
   Telegram: telegramNodeExecutor,
   Gmail: gmailNodeExecutor,
   "AI Agent": aiAgentNodeExecutor,
@@ -615,7 +156,7 @@ wss.on('connection', async (ws, req) => {
   }
 })
 
-// wait till from the server comes a msg "suthenticated"  OR  store all the messages in an object: key=userId, value=messageReceived[], and when authenticated, process all them messages and then -> set isAuthenticated(true) -> done 
+// wait till from the server comes a msg "authenticated"  OR  store all the messages in an object: key=userId, value=messageReceived[], and when authenticated, process all them messages and then -> set isAuthenticated(true) -> done 
 
 
 
@@ -692,7 +233,7 @@ try {
                 }
 
                 //TODO: here use Websocket to tell that trigger ndoe has run successfully -> add the payload to the db/redis
-                   
+
                 // go onto processing the connections -> BFS -> then in a queue add the nodes sequentially
                 const helperQueue: string[] = []; //TODO: implement an efficent Q: use linked list
                 const serializedNodesForExecution: string[] = [];
@@ -716,7 +257,7 @@ try {
                   }
 
                   // Helper to resolve {{NodeName.property}}
-                  
+
                   // Example of executionData: {
                   //   "Credential to connect with": "5",
                   //   "Chat Id": "123456789",
@@ -735,14 +276,14 @@ try {
                       if (match) {
                         const path = match[1]?.split('.');
                         let current = context;
-                        if(path){
+                        if (path) {
                           for (const p of path) {
                             if (current) {
-                                current = current[p];
-                              }
+                              current = current[p];
                             }
                           }
-                          resolvedData[key] = current;
+                        }
+                        resolvedData[key] = current;
                       } else {
                         resolvedData[key] = value;
                       }
@@ -772,10 +313,10 @@ try {
                         console.log("bruh bruh bruh");
                         console.log("nodeTitle: ", nodeTitle);
                         if (nodeTitle == "AI Agent") {
-                          console.log("AI nde to run");
-                          result = await nodeTitleToExecutionFunction[nodeTitle](executionData, workflowId, currNodeInfo.data.nodeName, currNodeInfo.id, edges, nodes);
+                          console.log("AI node to run");
+                          result = await nodeTitleToExecutionFunction[nodeTitle](wsClients, workflowIdToUserId, executionData, workflowId, currNodeInfo.data.nodeName, currNodeInfo.id, edges, nodes);
                         } else {
-                          result = await nodeTitleToExecutionFunction[nodeTitle](executionData, workflowId, currNodeInfo.data.nodeName);
+                          result = await nodeTitleToExecutionFunction[nodeTitle](wsClients, workflowIdToUserId, executionData, workflowId, currNodeInfo.data.nodeName);
                         }
                       }
                       // Store the result for future nodes to use
@@ -808,12 +349,10 @@ try {
       console.log("partition: ", partition, " message: ", message.value?.toString(), " message offset: ", message.offset);
     }
   })
-
-  //TODO: redis & DB executions table
-
 } catch (error) {
   console.log("Error in kafka consumer: ", error);
 }
 
-
-// keep on getting the node executed message on FE via websocket -> but at the end also send the fully executed
+// TODO: IMPROVEMENTS:
+// Redis: 
+// DB executions table: to show execution history (so user can check why a particular node failed on a particular date) (what was the data involved with a particular Execution ID)
