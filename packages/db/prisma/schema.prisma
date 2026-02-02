@@ -31,32 +31,19 @@ model Workflow {
   userId      String
   user        User     @relation(fields: [userId], references: [id])
   webhook     Webhook?
+  executing   Boolean  @default(false)
 }
 
-//TODO: we can add ProjectId (which is just projectname) in Workflow table
+// jab bhi clicked -> set this true -> send signal to the webhook to be true -> in FE check if trigger == Webhook then also add this in the webhook table(Executing: true)
+// webhook triggered -> check this first -> if true then run -> otherwise send response: "Start the workflow first"
 
-// TODO: I think we don't need to make id field an index (@id)
 model Webhook {
   id                        String   @id @default(uuid())
-  // title                         String
-  // production_url                String
-  // http_method                   AllWebhookMethods @default(POST)
-  path                          String            @unique //we will use this to find the webhook
-  // authentication                String
-  // authentication_method         String?
-  // authentication_credentials_id Int?
+  path                      String   @unique //we will use this to find the webhook
   corresponding_workflow_id Int      @unique
-  // respond                       String
-  // response_code                 Int?
-  // no_response_body              Boolean?
-  // response_data                 Json?             @db.JsonB
-  // allowed_origins               Json?             @db.JsonB
-  // response_headers              Json?             @db.JsonB
   corresponding_workflow    Workflow @relation(fields: [corresponding_workflow_id], references: [id], onDelete: Cascade)
+  executing                 Boolean
 }
-
-// SHOULD THE TITLE BE UNIQUE?
-// SHOULD THE PRODUCTION TITLE BE UNIQUE? 
 
 model Credentials {
   id        Int      @id @default(autoincrement())
@@ -73,32 +60,11 @@ model Credentials {
 
 model User {
   id          String        @id @default(uuid())
-  username    String        @unique
+  // username    String       @unique
   email       String        @unique
-  password    String
+  // password    String
   sessions    String[]      @default([])
+  isVerified  Boolean       @default(false)
   workflows   Workflow[]
   credentials Credentials[]
 }
-
-// model Available_Triggers{
-//   id           Int     @id  @default(autoincrement())
-//   title        String  
-//   description  String 
-//   parameters   Json    @db.JsonB
-// }
-//i don't think we need @id, or for that matter any id column here
-//n8n, frontend, extra(jo use hota hai woh hi acche se)
-
-// model Available_Actions{
-//   id           Int     @id  @default(autoincrement())
-//   title        String  
-//   description  String?
-//   parameters   Json    @db.JsonB
-// }
-
-// model Available_Credential_Apps{
-//   id           Int     @id  @default(autoincrement())
-//   title        String
-//   parameters   Json    @db.JsonB
-// }

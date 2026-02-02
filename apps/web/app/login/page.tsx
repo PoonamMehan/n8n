@@ -40,13 +40,14 @@ export function login(){
   }
 
   return(
-    <>
-    {/* Use RHF for better handling of the data */}
+    <> 
     <input placeholder="Username" id="username" onChange={e => {e.preventDefault(); setUsername(e.target.value)}}></input>
     <input placeholder="Password" id="password" onChange={e => {e.preventDefault(); setPassword(e.target.value)}}></input>
     <button onClick={loginHandler}>Login</button>
     </>
-    // give an option to login using email
-    // give an option to rather signup
   )
 }
+// n8n: 
+// hackathon:
+// draw ai:
+// bolt: 

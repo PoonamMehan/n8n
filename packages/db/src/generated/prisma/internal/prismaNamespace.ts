@@ -80,12 +80,12 @@ export type PrismaVersion = {
 }
 
 /**
- * Prisma Client JS version: 7.2.0
- * Query Engine version: 0c8ef2ce45c83248ab3df073180d5eda9e8be7a3
+ * Prisma Client JS version: 7.3.0
+ * Query Engine version: 9d6ad21cbbceab97458517b147a6a09ff43aa735
  */
 export const prismaVersion: PrismaVersion = {
-  client: "7.2.0",
-  engine: "0c8ef2ce45c83248ab3df073180d5eda9e8be7a3"
+  client: "7.3.0",
+  engine: "9d6ad21cbbceab97458517b147a6a09ff43aa735"
 }
 
 /**
@@ -750,7 +750,8 @@ export const WorkflowScalarFieldEnum = {
   connections: 'connections',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  userId: 'userId'
+  userId: 'userId',
+  executing: 'executing'
 } as const
 
 export type WorkflowScalarFieldEnum = (typeof WorkflowScalarFieldEnum)[keyof typeof WorkflowScalarFieldEnum]
@@ -759,7 +760,8 @@ export type WorkflowScalarFieldEnum = (typeof WorkflowScalarFieldEnum)[keyof typ
 export const WebhookScalarFieldEnum = {
   id: 'id',
   path: 'path',
-  corresponding_workflow_id: 'corresponding_workflow_id'
+  corresponding_workflow_id: 'corresponding_workflow_id',
+  executing: 'executing'
 } as const
 
 export type WebhookScalarFieldEnum = (typeof WebhookScalarFieldEnum)[keyof typeof WebhookScalarFieldEnum]
@@ -780,10 +782,9 @@ export type CredentialsScalarFieldEnum = (typeof CredentialsScalarFieldEnum)[key
 
 export const UserScalarFieldEnum = {
   id: 'id',
-  username: 'username',
   email: 'email',
-  password: 'password',
-  sessions: 'sessions'
+  sessions: 'sessions',
+  isVerified: 'isVerified'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]

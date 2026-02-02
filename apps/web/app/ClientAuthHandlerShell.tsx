@@ -1,0 +1,24 @@
+import { useDispatch } from "react-redux"
+import { AppDispatch } from "./ReduxStore/store"
+import { setLoggedIn, setLoggedOut } from "./ReduxStore/features/auth/authSlice"
+
+const dispatch = useDispatch<AppDispatch>();
+interface Props {
+  isLoggedIn: boolean;
+  userId: string | null;
+  username: string | null;
+  children: React.ReactNode;
+}
+
+export const ClientAuthHandlerShell = ({isLoggedIn, userId, username, children}: Props) => {
+  if(isLoggedIn && userId !== null && username !== null){
+    dispatch(setLoggedIn({userId, username}));
+  }else{
+    dispatch(setLoggedOut());
+  }
+  
+  return (<>
+  {children}
+  </>
+  )
+}

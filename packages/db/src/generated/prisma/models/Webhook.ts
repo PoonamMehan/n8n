@@ -38,18 +38,21 @@ export type WebhookMinAggregateOutputType = {
   id: string | null
   path: string | null
   corresponding_workflow_id: number | null
+  executing: boolean | null
 }
 
 export type WebhookMaxAggregateOutputType = {
   id: string | null
   path: string | null
   corresponding_workflow_id: number | null
+  executing: boolean | null
 }
 
 export type WebhookCountAggregateOutputType = {
   id: number
   path: number
   corresponding_workflow_id: number
+  executing: number
   _all: number
 }
 
@@ -66,18 +69,21 @@ export type WebhookMinAggregateInputType = {
   id?: true
   path?: true
   corresponding_workflow_id?: true
+  executing?: true
 }
 
 export type WebhookMaxAggregateInputType = {
   id?: true
   path?: true
   corresponding_workflow_id?: true
+  executing?: true
 }
 
 export type WebhookCountAggregateInputType = {
   id?: true
   path?: true
   corresponding_workflow_id?: true
+  executing?: true
   _all?: true
 }
 
@@ -171,6 +177,7 @@ export type WebhookGroupByOutputType = {
   id: string
   path: string
   corresponding_workflow_id: number
+  executing: boolean
   _count: WebhookCountAggregateOutputType | null
   _avg: WebhookAvgAggregateOutputType | null
   _sum: WebhookSumAggregateOutputType | null
@@ -200,6 +207,7 @@ export type WebhookWhereInput = {
   id?: Prisma.StringFilter<"Webhook"> | string
   path?: Prisma.StringFilter<"Webhook"> | string
   corresponding_workflow_id?: Prisma.IntFilter<"Webhook"> | number
+  executing?: Prisma.BoolFilter<"Webhook"> | boolean
   corresponding_workflow?: Prisma.XOR<Prisma.WorkflowScalarRelationFilter, Prisma.WorkflowWhereInput>
 }
 
@@ -207,6 +215,7 @@ export type WebhookOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   path?: Prisma.SortOrder
   corresponding_workflow_id?: Prisma.SortOrder
+  executing?: Prisma.SortOrder
   corresponding_workflow?: Prisma.WorkflowOrderByWithRelationInput
 }
 
@@ -217,6 +226,7 @@ export type WebhookWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.WebhookWhereInput | Prisma.WebhookWhereInput[]
   OR?: Prisma.WebhookWhereInput[]
   NOT?: Prisma.WebhookWhereInput | Prisma.WebhookWhereInput[]
+  executing?: Prisma.BoolFilter<"Webhook"> | boolean
   corresponding_workflow?: Prisma.XOR<Prisma.WorkflowScalarRelationFilter, Prisma.WorkflowWhereInput>
 }, "id" | "path" | "corresponding_workflow_id">
 
@@ -224,6 +234,7 @@ export type WebhookOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   path?: Prisma.SortOrder
   corresponding_workflow_id?: Prisma.SortOrder
+  executing?: Prisma.SortOrder
   _count?: Prisma.WebhookCountOrderByAggregateInput
   _avg?: Prisma.WebhookAvgOrderByAggregateInput
   _max?: Prisma.WebhookMaxOrderByAggregateInput
@@ -238,11 +249,13 @@ export type WebhookScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Webhook"> | string
   path?: Prisma.StringWithAggregatesFilter<"Webhook"> | string
   corresponding_workflow_id?: Prisma.IntWithAggregatesFilter<"Webhook"> | number
+  executing?: Prisma.BoolWithAggregatesFilter<"Webhook"> | boolean
 }
 
 export type WebhookCreateInput = {
   id?: string
   path: string
+  executing: boolean
   corresponding_workflow: Prisma.WorkflowCreateNestedOneWithoutWebhookInput
 }
 
@@ -250,11 +263,13 @@ export type WebhookUncheckedCreateInput = {
   id?: string
   path: string
   corresponding_workflow_id: number
+  executing: boolean
 }
 
 export type WebhookUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
+  executing?: Prisma.BoolFieldUpdateOperationsInput | boolean
   corresponding_workflow?: Prisma.WorkflowUpdateOneRequiredWithoutWebhookNestedInput
 }
 
@@ -262,23 +277,27 @@ export type WebhookUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
   corresponding_workflow_id?: Prisma.IntFieldUpdateOperationsInput | number
+  executing?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type WebhookCreateManyInput = {
   id?: string
   path: string
   corresponding_workflow_id: number
+  executing: boolean
 }
 
 export type WebhookUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
+  executing?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type WebhookUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
   corresponding_workflow_id?: Prisma.IntFieldUpdateOperationsInput | number
+  executing?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type WebhookNullableScalarRelationFilter = {
@@ -290,6 +309,7 @@ export type WebhookCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   path?: Prisma.SortOrder
   corresponding_workflow_id?: Prisma.SortOrder
+  executing?: Prisma.SortOrder
 }
 
 export type WebhookAvgOrderByAggregateInput = {
@@ -300,12 +320,14 @@ export type WebhookMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   path?: Prisma.SortOrder
   corresponding_workflow_id?: Prisma.SortOrder
+  executing?: Prisma.SortOrder
 }
 
 export type WebhookMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   path?: Prisma.SortOrder
   corresponding_workflow_id?: Prisma.SortOrder
+  executing?: Prisma.SortOrder
 }
 
 export type WebhookSumOrderByAggregateInput = {
@@ -347,11 +369,13 @@ export type WebhookUncheckedUpdateOneWithoutCorresponding_workflowNestedInput = 
 export type WebhookCreateWithoutCorresponding_workflowInput = {
   id?: string
   path: string
+  executing: boolean
 }
 
 export type WebhookUncheckedCreateWithoutCorresponding_workflowInput = {
   id?: string
   path: string
+  executing: boolean
 }
 
 export type WebhookCreateOrConnectWithoutCorresponding_workflowInput = {
@@ -373,11 +397,13 @@ export type WebhookUpdateToOneWithWhereWithoutCorresponding_workflowInput = {
 export type WebhookUpdateWithoutCorresponding_workflowInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
+  executing?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type WebhookUncheckedUpdateWithoutCorresponding_workflowInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   path?: Prisma.StringFieldUpdateOperationsInput | string
+  executing?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 
@@ -386,6 +412,7 @@ export type WebhookSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   id?: boolean
   path?: boolean
   corresponding_workflow_id?: boolean
+  executing?: boolean
   corresponding_workflow?: boolean | Prisma.WorkflowDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["webhook"]>
 
@@ -393,6 +420,7 @@ export type WebhookSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   id?: boolean
   path?: boolean
   corresponding_workflow_id?: boolean
+  executing?: boolean
   corresponding_workflow?: boolean | Prisma.WorkflowDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["webhook"]>
 
@@ -400,6 +428,7 @@ export type WebhookSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   id?: boolean
   path?: boolean
   corresponding_workflow_id?: boolean
+  executing?: boolean
   corresponding_workflow?: boolean | Prisma.WorkflowDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["webhook"]>
 
@@ -407,9 +436,10 @@ export type WebhookSelectScalar = {
   id?: boolean
   path?: boolean
   corresponding_workflow_id?: boolean
+  executing?: boolean
 }
 
-export type WebhookOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "path" | "corresponding_workflow_id", ExtArgs["result"]["webhook"]>
+export type WebhookOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "path" | "corresponding_workflow_id" | "executing", ExtArgs["result"]["webhook"]>
 export type WebhookInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   corresponding_workflow?: boolean | Prisma.WorkflowDefaultArgs<ExtArgs>
 }
@@ -429,6 +459,7 @@ export type $WebhookPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     id: string
     path: string
     corresponding_workflow_id: number
+    executing: boolean
   }, ExtArgs["result"]["webhook"]>
   composites: {}
 }
@@ -856,6 +887,7 @@ export interface WebhookFieldRefs {
   readonly id: Prisma.FieldRef<"Webhook", 'String'>
   readonly path: Prisma.FieldRef<"Webhook", 'String'>
   readonly corresponding_workflow_id: Prisma.FieldRef<"Webhook", 'Int'>
+  readonly executing: Prisma.FieldRef<"Webhook", 'Boolean'>
 }
     
 

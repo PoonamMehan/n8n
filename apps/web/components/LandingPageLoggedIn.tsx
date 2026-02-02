@@ -35,7 +35,6 @@ export function LandingPageLoggedIn(){
   return(
     <>
       <button onClick={signoutHandler}>Sign Out</button>
-      <button><Link href="/home/workflows">Continue Creating</Link></button>
     </>
   )
 }

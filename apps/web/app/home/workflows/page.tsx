@@ -4,6 +4,7 @@
 // top navbar with following tabs: Workflows            Credentials
 import Link from "next/link";
 import { AllWorkflowsList } from "../../../components/AllWorkflowsList";
+import { CreatDropdownComponent } from "../../../components/CreateDropdownComponent";
 
 export default async function WorkflowsOverview() {
   // fetch all the workflows & show: SSR component: 
@@ -28,18 +29,14 @@ export default async function WorkflowsOverview() {
       {/* TODO: make this dropdown re-usable and a separate component */}
       {/* TODO: add the dropdown */}
       <div>
-        {/* make this another cilent side component */}
-        <Link href="/workflow/new?projectId=Personal">Create Workflow</Link>
+        <CreatDropdownComponent />
+
         <div>
-          {/* a navbar with TABS: workflows & credentials */}
-          {/* 2 */}
           <div>Workflows</div>
-          <Link href="/home/workflows">Credentials</Link>
+          <Link href="/home/credentials">Credentials</Link>
         </div>
+
         <div>
-          {/* Show all the workflows that you fetch right here  */}
-          {/* A client component. Gets all the existing workflows from this component*/}
-          {/* 1 */}
           <AllWorkflowsList workflowsData={allWorkflowsData} overview={true} />
         </div>
       </div>

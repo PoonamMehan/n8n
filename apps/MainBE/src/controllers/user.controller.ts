@@ -5,19 +5,26 @@ import { z } from "zod";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
 import { google } from "googleapis";
+import { Resend } from "resend";
 
-const signupSchema = z.object({
+const signupSchemaNormal = z.object({
   username: z.string(),
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(6, "Password is required and has to be of 6 characters or longer.")
 })
+
+const signupSchema = z.object({
+  email: z.email()
+})
+
 const loginSchema = z.object({
   username: z.string().optional(),
-  email: z.string().email().optional(),
+  email: z.email().optional(),
   password: z.string().min(6, "Password is required and has to be of 6 characters or longer.")
 }).refine((data) => data.username || data.email, {
   message: "Either username or email is required."
 })
+
 
 export async function signupHandler(req: Request, res: Response) {
   //validate the data came in request
@@ -27,16 +34,18 @@ export async function signupHandler(req: Request, res: Response) {
       console.log("While signing up, validation failed: ", validatedData.error);
       return res.status(400).send(validatedData.error);
     }
+
     console.log("Here is the validated data: ", validatedData);
     const { username, email, password } = validatedData.data;
     console.log(username, " ", email, " ", password);
+
     //encrypt the password using bcrypt
     const saltRounds = 12;
     let cryptedPassword;
     cryptedPassword = await bcrypt.hash(password, saltRounds);
     console.log("here is the crypted password: ", cryptedPassword);
+
     if (cryptedPassword) {
-      //store that in the Db
       const userEntryInDb = await prisma.user.create({
         data: {
           email: email,
@@ -45,17 +54,288 @@ export async function signupHandler(req: Request, res: Response) {
         }
       });
       console.log("userEntryInDb: ", userEntryInDb);
-      //check if the email or username already exists err is there & send a custom error message. //yeah 'P2002' 
-      return res.status(200).send(userEntryInDb.id)
+
+      // send an email using nodemailer
+      // generate a token
+      const tempToken = jwt.sign({ userId: userEntryInDb.id, email: userEntryInDb.email }, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: '15m' });
+
+      //LOGIN: 
+      // have two options:
+      // ?token
+      // username OR email & password
+      // after success from either of the two methods: 
+      // generate access & refresh tokens
+      // save the refresh token in db
+      // set the token in the cookies
+      // return the result with "Login Successful!"
+      return res.status(200).send({ status: "success", data: userEntryInDb.id, error: null });
     }
+
   } catch (err: any) {
     if (err.code == 'P2002') {
-      return res.status(400).send(err.message);
-      //TODO: find specific return status codes according to different conditions
+      //TODO: specifically which field failed?
+      return res.status(400).send({ status: "failed", data: null, error: "Username or email already exists." });
+      //TODO: toaster in FE
     }
-    console.log("Err while logging in the user: ", err.message);
-    return res.status(500).send(`Some error occurred at the backend: ${err.message}`);
+    console.log("Err while signing up the user: ", err.message);
+    return res.status(500).send({ status: "failed", data: null, error: `Some error occurred at the backend: ${err.message}` });
   }
+}
+
+const sendEMail = async ({ to, subject, html, from }: { to: string, subject: string, html: string, from?: string }) => {
+  const resendAPIKey = process.env.RESEND_API_KEY;
+  if (!resendAPIKey) {
+    return { success: false, data: null, error: "No resend API key found." };
+  }
+  const resend = new Resend(resendAPIKey);
+
+  const { data, error } = await resend.emails.send({
+    from: from || 'S30 <no-reply@resend.dev>',
+    to,
+    subject,
+    html
+  })
+
+  if (error) {
+    return { success: false, data: null, error: error }
+  }
+
+  return { success: true, data: data, error: null }
+}
+
+
+const sendLoginMagicLink = async ({ email, token }: { email: string, token: string }) => {
+  const backend_url = process.env.BACKEND_URL;
+  if (!backend_url) {
+    return { success: false, data: null, error: "Missing BACKEND_URL environment variable." };
+  }
+
+  const result = await sendEMail({
+    to: email,
+    subject: "Login to S30 n8n",
+    html: `<p>Click <a href="${backend_url}/api/v1/auth/magic-login?token=${token}">here</a> to Login</p>`
+  })
+
+  if (result.success) {
+    return { success: true, data: result.data, error: null }
+  } else {
+    return { success: false, data: null, error: result.error }
+  }
+}
+
+const sendVerificationMagicLink = async ({ email, token }: { email: string, token: string }) => {
+  const backend_url = process.env.BACKEND_URL;
+  if (!backend_url) {
+    return { success: false, data: null, error: "Missing BACKEND_URL environment variable." };
+  }
+
+  const result = await sendEMail({
+    to: email,
+    subject: "Login to S30 n8n",
+    html: `<p>Click <a href="${backend_url}/api/v1/auth/magic-verification?token=${token}">here</a> to verify your email.</p>`
+  })
+
+  if (result.success) {
+    return { success: true, data: result.data, error: null }
+  } else {
+    return { success: false, data: null, error: result.error }
+  }
+}
+
+export async function startAuthHandler(req: Request, res: Response) {
+  try {
+    const payloadData = req.body;
+    const validationResult = signupSchema.safeParse(payloadData);
+    if (!validationResult.success) {
+      console.log("While signing up validation failed: ", validationResult);
+      return res.status(400).send({ success: false, data: null, error: "Incorrect email." });
+    }
+
+    const { email } = validationResult.data;
+
+    // create entry in the table
+    const userExistsInDb = await prisma.user.findUnique({
+      where: {
+        email: email
+      }
+    })
+
+    const jwt_secret = process.env.ACCESS_TOKEN_SECRET;
+    if (!jwt_secret) {
+      console.log("No JWT secret found in the .env file.");
+      return res.status(500).send({ success: false, data: null, error: "Internal server error." })
+    }
+
+    const tempToken = jwt.sign({ email: email }, jwt_secret, { expiresIn: '25m' });
+
+    if (userExistsInDb) {
+
+      if (userExistsInDb.isVerified) {
+        // send magic-login link
+        const result = await sendLoginMagicLink({ email: email, token: tempToken })
+        if (result.success) {
+          return res.status(200).send({ success: true, data: "Login link sent successfully", error: null })
+        } else {
+          return res.status(500).send({ success: false, data: null, error: "Failed to send login link" })
+        }
+
+      } else {
+
+        // send magic-verify link
+        const result = await sendVerificationMagicLink({ email: email, token: tempToken })
+        if (result.success) {
+          return res.status(200).send({ success: true, data: "Verification link sent successfully", error: null })
+        } else {
+          return res.status(500).send({ success: false, data: null, error: "Failed to send verification link" })
+        }
+
+      }
+    } else {
+
+      // create entry with isVerified == false -> send the magic-verify link
+      try {
+        const newUser = await prisma.user.create({
+          data: {
+            email: email,
+            isVerified: false
+          }
+        })
+
+        if (newUser) {
+          const result = await sendVerificationMagicLink({ email: email, token: tempToken })
+          if (result.success) {
+            return res.status(200).send({ success: true, data: "Verification link sent successfully", error: null })
+          } else {
+            return res.status(500).send({ success: false, data: null, error: "Failed to send verification link" })
+          }
+        }
+
+      } catch (error) {
+        return res.status(500).send({ success: false, data: null, error: "Failed to create a new user" })
+      }
+    }
+  } catch (err) {
+    console.log("Error while starting the auth handler: ", err);
+    return res.status(500).send({ success: false, data: null, error: "Failed to get you started, try again!" });
+  }
+}
+
+
+const generateTokens = (userId: string, email: string) => {
+  try {
+    const access_token_secret = process.env.ACCESS_TOKEN_SECRET;
+    const refresh_token_secret = process.env.REFRESH_TOKEN_SECRET;
+    if (!access_token_secret || !refresh_token_secret) {
+      console.log("No access token secret or refresh token secret found in the .env file.");
+      return { success: false, data: null, error: "Internal server error" }
+    }
+
+    const access_token = jwt.sign({ userId: userId, email: email }, access_token_secret, { expiresIn: '30m' });
+    const refresh_token = jwt.sign({ userId: userId, email: email }, refresh_token_secret, { expiresIn: '7d' });
+    return { success: true, data: { access_token: access_token, refresh_token: refresh_token }, error: null }
+  }
+  catch (error) {
+    console.log("Error while generating tokens: ", error);
+    return { success: false, data: null, error: "Failed to generate tokens." }
+  }
+}
+
+
+export const magicLinkHandler = async (req: Request, res: Response) => {
+
+  const reqPath = req.path;
+  const source = reqPath.split("/").pop();
+  let needToSetVerified;
+  if (source == "magic-login") {
+    needToSetVerified = false;
+  } else {
+    needToSetVerified = true;
+  }
+
+  try {
+    const token = req.query.token;
+    if (!token) {
+      return res.status(400).send({ success: false, data: null, error: "No token provided" });
+    }
+    const access_token_secret = process.env.ACCESS_TOKEN_SECRET;
+    if (!access_token_secret) {
+      console.log("No access token secret found in the .env file. Here in magic-login handler.");
+      return res.status(500).send({ success: false, data: null, error: "Internal server error" })
+    }
+
+    const decoded = jwt.verify(token as string, access_token_secret);
+    console.log("Decoded: ", decoded);
+
+    if (typeof decoded == "string" || !decoded.email) {
+      return res.status(400).send({ success: false, data: null, error: "Invalid token" })
+    }
+
+    const userInDb = await prisma.user.findUnique({
+      where: {
+        email: decoded.email
+      }
+    })
+    if (!userInDb) {
+      return res.status(400).send({ success: false, data: null, error: "Invalid token" })
+    }
+
+    //generate access & refresh tokens
+    const tokens = generateTokens(userInDb.id, userInDb.email);
+    if (!tokens.success) {
+      return res.status(500).send({ success: false, data: null, error: "Failed to generate tokens" })
+    }
+
+    const refresh_token = tokens.data?.refresh_token
+    if (!refresh_token) {
+      return res.status(500).send({ success: false, data: null, error: "Internal server error" })
+    }
+    const newSessionsArr = [...userInDb.sessions, refresh_token];
+
+    if (needToSetVerified) {
+      await prisma.user.update({
+        where: {
+          id: userInDb.id
+        },
+        data: {
+          isVerified: true,
+          sessions: newSessionsArr
+        }
+      })
+    } else {
+      await prisma.user.update({
+        where: {
+          id: userInDb.id
+        },
+        data: {
+          sessions: newSessionsArr
+        }
+      })
+    }
+
+    // set cookies
+    res.cookie("__Host-access_token", tokens.data?.access_token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+    })
+    res.cookie("__Host-refresh_token", tokens.data?.refresh_token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+    })
+    // redirect
+    const feURL = process.env.FRONTEND_URL;
+    return res.redirect(`${feURL || "http://localhost:3000"}/home/workflows`);
+    //TODO: redirect the user onto the Dashboard -> show a toaster success message
+
+  } catch (err) {
+    if (err instanceof jwt.TokenExpiredError || err instanceof jwt.JsonWebTokenError || err instanceof jwt.NotBeforeError) {
+      return res.status(400).send({ success: false, data: null, error: "Invalid token" })
+    }
+    console.log("Error while verifying the token: ", err);
+    return res.status(500).send({ success: false, data: null, error: "Internal server error" })
+  }
+
 }
 
 export async function loginHandler(req: Request, res: Response) {
@@ -249,7 +529,7 @@ export const getMe = async (req: Request, res: Response) => {
       // Refresh token is dead. Clear cookies and return false.
       res.clearCookie('__Host-access_token', { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
       res.clearCookie('__Host-refresh_token', { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
-      return res.status(200).json({ isAuthenticated: false, user: null });
+      return res.status(400).json({ isAuthenticated: false, user: null });
     }
     // Refresh was successful. Generate NEW tokens.
     const newAccessToken = jwt.sign({ userId: existingToken.id }, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: '15m' });
@@ -388,3 +668,8 @@ export const googleAuthCallbackHandler = async (req: Request, res: Response) => 
     res.send('<script>window.close();</script>');
   }
 };
+
+//nam
+// exer(wak)
+// tech:
+// BE, FE, devops, kafka, code best practices FE

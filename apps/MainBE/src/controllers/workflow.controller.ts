@@ -124,7 +124,8 @@ export async function editParticularWorkflow(req:Request, res:Response){
 							create: {
 								id: node.id,
 								corresponding_workflow_id: workflowId,
-								path: node.id
+								path: node.id,
+								executing: updatedWorkflow.executing
 							}
 						})
 					}

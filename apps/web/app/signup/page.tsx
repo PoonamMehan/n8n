@@ -12,8 +12,7 @@ export function Signup (){
     try{
       e.preventDefault();
       const signedUpUser = await fetch('/api/v1/auth/signup', {
-      method: 'GET',
-      credentials: "include"
+      method: 'POST',
     })
     if(!signedUpUser.ok){
       // TODO: toaster: Signup again  &  observe the returned codes for correct instructions to user about the payload they are sending.
@@ -41,3 +40,6 @@ export function Signup (){
   )
 }
 // TODO: loading.tsx
+
+// user gives info -> we hit /auth/signup -> use nodemailer to send the user /auth/login?token=kajreskfg -> in login check the token -> create new access token + refresh token -> redirect the user to /signin FE -> do (/auth/me) -> if authenticated show btn "Go to Dashboard"  -> else show login form -> once use logs in manually -> add the data to the state -> 
+// do /auth/me (user will be authenticated or not based on the access token) -> if authenticated -> show go to dashborad -> if not then login form 

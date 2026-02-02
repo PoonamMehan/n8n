@@ -51,8 +51,6 @@ const nodeTitleToExecutionFunction: Record<string, (data: Map<string, WebSocket>
 
 //TODO: here start the ws server: then -> add the users -> in-memory/redis
 
-
-
 // user connects to ws server -> user Id -> we take the userID from the kafka message -> both userId matches -> send the updates about the corresponding workflow executions to that user(ws client)
 // BE: endpoint /generateWSToken -> FE takes the token -> ?token=${token} -> new URLSearchParams(req.url?.split("?")[1]) -> urlParams.get('token') -> wsClient.set(userId, ws) -> 
 // 
@@ -368,5 +366,5 @@ try {
 }
 
 // TODO: IMPROVEMENTS:
-// Redis:
+// Redis: 
 // DB executions table: to show execution history (so user can check why a particular node failed on a particular date) (what was the data involved with a particular Execution ID)

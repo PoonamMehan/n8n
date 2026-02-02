@@ -29,6 +29,7 @@ import { CustomTriggerNode } from "./customTriggerNode";
 import { NodeForm } from "./NodeForm";
 import { N8nStyleAIAgentNode, N8nStyleToolNode } from "./customAIAgentNodes";
 import { Available_Tools } from "./Available_Tools";
+import { CiStop1 } from "react-icons/ci"
 
 interface Workflow {
   id: number,
@@ -49,7 +50,8 @@ export const WorkflowClientComponent = () => {
   const [workflow, setWorkflow] = useState<Workflow>();
   const { id } = useParams<{ id: string[] }>();
   const workflowId = id[0];
-  const [isSaved, setIsSaved] = useState(true);
+  const [isSaved, setIsSaved] = useState(true); //TODO: 
+  const [isWorkflowRunning, setIsWorkflowRunning] = useState(false); //TODO: we should get it from the db
 
   useEffect(() => {
     if (socket && isConnected && workflowId) {
@@ -87,6 +89,7 @@ export const WorkflowClientComponent = () => {
         console.log("Workflow Edges: ", fetchedWorkflowData.connections);
         console.log("Workflow Nodes: ", fetchedWorkflowData.nodes);
         setWorkflow(fetchedWorkflowData);
+        setIsWorkflowRunning(fetchedWorkflowData.executing);
       })();
     } catch (err: any) {
       console.log(`Some error occurred while fetching the workflow: ${err.message}`);
@@ -260,6 +263,8 @@ export const WorkflowClientComponent = () => {
           >
             Save
           </button>
+          <button className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600" onClick={(e) => { e.preventDefault(); setIsWorkflowRunning(true) }}>Start Workflow</button>
+          {isWorkflowRunning && <button onClick={(e) => { e.preventDefault(); setIsWorkflowRunning(false) }} className="rounded-sm border-2 border-blue-600 px-1 py-1"><CiStop1 className="h-6 w-6 text-blue-600" /></button>}
         </div>
       </div>
 
