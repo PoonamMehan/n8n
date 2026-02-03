@@ -89,6 +89,7 @@ const sendEMail = async ({ to, subject, html, from }: { to: string, subject: str
   }
   const resend = new Resend(resendAPIKey);
 
+  console.log("DAta: ", { from, to, subject, html });
   const { data, error } = await resend.emails.send({
     from: from || 'S30 <no-reply@resend.dev>',
     to,
@@ -113,9 +114,10 @@ const sendLoginMagicLink = async ({ email, token }: { email: string, token: stri
   const result = await sendEMail({
     to: email,
     subject: "Login to S30 n8n",
-    html: `<p>Click <a href="${backend_url}/api/v1/auth/magic-login?token=${token}">here</a> to Login</p>`
+    html: `<p>Click <a href="${backend_url}/api/v1/auth/magic-login?token=${token}">here</a> to Login!</p>`
   })
 
+  console.log("Login magic link email: ", result);
   if (result.success) {
     return { success: true, data: result.data, error: null }
   } else {
@@ -132,8 +134,10 @@ const sendVerificationMagicLink = async ({ email, token }: { email: string, toke
   const result = await sendEMail({
     to: email,
     subject: "Login to S30 n8n",
-    html: `<p>Click <a href="${backend_url}/api/v1/auth/magic-verification?token=${token}">here</a> to verify your email.</p>`
+    html: `<p>Click <a href="${backend_url}/api/v1/auth/magic-verification?token=${token}">here</a> to verify your email!</p>`
   })
+
+  console.log("result: ", result);
 
   if (result.success) {
     return { success: true, data: result.data, error: null }

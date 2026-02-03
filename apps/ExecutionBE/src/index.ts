@@ -41,7 +41,7 @@ interface Edges {
 
 
 
-const nodeTitleToExecutionFunction: Record<string, (data: Map<string, WebSocket>, data2: Map<string, string>, data3: any, data4: any, data5: any, data6?: any, data7?: any, data8?: any) => Promise<any>> = {
+const nodeTitleToExecutionFunction: Record<string, (data: Map<string, WebSocket>, data2: Map<string, string>, data3: Record<string, any>, data4: any, data5: any, data6?: any, data7?: any, data8?: any, data9?: any) => Promise<any>> = {
   Telegram: telegramNodeExecutor,
   Gmail: gmailNodeExecutor,
   "AI Agent": aiAgentNodeExecutor,
@@ -162,10 +162,10 @@ try {
   const consumer = kafka.consumer({ groupId: 'execution-group' });
   await consumer.connect();
   await consumer.subscribe({ topic: 'workflow-execution-requests', fromBeginning: true });
-  let collectedMessage: any;
   await consumer.run({
     partitionsConsumedConcurrently: 1,
     eachMessage: async ({ topic, partition, message }) => {
+      let collectedMessage: any;
       if (!message || message.value == null) {
         collectedMessage = null
       }
@@ -175,33 +175,16 @@ try {
         if (!collectedMessage || !collectedMessage.value) {
           console.log("No message collected.");
         } else {
-          //start executing the workflow
-          // get the workflow id
-          // get the workflow from db 
-          // get the nodes and connections from the workflow
-          // run the decided algo to serialize the execution of the nodes
-          // now run them nodes one by one
-          // as a node is done executing send the signal to the frontend via WEBSOCKET that it is done, 
-
-          //if this backend goes down -> keep record in the redis cache
-          // as the backend comes alive see if there is any running/pending workflows in the db
-
-
-          // can run the next nodes even if the older node's execution was not successful
-          // decorators
-
-
-          //CURRENTLY V0: 
-          // run the nodes -> as being executed -> to the redis cache/queue -> from the redis queue to the ws server -> server fins the user based on theri user id -> sends them the updates -> show on the frontend (use AI)
-
-
           const val = JSON.parse(collectedMessage.value.toString()); //buffer -> string -> json
           console.log("val: ", val);
+
           const workflowId = String(val.workflowId);
           const payload = val.payload; //keep it in-memory for this execution or save to the redis -> or save to the DB -> or in-memory
           const triggerId = val.triggerId;
+
           if (!workflowId || !triggerId) {
             console.log("No workflow id or trigger id found.");
+            // should we send a message that the workflowId is not found or triggerId is not found
           } else {
             try {
               const workflow = await prisma.workflow.findUnique({
@@ -223,18 +206,60 @@ try {
 
                 // DATA SHARING CHECK
                 const triggerNode = nodes.find((n: any) => n.id === triggerId);
-                if (triggerNode) {
-                  // Store webhook payload using the actual node name so {{Webhook 1.body.message}} works
-                  const triggerNodeName = triggerNode.data.nodeName;
-                  dataWithEveryNode[triggerNodeName] = { body: payload };
-                  console.log("Stored payload under key: ", triggerNodeName, dataWithEveryNode[triggerNodeName]);
+
+                if (!triggerNode) {
+                  if (userId) {
+                    const userWSClient = wsClients.get(userId);
+                    if (userWSClient) {
+                      userWSClient.send(JSON.stringify({ status: "failed", log: "Trigger node not found.", workflowId: workflowId }));
+                    }
+                  }
+                  console.log("Trigger Node not found.");
+                  return;
                 }
 
-                //TODO: here use WebSocket to tell that trigger node has run successfully -> add the payload to the db/redis
+                // Store webhook payload using the actual node name so {{Webhook 1.body.message}} works
+                const triggerNodeName = triggerNode.data.nodeName;
+
+
+                // Store data in-memory about the whole Execution
+                const executionId = crypto.randomUUID();
+                const fullExecutionData: Record<string, any> = {
+                  status: "running",
+                  workflowId: workflowId,
+                  log: "Workflow is running.",
+                  nodeDetails: {}
+                }
+
+                try {
+                  await prisma.executions.create({
+                    data: {
+                      id: executionId,
+                      workflowId: Number(workflowId),
+                      status: "running",
+                      log: "Workflow is running.",
+                      nodeDetails: {
+                        [triggerNodeName]: {
+                          status: "success",
+                          output: payload,
+                          log: `${triggerNodeName} trigger node ran successfully.`
+                        }
+                      }
+                    }
+                  })
+                }
+                catch (err) {
+                  console.log("Error while creating execution: ", err);
+                }
+
+                dataWithEveryNode[triggerNodeName] = { body: payload };
+                console.log("Stored payload under key: ", triggerNodeName, dataWithEveryNode[triggerNodeName]);
+
+                // here use WebSocket to tell that trigger node has run successfully -> add the payload to the db/redis
                 if (userId) {
                   const userWSClient = wsClients.get(userId);
                   if (userWSClient) {
-                    userWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: true, workflowId, nodeName: triggerNode?.data.nodeName, data: 'Node ran successfully!' }));
+                    userWSClient.send(JSON.stringify({ executionId: executionId, triggerNodeName: { status: "success", output: payload, log: `${triggerNodeName} trigger node ran successfully.` } }));
                   }
                 }
 
@@ -334,9 +359,9 @@ try {
                         console.log("nodeTitle: ", nodeTitle);
                         if (nodeTitle == "AI Agent") {
                           console.log("AI node to run");
-                          result = await nodeTitleToExecutionFunction[nodeTitle](wsClients, workflowIdToUserId, executionData, workflowId, currNodeInfo.data.nodeName, currNodeInfo.id, edges, nodes);
+                          result = await nodeTitleToExecutionFunction[nodeTitle](wsClients, workflowIdToUserId, fullExecutionData, executionData, workflowId, currNodeInfo.data.nodeName, currNodeInfo.id, edges, nodes);
                         } else {
-                          result = await nodeTitleToExecutionFunction[nodeTitle](wsClients, workflowIdToUserId, executionData, workflowId, currNodeInfo.data.nodeName);
+                          result = await nodeTitleToExecutionFunction[nodeTitle](wsClients, workflowIdToUserId, fullExecutionData, executionData, workflowId, currNodeInfo.data.nodeName);
                         }
                       }
                       // Store the result for future nodes to use
@@ -344,6 +369,70 @@ try {
                         dataWithEveryNode[currNodeInfo.data.nodeName] = result;
                       }
                     }
+                  }
+
+                  // Determine workflow status based on node statuses
+                  const nodeKeys = Object.keys(fullExecutionData).filter(
+                    key => !['status', 'workflowId', 'log'].includes(key)
+                  );
+
+                  let successCount = 0;
+                  let failedCount = 0;
+
+                  for (const key of nodeKeys) {
+                    const nodeData = fullExecutionData[key];
+                    if (nodeData?.status === 'success') {
+                      successCount++;
+                    } else if (nodeData?.status === 'failed') {
+                      failedCount++;
+                    }
+                  }
+
+                  let workflowStatus: string;
+                  let workflowLog: string;
+
+                  if (failedCount === 0) {
+                    workflowStatus = "success";
+                    workflowLog = "Workflow completed successfully.";
+                  } else if (successCount === 0) {
+                    workflowStatus = "failed";
+                    workflowLog = "Workflow failed. All nodes failed.";
+                  } else {
+                    workflowStatus = "partial-success";
+                    workflowLog = `Workflow partially completed.`;
+                  }
+
+                  fullExecutionData.status = workflowStatus;
+                  fullExecutionData.log = workflowLog;
+                  //TODO: save the fullExecutionData to the DB
+                  //TODO: create executions table
+                  if (userId) {
+                    const userWSClient = wsClients.get(userId);
+                    if (userWSClient) {
+                      userWSClient.send(JSON.stringify({ status: workflowStatus, log: workflowLog, workflowId: workflowId }));
+                    }
+                  }
+
+                  let nodeDetails: any = {};
+                  nodeKeys.forEach((key) => {
+                    nodeDetails[key] = fullExecutionData[key];
+                  })
+
+                  try {
+                    await prisma.executions.update({
+                      where: {
+                        id: executionId
+                      },
+                      data: {
+                        status: workflowStatus,
+                        log: workflowLog,
+                        nodeDetails: nodeDetails,
+                        finishedAt: new Date()
+                      }
+                    })
+                  }
+                  catch (err) {
+                    console.log("Error while updating execution: ", err);
                   }
                   //take every edge and search thru it and if source is same as the currNodeId -> add the target to the helperQueue ->
                   // now out of the .forEach -> take the first element from the helperQueue(if not empty) -> add its id to the serializedNodesForExecution -> remove it from the helperQueue -> remove it from the the helperQueue -> set currNodeId to the removed element -> repeat until the helperQueue is empty
@@ -366,5 +455,5 @@ try {
 }
 
 // TODO: IMPROVEMENTS:
-// Redis: 
+// Redis:
 // DB executions table: to show execution history (so user can check why a particular node failed on a particular date) (what was the data involved with a particular Execution ID)

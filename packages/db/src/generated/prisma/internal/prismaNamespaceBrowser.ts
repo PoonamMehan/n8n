@@ -54,7 +54,8 @@ export const ModelName = {
   Workflow: 'Workflow',
   Webhook: 'Webhook',
   Credentials: 'Credentials',
-  User: 'User'
+  User: 'User',
+  Executions: 'Executions'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -121,6 +122,19 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const ExecutionsScalarFieldEnum = {
+  id: 'id',
+  workflowId: 'workflowId',
+  status: 'status',
+  log: 'log',
+  nodeDetails: 'nodeDetails',
+  createdAt: 'createdAt',
+  finishedAt: 'finishedAt'
+} as const
+
+export type ExecutionsScalarFieldEnum = (typeof ExecutionsScalarFieldEnum)[keyof typeof ExecutionsScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -151,4 +165,12 @@ export const JsonNullValueFilter = {
 } as const
 
 export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 

@@ -2,7 +2,7 @@ import { prisma } from "@repo/db";
 import axios from "axios";
 import type { WebSocket } from "ws";
 
-export async function telegramNodeExecutor(wsClients: Map<string, WebSocket>, workflowIdToUserId: Map<string, string>, executionData: any, workflowId: string, nodeName: string) {
+export async function telegramNodeExecutor(wsClients: Map<string, WebSocket>, workflowIdToUserId: Map<string, string>, fullExecutionData: Record<string, any>, executionData: any, workflowId: string, nodeName: string) {
 
   let currWSClient = null;
   //TODO: send WS message that we started running this node
@@ -17,30 +17,33 @@ export async function telegramNodeExecutor(wsClients: Map<string, WebSocket>, wo
     //TODO: we can save ourselves from redundantly writing this again and again.
     if (currWSClient) {
       console.log("EXECUTION DATA: ", executionData);
-      currWSClient.send(JSON.stringify({ type: 'NODE_STARTED', workflowId, nodeName: nodeName }));
+      currWSClient.send(JSON.stringify({ nodeName: { status: "running", output: "", log: "" } }));
     }
   }
 
   if (!executionData['Chat Id']) {
-    console.log("No chat ID")
+    console.log("No chat ID");
+    fullExecutionData[nodeName] = { status: "failed", output: "", log: "No chat ID provided." }
     if (currWSClient) {
-      currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: { 'Chat Id': 'No chat ID' } }));
+      currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "No chat ID provided." } }));
     }
     return;
   }
 
   if (!executionData['Credential to connect with']) {
     console.log("No credential");
+    fullExecutionData[nodeName] = { status: "failed", output: "", log: "No credential provided." }
     if (currWSClient) {
       console.log("Sending WS message that node failed due to no credential");
-      currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: { 'Credential to connect with': 'No credential' } }));
+      currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "No credential provided." } }));
     }
     return;
   }
   if (!executionData.Text) {
     console.log("No text to send");
+    fullExecutionData[nodeName] = { status: "failed", output: "", log: "No text to send." }
     if (currWSClient) {
-      currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: { 'Text': 'No text to send' } }));
+      currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "No text to send." } }));
     }
     return
   }
@@ -53,8 +56,9 @@ export async function telegramNodeExecutor(wsClients: Map<string, WebSocket>, wo
   })
   if (!credential) {
     console.log("No credential found for this id");
+    fullExecutionData[nodeName] = { status: "failed", output: "", log: "No credential found." }
     if (currWSClient) {
-      currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: { 'Credential to connect with': 'No credential found for this id' } }));
+      currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "No credential found." } }));
     }
     return;
   }
@@ -64,8 +68,9 @@ export async function telegramNodeExecutor(wsClients: Map<string, WebSocket>, wo
     const token = (credential.data as any)?.['Access Token'];
     if (!token) {
       console.log("No access token in credential");
+      fullExecutionData[nodeName] = { status: "failed", output: "", log: "Invalid credential. No access token." }
       if (currWSClient) {
-        currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: { 'Credential to connect with': 'No access token in credential' } }));
+        currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "Invalid credential. No access token." } }));
       }
       return;
     }
@@ -81,15 +86,17 @@ export async function telegramNodeExecutor(wsClients: Map<string, WebSocket>, wo
     console.log("Message sent successfully:", response.data);
     if (currWSClient) {
       console.log("I AM TOH RUNNING");
-      currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: true, workflowId, nodeName: nodeName, data: 'Node ran successfully!' }));
+      fullExecutionData[nodeName] = { status: "success", output: "", log: "Message sent successfully." }
+      currWSClient.send(JSON.stringify({ nodeName: { status: "success", output: "", log: "Message sent successfully." } }));
     }
     return { status: 'success', data: response.data };
     // TODO: send WS message that we finished running this node -> successful
 
   } catch (error: any) {
     console.error("Telegram API Error:", error.response?.data || error.message);
+    fullExecutionData[nodeName] = { status: "failed", output: "", log: "Failed to send message." }
     if (currWSClient) {
-      currWSClient.send(JSON.stringify({ type: 'NODE_RAN', success: false, workflowId, nodeName: nodeName, data: 'Node failed due to some issue at our end!' }));
+      currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "Failed to send message." } }));
     }
     return { status: 'failed', error: error.response?.data || error.message };
   }

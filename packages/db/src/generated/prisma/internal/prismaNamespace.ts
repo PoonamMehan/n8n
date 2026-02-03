@@ -387,7 +387,8 @@ export const ModelName = {
   Workflow: 'Workflow',
   Webhook: 'Webhook',
   Credentials: 'Credentials',
-  User: 'User'
+  User: 'User',
+  Executions: 'Executions'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -403,7 +404,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "workflow" | "webhook" | "credentials" | "user"
+    modelProps: "workflow" | "webhook" | "credentials" | "user" | "executions"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -703,6 +704,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Executions: {
+      payload: Prisma.$ExecutionsPayload<ExtArgs>
+      fields: Prisma.ExecutionsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ExecutionsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExecutionsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ExecutionsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExecutionsPayload>
+        }
+        findFirst: {
+          args: Prisma.ExecutionsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExecutionsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ExecutionsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExecutionsPayload>
+        }
+        findMany: {
+          args: Prisma.ExecutionsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExecutionsPayload>[]
+        }
+        create: {
+          args: Prisma.ExecutionsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExecutionsPayload>
+        }
+        createMany: {
+          args: Prisma.ExecutionsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ExecutionsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExecutionsPayload>[]
+        }
+        delete: {
+          args: Prisma.ExecutionsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExecutionsPayload>
+        }
+        update: {
+          args: Prisma.ExecutionsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExecutionsPayload>
+        }
+        deleteMany: {
+          args: Prisma.ExecutionsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ExecutionsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ExecutionsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExecutionsPayload>[]
+        }
+        upsert: {
+          args: Prisma.ExecutionsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExecutionsPayload>
+        }
+        aggregate: {
+          args: Prisma.ExecutionsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateExecutions>
+        }
+        groupBy: {
+          args: Prisma.ExecutionsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExecutionsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ExecutionsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExecutionsCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -790,6 +865,19 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const ExecutionsScalarFieldEnum = {
+  id: 'id',
+  workflowId: 'workflowId',
+  status: 'status',
+  log: 'log',
+  nodeDetails: 'nodeDetails',
+  createdAt: 'createdAt',
+  finishedAt: 'finishedAt'
+} as const
+
+export type ExecutionsScalarFieldEnum = (typeof ExecutionsScalarFieldEnum)[keyof typeof ExecutionsScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -820,6 +908,14 @@ export const JsonNullValueFilter = {
 } as const
 
 export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
 
@@ -1003,6 +1099,7 @@ export type GlobalOmitConfig = {
   webhook?: Prisma.WebhookOmit
   credentials?: Prisma.CredentialsOmit
   user?: Prisma.UserOmit
+  executions?: Prisma.ExecutionsOmit
 }
 
 /* Types for Logging */

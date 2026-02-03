@@ -59,3 +59,8 @@ export type Credentials = Prisma.CredentialsModel
  * 
  */
 export type User = Prisma.UserModel
+/**
+ * Model Executions
+ * 
+ */
+export type Executions = Prisma.ExecutionsModel

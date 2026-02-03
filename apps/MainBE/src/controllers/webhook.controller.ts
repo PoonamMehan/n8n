@@ -4,7 +4,7 @@ import { producer } from "../app.js";
 
 export const getWebhookHandler = (req: Request, res: Response) => {
   res.set('Content-Type', "text/plain");
-  res.status(200).send("Webhook endpoint active.");
+  res.status(200).send("Webhook endpoint is active.");
 }
 
 export const postWebhookHandler = async (req: Request, res: Response) => {

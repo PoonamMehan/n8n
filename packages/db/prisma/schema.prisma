@@ -21,17 +21,18 @@ enum AllWebhookMethods {
 }
 
 model Workflow {
-  id          Int      @id @default(autoincrement())
-  title       String   @unique
-  enabled     Boolean  @default(false)
-  nodes       Json     @default("{}") @db.JsonB
-  connections Json     @default("{}") @db.JsonB
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now()) @updatedAt
+  id          Int          @id @default(autoincrement())
+  title       String       @unique
+  enabled     Boolean      @default(false)
+  nodes       Json         @default("{}") @db.JsonB
+  connections Json         @default("{}") @db.JsonB
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now()) @updatedAt
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
   webhook     Webhook?
-  executing   Boolean  @default(false)
+  executing   Boolean      @default(false)
+  executions  Executions[]
 }
 
 // jab bhi clicked -> set this true -> send signal to the webhook to be true -> in FE check if trigger == Webhook then also add this in the webhook table(Executing: true)
@@ -67,4 +68,15 @@ model User {
   isVerified  Boolean       @default(false)
   workflows   Workflow[]
   credentials Credentials[]
+}
+
+model Executions {
+  id         String     @id @default(uuid())
+  workflowId Int
+  workflow   Workflow   @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  status     String
+  log        String
+  nodeDetails Json      @default("{}")  @db.JsonB
+  createdAt  DateTime   @default(now())
+  finishedAt DateTime?  @default(now())
 }
