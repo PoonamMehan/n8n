@@ -24,7 +24,7 @@ export async function jwtHandler(req: Request, res: Response, next: NextFunction
     // if user not exist in the DB return(400)
     if (!userInDb) {
       //also remove it's Refresh Token from the sessions[] if exists, along with access Token & refreshToken from the cookies
-      return res.status(400).send("No such user exists.");
+      return res.status(400).send({status: "failed", data: null, error: "No such user exists."});
     }
 
 
@@ -37,7 +37,10 @@ export async function jwtHandler(req: Request, res: Response, next: NextFunction
   catch (err: any) {
     //TODO: we can check for the err.name == TokenExpiredError || JsonWebTokenError & send status code for FE to call /refresh
     //TODO: 
+    if (err instanceof jwt.JsonWebTokenError || err instanceof jwt.NotBeforeError || err instanceof jwt.TokenExpiredError) {
+      return res.status(401).send({status: "failed", data: null, error: "Invalid Token."});
+    }
     console.log("Error in jwtHandler middleware: ", err.message);
-    return res.status(500).send(`Some error occurred at the backend: ", ${err.message}`);
+    return res.status(500).send({status: "failed", data: null, error: `Some error occurred at the backend.`});
   }
 }

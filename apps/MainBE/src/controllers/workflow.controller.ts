@@ -29,17 +29,21 @@ export async function createWorkflow(req:Request, res:Response){
 	const userId = req.userId!;
 	// you make an entry to the "workflows" table with just mentioning the name of the workflow "title"
 	const {title} = req.body;
+	let workflowTitle = "";
+	if(!title){
+		workflowTitle = `Workflow_${crypto.randomUUID()}`;
+	}
 			const workflow = await prisma.workflow.create({
-			data: {
-					"title": title,
-					"userId": userId
-			}
+				data: {
+						"title": workflowTitle,
+						"userId": userId
+				}
 			});
 
-		return res.status(200).send(`Successfully entry made in the workflow table. Data: ${JSON.stringify(workflow)}`);
+		return res.status(200).send({success: true, data: workflow, error: null});
 	}catch(error){
 			console.log("Error while making an entry in the Workflow table: ", error);
-			return res.status(500).send(`Error happened at the backend while creating an entry in the Workflow db. Err: ${error}`);
+			return res.status(500).send({success: false, data: null, error: `Some error occurred at the backend.`});
 	}
 }
 

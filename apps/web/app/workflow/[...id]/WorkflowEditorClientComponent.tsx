@@ -50,9 +50,13 @@ export const WorkflowClientComponent = () => {
   const [workflow, setWorkflow] = useState<Workflow>();
   const { id } = useParams<{ id: string[] }>();
   const workflowId = id[0];
-  const [isSaved, setIsSaved] = useState(true); //TODO: 
-  const [isWorkflowRunning, setIsWorkflowRunning] = useState(false); //TODO: we should get it from the db
+  const [isSaved, setIsSaved] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isWorkflowRunning, setIsWorkflowRunning] = useState(false);
 
+  // as + clicked -> create entry in prisma.workflows table -> 
+  // add a delete workflows button on top or somewhere
+  //sidebar: 
   useEffect(() => {
     if (socket && isConnected && workflowId) {
       console.log("SUBSCRIBING TO WORKFLOW: ", workflowId);
@@ -96,10 +100,23 @@ export const WorkflowClientComponent = () => {
     }
   }, [])
 
-  const saveWorkflow = async () => {
-    //store all the "nodes" & "edges" into the db
-    // 
+  //warn user before leaving if there are unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!isSaved) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+      }
+    };
 
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isSaved]);
+
+  const saveWorkflow = async () => {
+    if (isSaving || isSaved) return;
+
+    setIsSaving(true);
     console.log("Edges: ", edges);
     try {
       const updatedWorkflow = await fetch(`http://localhost:8000/api/v1/workflow/${workflowId}`, {
@@ -116,14 +133,16 @@ export const WorkflowClientComponent = () => {
       console.log("updatedworkfow: ", updatedWorkflow);
       if (!updatedWorkflow.ok) {
         setIsSaved(false);
+        setIsSaving(false);
         return;
       }
       setIsSaved(true);
+      setIsSaving(false);
     } catch (err: any) {
       console.log("Failed to save Workflow in the db.");
       setIsSaved(false);
+      setIsSaving(false);
     }
-    //TODO: isSaved has to be checked before the user leaves this page. 
   }
   // /api/v1/workflow/:id      (put, :id) 
   const [isOpen, setIsOpen] = useState(false);
@@ -138,9 +157,18 @@ export const WorkflowClientComponent = () => {
   // TODO: allow for tracking of nodes positions change
   // TODO:NODES SAVING 
 
-  const onNodesChange: OnNodesChange = useCallback((changes) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)), []);
-  const onEdgesChange: OnEdgesChange = useCallback((changes) => setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)), []);
-  const onConnect: OnConnect = useCallback((params) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)), []);
+  const onNodesChange: OnNodesChange = useCallback((changes) => {
+    setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot));
+    setIsSaved(false);
+  }, []);
+  const onEdgesChange: OnEdgesChange = useCallback((changes) => {
+    setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot));
+    setIsSaved(false);
+  }, []);
+  const onConnect: OnConnect = useCallback((params) => {
+    setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot));
+    setIsSaved(false);
+  }, []);
   const nodeTypes = {
     actionNode: N8nStyleActionNode,
     triggerNode: N8nStyleTriggerNode,
@@ -170,7 +198,7 @@ export const WorkflowClientComponent = () => {
 
   const findTheNameForTheNode = (titleMatch: string) => {
     let newSerialNum = 0;
-    console.log("I am running, and here ar ethe nodes: ", nodes);
+    console.log("I am running, and here are the nodes: ", nodes);
     console.log("Title to match: ", titleMatch);
     const regex = /^(?<name>.+?)\s+(?<number>\d+)$/;
     nodes.forEach((val) => {
@@ -258,10 +286,12 @@ export const WorkflowClientComponent = () => {
         <div>
           {/* TODO: Write a function which will save the workflow(nodes, edges, nodes' form info, credentials(separately)) in DB*/}
           <button
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+            className={`rounded-md px-4 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${isSaved || isSaving ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500'
+              }`}
             onClick={e => { e.preventDefault(); saveWorkflow() }}
+            disabled={isSaved || isSaving}
           >
-            Save
+            {isSaving ? 'Saving...' : isSaved ? 'Saved' : 'Save'}
           </button>
           <button className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600" onClick={(e) => { e.preventDefault(); setIsWorkflowRunning(true) }}>Start Workflow</button>
           {isWorkflowRunning && <button onClick={(e) => { e.preventDefault(); setIsWorkflowRunning(false) }} className="rounded-sm border-2 border-blue-600 px-1 py-1"><CiStop1 className="h-6 w-6 text-blue-600" /></button>}

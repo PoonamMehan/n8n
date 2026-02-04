@@ -1,5 +1,5 @@
-export const AllCredentialsList = () => {
-
+export const AllCredentialsList = (credentialsList) => {
+  
   return (
     <>
       

@@ -24,8 +24,8 @@ model Workflow {
   id          Int          @id @default(autoincrement())
   title       String       @unique
   enabled     Boolean      @default(false)
-  nodes       Json         @default("{}") @db.JsonB
-  connections Json         @default("{}") @db.JsonB
+  nodes       Json         @default("{}")  @db.JsonB
+  connections Json         @default("{}")  @db.JsonB
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @default(now()) @updatedAt
   userId      String

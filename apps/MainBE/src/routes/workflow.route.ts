@@ -5,7 +5,7 @@ import { jwtHandler } from "../middlewares/authorizationMiddleware.js";
 
 const router: Router = Router();
 
-router.route("/").post( createWorkflow);
+router.route("/").post(jwtHandler, createWorkflow); //TODO: JWT handler
 
 router.route("/").get( getWorkflows); // get all the entries in the workflow table
 

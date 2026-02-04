@@ -6,7 +6,7 @@ export interface Credentials_Structure {
     defaultName: string
 } //we might not need this 
 
-type Avail_Credentials_Obj = Record<string, Credentials_Structure>;
+export type Avail_Credentials_Obj = Record<string, Credentials_Structure>;
 
 export interface Credential_DbTable_Structure {
   title: string, //the actual name to be shown on the top

@@ -23,7 +23,7 @@ export const AllWorkflowsList = ({workflowsData, overview}: {workflowsData: Work
     {/* TODO: if 0 entries in the row */}
       {/* a list of all the workflows */}
       {console.log(workflowsData)}
-      {workflowsData.map((w)=>{
+      {workflowsData?.map((w: Workflow)=>{
         return(
           <Link className="mb-3" key={w.id} href={`/workflow/${w.id}`}>
             <div>
