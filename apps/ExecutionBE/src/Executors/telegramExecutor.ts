@@ -20,7 +20,7 @@ export async function telegramNodeExecutor(wsClients: Map<string, WebSocket>, wo
       currWSClient.send(JSON.stringify({ nodeName: { status: "running", output: "", log: "" } }));
     }
   }
-
+  console.log("Telegram mein execution data: ", executionData);
   if (!executionData['Chat Id']) {
     console.log("No chat ID");
     fullExecutionData[nodeName] = { status: "failed", output: "", log: "No chat ID provided." }

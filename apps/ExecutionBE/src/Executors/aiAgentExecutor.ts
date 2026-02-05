@@ -187,7 +187,8 @@ export const aiAgentNodeExecutor = async (wsClients: Map<string, WebSocket>, wor
         continue;
       }
 
-      await toolExecutionFunction(wsClients, workflowIdToUserId, tool.data.executionData, workflowId, tool.data.nodeName);
+      console.log("Tool data: ", tool.data.executionData);
+      await toolExecutionFunction(wsClients, workflowIdToUserId, fullExecutionData, tool.data.executionData, workflowId, tool.data.nodeName);
     }
 
     return { status: "success", data: {}, error: null }
