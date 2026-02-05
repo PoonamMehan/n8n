@@ -33,3 +33,6 @@ export function N8nStyleTriggerNode({ data }: NodeProps<CustomTriggerNode>) {
 }
 // UI
 // FE: Start-auth & access_token refresh_token flow -> credentials -> nodes & logs -> workflow new -> new credential 
+
+//TODO: 
+// Continue to app: after redirection

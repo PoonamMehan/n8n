@@ -1,45 +1,46 @@
 'use client'
 import Link from "next/link";
-import { UserIcon, EllipsisVerticalIcon} from "@heroicons/react/24/outline";
+import { UserIcon, EllipsisVerticalIcon } from "@heroicons/react/24/outline";
 
-interface Workflow{
-    id: number,
-    title: string,
-    enabled: boolean,
-    nodes: object,
-    connections: object,
-    createdAt: string,
-    updatedAt: string,
-    userId: string
+interface Workflow {
+  id: number,
+  title: string,
+  nodes: object,
+  connections: object,
+  createdAt: string,
+  updatedAt: string,
+  userId: string,
+  executing: boolean
 }
 
 
-export const AllWorkflowsList = ({workflowsData, overview}: {workflowsData: Workflow[], overview: boolean})=>{
+export const AllWorkflowsList = ({ workflowsData, overview }: { workflowsData: Workflow[], overview: boolean }) => {
   // TODO: maybe change the type of workflows data
   // take the data and show it here
 
-  return(
+  return (
     <>
-    {/* TODO: if 0 entries in the row */}
+      {/* TODO: if 0 entries in the row */}
       {/* a list of all the workflows */}
       {console.log(workflowsData)}
-      {workflowsData?.map((w: Workflow)=>{
-        return(
+      {workflowsData?.map((w: Workflow) => {
+        return (
           <Link className="mb-3" key={w.id} href={`/workflow/${w.id}`}>
             <div>
               {w.title}
             </div>
             <div>
               {
-              overview && 
-              <button>
-                <UserIcon/><span>Personal</span>
-              </button>
+                overview &&
+                <button>
+                  <UserIcon /><span>Personal</span>
+                </button>
               }
-              <EllipsisVerticalIcon/>
+              <EllipsisVerticalIcon />
             </div>
           </Link>
-        )})}
+        )
+      })}
     </>
   )
 }

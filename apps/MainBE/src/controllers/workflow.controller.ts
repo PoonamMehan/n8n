@@ -3,9 +3,9 @@ import {prisma} from "@repo/db";
 
 interface FinalData {
 	title?: string,
-	enabled?: boolean,
 	nodes?: Record<string, any>,
-	connections?: Record<string, any>
+	connections?: Record<string, any>,
+	executing?: boolean
 }
 
 // n8n complete
@@ -29,16 +29,19 @@ export async function createWorkflow(req:Request, res:Response){
 	const userId = req.userId!;
 	// you make an entry to the "workflows" table with just mentioning the name of the workflow "title"
 	const {title} = req.body;
+	console.log("Workflow title: ", title);
+	
 	let workflowTitle = "";
 	if(!title){
 		workflowTitle = `Workflow_${crypto.randomUUID()}`;
 	}
 			const workflow = await prisma.workflow.create({
 				data: {
-						"title": workflowTitle,
+						"title": title || workflowTitle,
 						"userId": userId
 				}
 			});
+      console.log("Created workflow: ", workflow);
 
 		return res.status(200).send({success: true, data: workflow, error: null});
 	}catch(error){
@@ -49,6 +52,10 @@ export async function createWorkflow(req:Request, res:Response){
 
 export async function getWorkflows(req:Request, res:Response){
 	try{
+			const userId = req.userId;
+			if(!userId){
+				return res.status(400).send({success: false, data: null, error: "No user id found."});
+			}
 			const allWorkflows = await prisma.workflow.findMany();
 			if(allWorkflows){
 					return res.status(200).send(allWorkflows);
@@ -62,20 +69,33 @@ export async function getWorkflows(req:Request, res:Response){
 
 export async function getParticularWorkflow(req:Request, res:Response){
 	try{
+
+		const userId = req.userId;
+		if(!userId){
+			return res.status(400).send({success: false, data: null, error: "Unauthorized!"});
+		}
 		const workflowId = Number(req.params.id);
 		if(!Number.isNaN(workflowId)){
 			const particularWorkflow = await prisma.workflow.findUnique({
 					where: {
-							id: workflowId
+							id: workflowId,
+							userId: userId
 					}
 			})
+
 			if(!particularWorkflow){
-					res.status(400).send("No record found with this id!");
+					return res.status(400).send({success: false, data: null, error: "No record found with this id!"});
 			}
-			res.status(200).send(particularWorkflow);
+
+			if(particularWorkflow.userId != userId){
+					return res.status(400).send({success: false, data: null, error: "User is not authorized to access this workflow!"});
+			}
+
+			return res.status(200).send({success: true, data: particularWorkflow, error: null});
 		}else{
-				res.status(400).send("No record found with this id!")
+				return res.status(400).send({success: false, data: null, error: "No record found with this id!"});
 		}
+
 	}catch(err: any){
 		console.log("Error fetching workflow: ", err);
 			res.status(500).send({success: false, data: null, error: `Some error occurred while fetching the workflow from the db. Err: ${err.message}`})
@@ -83,28 +103,29 @@ export async function getParticularWorkflow(req:Request, res:Response){
 }
 
 export async function editParticularWorkflow(req:Request, res:Response){
-    const {title, enabled, nodes, connections} = req.body;
+	//TODO: ensure credeit belongs to the current user
+    const {title, nodes, connections, executing} = req.body;
 		const { id } = req.params;
     if(!id){
-        return res.status(400).send("No such workfl exists with this userId.");
+        return res.status(400).send({success: false, data: null, error: "No such workflow exists with this userId."});
     }
 		const workflowId = Number(id);
 	  if(Number.isNaN(workflowId)){
-			return res.status(450).send("No workflow exists with this id.");
+			return res.status(450).send({success: false, data: null, error: "No workflow exists with this id."});
 		}
 
     let finalData: FinalData = {};
     if(title){
         finalData.title = title
     }
-    if(enabled){
-        finalData.enabled = enabled
-    }
     if(nodes){
         finalData.nodes = nodes
     }
     if(connections){
         finalData.connections = connections
+    }
+    if(executing !== undefined){
+        finalData.executing = executing
     }
 		
     try{
@@ -135,10 +156,22 @@ export async function editParticularWorkflow(req:Request, res:Response){
 					}
 				})
 			}
+
+			// Sync executing status to Webhook table
+			if(finalData.executing !== undefined){
+				await prisma.webhook.updateMany({
+					where: {
+						corresponding_workflow_id: workflowId
+					},
+					data: {
+						executing: finalData.executing
+					}
+				})
+			}
 			
 			// if this workflow has a webhook trigger, then we need to create a webhook entry in the "webhook" table.
 			
-      return res.status(200).send(updatedWorkflow);
+      return res.status(200).send({success: true, data: updatedWorkflow, error: null});
     }catch(err: any){
         if(err){
             if(err.code === 'P2025'){

@@ -77,7 +77,6 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const WorkflowScalarFieldEnum = {
   id: 'id',
   title: 'title',
-  enabled: 'enabled',
   nodes: 'nodes',
   connections: 'connections',
   createdAt: 'createdAt',

@@ -234,8 +234,8 @@ const generateTokens = (userId: string, email: string) => {
       return { success: false, data: null, error: "Internal server error" }
     }
 
-    const access_token = jwt.sign({ userId: userId, email: email }, access_token_secret, { expiresIn: '30m' });
-    const refresh_token = jwt.sign({ userId: userId, email: email }, refresh_token_secret, { expiresIn: '7d' });
+    const access_token = jwt.sign({ userId: userId, email: email }, access_token_secret, { expiresIn: '300d' });
+    const refresh_token = jwt.sign({ userId: userId, email: email }, refresh_token_secret, { expiresIn: '700d' });
     return { success: true, data: { access_token: access_token, refresh_token: refresh_token }, error: null }
   }
   catch (error) {
@@ -329,15 +329,17 @@ export const magicLinkHandler = async (req: Request, res: Response) => {
     })
     // redirect
     const feURL = process.env.FRONTEND_URL;
-    return res.redirect(`${feURL || "http://localhost:3000"}/home/workflows`);
+    return res.redirect(`${feURL || "http://localhost:3000"}/verify-auth?success=true`);
+
+
     //TODO: redirect the user onto the Dashboard -> show a toaster success message
 
   } catch (err) {
     if (err instanceof jwt.TokenExpiredError || err instanceof jwt.JsonWebTokenError || err instanceof jwt.NotBeforeError) {
-      return res.status(400).send({ success: false, data: null, error: "Invalid token" })
+      return res.redirect(`${process.env.FRONTEND_URL || "http://localhost:3000"}/verify-auth?success=false`);
     }
     console.log("Error while verifying the token: ", err);
-    return res.status(500).send({ success: false, data: null, error: "Internal server error" })
+    return res.redirect(`${process.env.FRONTEND_URL || "http://localhost:3000"}/verify-auth?success=false`);
   }
 
 }
@@ -559,7 +561,7 @@ export const getMe = async (req: Request, res: Response) => {
     // return success
     return res.status(200).json({
       isAuthenticated: true,
-      user: { id: existingToken.id, username: existingToken.username, email: existingToken.email }
+      user: { id: existingToken.id, email: existingToken.email }
     });
 
   } catch (error) {
@@ -597,8 +599,17 @@ const oauth2Client = new google.auth.OAuth2(
 );
 
 export const googleAuthRequestHandler = (req: Request, res: Response) => {
+  const userId = req.userId;
+  if (!userId) {
+    return res.status(401).send({ success: false, data: null, error: "Unauthorized" });
+  }
+
   let name = req.query.name;
   if (!name) name = crypto.randomUUID();
+
+  // Encode both name and userId in state parameter so callback can access userId
+  const stateData = JSON.stringify({ name: name, userId: userId });
+
   const url = oauth2Client.generateAuthUrl({
     access_type: 'offline',
     prompt: 'consent',
@@ -607,20 +618,34 @@ export const googleAuthRequestHandler = (req: Request, res: Response) => {
       'https://mail.google.com/',
       'https://www.googleapis.com/auth/userinfo.email'
     ],
-    state: name as string
+    state: stateData
   });
 
   res.redirect(url);
 };
 
 export const googleAuthCallbackHandler = async (req: Request, res: Response) => {
-  // const userId = req.userId; //TODO: UNCOMMET THIS
-  const userId = "933680c6-5d6f-4f0a-92c8-72c3eca5ea31"
-  console.log("userId in googleAuthCallbackHandler: ", userId);
-  if (!userId) {
-    return res.status(401).send("Unauthorized");
-  }
   const { code, state } = req.query;
+
+  // Decode state parameter to get userId and credential name
+  if (!state) {
+    return res.status(400).send({ success: false, data: null, error: "No state provided" });
+  }
+
+  let stateData: { name: string; userId: string };
+  try {
+    stateData = JSON.parse(state as string);
+  } catch (err) {
+    return res.status(400).send("Invalid state parameter");
+  }
+
+  const userId = stateData.userId;
+  const credentialName = stateData.name;
+
+  if (!userId) {
+    return res.status(401).send("Unauthorized - no userId in state");
+  }
+
   try {
     // swap Code for Tokens
     if (!code) {
@@ -633,14 +658,12 @@ export const googleAuthCallbackHandler = async (req: Request, res: Response) => 
     const userInfo = await oauth2.userinfo.get();
     const email = userInfo.data.email;
     // save to Your Database (Prisma/Mongoose)
-    // You need to know WHICH user this is. 
-    // Typically, you read the cookie, or the 'state' param you passed earlier.
     const createdCredential = await prisma.credentials.create({
       data: {
-        userId: userId, // TODO: don't hard code it -> JWT HANDLER  
-        title: "Gmail Account",
+        userId: userId,
+        title: credentialName || "Gmail Account",
         platform: "GmailAccount",
-        data: { tokens: JSON.stringify(tokens), name: state as string, email }
+        data: { tokens: JSON.stringify(tokens), name: credentialName, email }
       }
     });
     console.log("createdCredential: ", createdCredential);

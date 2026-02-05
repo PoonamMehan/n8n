@@ -1,17 +1,13 @@
-// SSR
-// get the userinfo 
-// logged in -> Go to the workspace
-// Logged Out -> Get Started
-import Link from 'next/link';
+import { LandingPageButton } from './LandingPageButton';
+import { LandingPageNavbar } from './LandingPageNavbar';
 
-export const LandingPage = ({isLoggedIn}: {isLoggedIn: boolean}) => {
-    return isLoggedIn? (
-        <>
-          <Link href="/home/workflows">Go to Workspace</Link>
-        </>
-    ): (
-        <>
-          <Link href="/start-auth">Get Started</Link>
-        </>
-    )
+export const LandingPage = () => {
+  return (
+    <>
+      <div>
+        <LandingPageNavbar />
+        <LandingPageButton />
+      </div>
+    </>
+  )
 }

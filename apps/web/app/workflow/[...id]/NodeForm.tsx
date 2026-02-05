@@ -61,10 +61,19 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
           defaults[param.label] = param.default || "";
           if (param.isCredential && param.fetch) {
             try {
-              const res = await fetch(param.fetch.url, { method: param.fetch.method });
+              const res = await fetch(`/api/v1/credential${param.fetch.url}`, { method: param.fetch.method, credentials: "include" });
               const data = await res.json();
-              const fetchedList = Array.isArray(data) ? data : [];
+
+              if (!data.success) {
+                console.error(`Error fetching credentials for ${param.label}`, data.error);
+                newCredOptions[param.label] = [];
+                defaults[param.label] = "";
+                continue;
+              }
+
+              const fetchedList = Array.isArray(data.data) ? data.data : [];
               newCredOptions[param.label] = fetchedList;
+
               if (fetchedList.length > 0) {
                 defaults[param.label] = fetchedList[0].id || fetchedList[0].name; // I think it will be "fetchedList[title]" OR fetchedList[data.uniqueName]
               } else {
@@ -199,15 +208,15 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
       title: Available_Credential_Apps[currentCredentialPlatform]?.title, // e.g., "Telegram API"
       platform: currentCredentialPlatform, // e.g., "TelegramAPI"
       data: credentialsFormValues, // e.g., { name: "My Bot", "Access Token": "123..." }
-      userId: "933680c6-5d6f-4f0a-92c8-72c3eca5ea31" //TODO: don't hard code it
     };
 
     try {
       //send the payload and save the "credential"
-      const response = await fetch("http://localhost:8000/api/v1/credential/", {
+      const response = await fetch("/api/v1/credential", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        credentials: "include"
       });
 
       const savedCredential = await response.json();
@@ -406,7 +415,7 @@ export const NodeForm = ({ formDataHandler, title, type, alreadyFilledValues, no
               ) : (
                 <label className="text-sm font-semibold text-gray-700">{param.label}</label>
               )}
-              
+
               {param.element === "select" && (
                 <select
                   className="border border-gray-300 p-2 rounded text-sm focus:outline-none focus:border-blue-500"

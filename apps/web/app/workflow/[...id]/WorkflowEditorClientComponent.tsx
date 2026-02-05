@@ -1,14 +1,4 @@
-// top Bar: "personal/workflow name" & "Save button"
-// React flow canvas
-// "absolute" ly placed nodes & credentials (which are links to open the "modal" )
-// add workflow modal & data structure figure out
-// modal itself
 
-// logic to let only one trigger be added (as of V0);
-// logic to remove left joint from a trigger node
-// data structure of a node will come from where? In json format in memory? in db? 
-
-// figure out the drag and drop placement of nodes
 'use client';
 import { useState, useCallback, useEffect } from "react";
 import { useSelector } from 'react-redux';
@@ -30,16 +20,17 @@ import { NodeForm } from "./NodeForm";
 import { N8nStyleAIAgentNode, N8nStyleToolNode } from "./customAIAgentNodes";
 import { Available_Tools } from "./Available_Tools";
 import { CiStop1 } from "react-icons/ci"
+import { useRouter } from "next/navigation";
 
 interface Workflow {
   id: number,
   title: string,
-  enabled: boolean,
   nodes: object,
   connections: object,
   createdAt: string,
   updatedAt: string,
-  userId: string
+  userId: string,
+  executing: boolean
 }
 // WorkflowEditorServerComponent =
 // export default ({workflow}: {workflow: Workflow}) => {
@@ -53,6 +44,7 @@ export const WorkflowClientComponent = () => {
   const [isSaved, setIsSaved] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isWorkflowRunning, setIsWorkflowRunning] = useState(false);
+  const router = useRouter();
 
   // as + clicked -> create entry in prisma.workflows table -> 
   // add a delete workflows button on top or somewhere
@@ -75,28 +67,42 @@ export const WorkflowClientComponent = () => {
       }
     };
   }, [socket, isConnected, workflowId]);
+
+
   useEffect(() => {
     try {
       console.log("Started fetching...");
       (async () => {
-        const fetchedWorkflow = await fetch(`http://localhost:8000/api/v1/workflow/${workflowId}`);
+        const fetchedWorkflow = await fetch(`/api/v1/workflow/${workflowId}`, {
+          credentials: "include"
+        });
+
         const fetchedWorkflowData = await fetchedWorkflow.json();
         console.log("Fetch response: ", fetchedWorkflowData);
+
         if (!fetchedWorkflow.ok) {
           // TODO: Could not fetch the workflow: Toaster, & redirect maybe on the /home/workflows;
           console.log(`Some error occurred while fetcing the workflow: ${fetchedWorkflowData}`);
+          // Toaster: Error fetching the workflow: 
+          // fetchedWorkflowData.data.error
+          router.push("/home/workflows");
+          return;
         }
+
         // set edges and nodes
-        setEdges(fetchedWorkflowData.connections);
-        setNodes(fetchedWorkflowData.nodes);
+        setEdges(fetchedWorkflowData.data.connections);
+        setNodes(fetchedWorkflowData.data.nodes);
         console.log("Workflow: ", fetchedWorkflowData);
-        console.log("Workflow Edges: ", fetchedWorkflowData.connections);
-        console.log("Workflow Nodes: ", fetchedWorkflowData.nodes);
-        setWorkflow(fetchedWorkflowData);
-        setIsWorkflowRunning(fetchedWorkflowData.executing);
+        console.log("Workflow Edges: ", fetchedWorkflowData.data.connections);
+        console.log("Workflow Nodes: ", fetchedWorkflowData.data.nodes);
+        setWorkflow(fetchedWorkflowData.data);
+        setIsWorkflowRunning(fetchedWorkflowData.data.executing);
+
       })();
     } catch (err: any) {
       console.log(`Some error occurred while fetching the workflow: ${err.message}`);
+      // toaster: error while fetching the workflow, retry:
+      router.push("/home/workflows");
     }
   }, [])
 
@@ -113,13 +119,43 @@ export const WorkflowClientComponent = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isSaved]);
 
+  const changeWorkflowExecutionStatus = async (changeStatusTo: boolean) => {
+    try {
+      const response = await fetch(`/api/v1/workflow/${workflowId}`, {
+        method: "PUT",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          executing: changeStatusTo
+        }),
+        credentials: "include"
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.log("Error changing workflow status:", result.error);
+        // TODO: toaster error
+        return;
+      }
+
+      setIsWorkflowRunning(changeStatusTo);
+      // TODO: toaster success
+    } catch (err: any) {
+      console.log("Failed to change workflow execution status:", err.message);
+      // TODO: toaster error
+    }
+  }
+
+
   const saveWorkflow = async () => {
     if (isSaving || isSaved) return;
 
     setIsSaving(true);
     console.log("Edges: ", edges);
     try {
-      const updatedWorkflow = await fetch(`http://localhost:8000/api/v1/workflow/${workflowId}`, {
+      const updatedWorkflow = await fetch(`/api/v1/workflow/${workflowId}`, {
         method: "PUT",
         headers: {
           'Content-Type': 'application/json'
@@ -127,7 +163,8 @@ export const WorkflowClientComponent = () => {
         body: JSON.stringify({
           connections: edges,
           nodes: nodes
-        })
+        }),
+        credentials: "include"
       })
 
       console.log("updatedworkfow: ", updatedWorkflow);
@@ -254,11 +291,20 @@ export const WorkflowClientComponent = () => {
 
   function formDataHandler(formData: Record<string, any>, id: string) {
     console.log("Form Data: ", formData);
-    nodes.forEach((node) => {
-      if (node.id == id) {
-        node.data.executionData = formData;
-      }
-    })
+    setNodes((prevNodes) =>
+      prevNodes.map((node) => {
+        if (node.id === id) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              executionData: formData
+            }
+          };
+        }
+        return node;
+      })
+    );
   }
 
   const isValidConnection = (connection: Connection | Edge) => {
@@ -293,8 +339,8 @@ export const WorkflowClientComponent = () => {
           >
             {isSaving ? 'Saving...' : isSaved ? 'Saved' : 'Save'}
           </button>
-          <button className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600" onClick={(e) => { e.preventDefault(); setIsWorkflowRunning(true) }}>Start Workflow</button>
-          {isWorkflowRunning && <button onClick={(e) => { e.preventDefault(); setIsWorkflowRunning(false) }} className="rounded-sm border-2 border-blue-600 px-1 py-1"><CiStop1 className="h-6 w-6 text-blue-600" /></button>}
+          <button className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600" onClick={(e) => { e.preventDefault(); changeWorkflowExecutionStatus(true) }}>Start Workflow</button>
+          {isWorkflowRunning && <button onClick={(e) => { e.preventDefault(); changeWorkflowExecutionStatus(false) }} className="rounded-sm border-2 border-blue-600 px-1 py-1"><CiStop1 className="h-6 w-6 text-blue-600" /></button>}
         </div>
       </div>
 

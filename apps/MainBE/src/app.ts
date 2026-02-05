@@ -6,16 +6,24 @@ import workflowRouter from "./routes/workflow.route.js";
 import credentialRouter from "./routes/credential.route.js";
 import webhookRouter from "./routes/webhookTrigger.route.js";
 import { Kafka } from "kafkajs";
+import type {Producer } from "kafkajs";
 const app: Application = express();
 
-const kafka = new Kafka({
+let producer: Producer | null = null;
+try{
+    const kafka = new Kafka({
     clientId: 'my-app',
     brokers: ['localhost:9092']
 })
 
-export const producer = kafka.producer();
+producer = kafka.producer();
 
 await producer.connect();
+}
+catch(err){
+    console.log("Error connecting to Kafka: ", err);
+}
+export { producer };
 
 app.use(express.json());
 app.use(cors({

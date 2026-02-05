@@ -29,7 +29,7 @@ export default async function WorkflowsOverview() {
       {/* TODO: make this dropdown re-usable and a separate component */}
       {/* TODO: add the dropdown */}
       <div>
-        <CreateDropdownComponent component="workflow"/>
+        <CreateDropdownComponent component="workflow" />
 
         <div>
           <div>Workflows</div>

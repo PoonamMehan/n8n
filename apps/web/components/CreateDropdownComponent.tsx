@@ -1,10 +1,10 @@
 'use client'
 import { useState } from 'react';
 import Link from 'next/link';
-import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 import { useRouter } from 'next/navigation';
 
-export function CreateDropdownComponent({component}: {component: string}) {
+export function CreateDropdownComponent({ component }: { component: string }) {
 
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
@@ -40,44 +40,44 @@ export function CreateDropdownComponent({component}: {component: string}) {
   }
 
   const newCredentialCreator = async (navigate: boolean) => {
-    if(navigate){
+    if (navigate) {
       router.push("/home/credentials?modal=create");
     }
   }
 
-  return component == "workflow" ?(
+  return component == "workflow" ? (
     <>
       <div>
         <div className="flex">
 
-          <button onClick={(e) => { e.preventDefault(); newWorkflowCreator();}}>Create Workflow</button>
-          <button onClick={(e) => { e.preventDefault; setIsOpen(val => !val) }}><ChevronDownIcon /></button>
+          <button onClick={(e) => { e.preventDefault(); newWorkflowCreator(); }}>Create Workflow</button>
+          <button onClick={(e) => { e.preventDefault; setIsOpen(val => !val) }}>{isOpen ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}</button>
 
         </div>
 
         {isOpen &&
 
           <div>
-            <button onClick={(e) => {e.preventDefault(); newCredentialCreator(true);}}>Create Credential</button>
+            <button onClick={(e) => { e.preventDefault(); newCredentialCreator(true); }}>Create Credential</button>
             {/* update the correct path */}
           </div>
         }
       </div>
     </>
-  ): (
+  ) : (
     <>
       <div>
         <div className="flex">
 
-          <button onClick={(e) => { e.preventDefault(); newCredentialCreator(false);}}>Create Credential</button>
-          <button onClick={(e) => { e.preventDefault; setIsOpen(val => !val) }}><ChevronDownIcon /></button>
+          <button onClick={(e) => { e.preventDefault(); newCredentialCreator(false); }}>Create Credential</button>
+          <button onClick={(e) => { e.preventDefault; setIsOpen(val => !val) }}>{isOpen ? <ChevronUpIcon className='h-5 w-5' /> : <ChevronDownIcon className='h-5 w-5' />}</button>
 
         </div>
 
         {isOpen &&
 
           <div>
-            <button onClick={(e) => {e.preventDefault(); newWorkflowCreator();}}>Create Workflow</button>
+            <button onClick={(e) => { e.preventDefault(); newWorkflowCreator(); }}>Create Workflow</button>
             {/* update the correct path */}
           </div>
         }

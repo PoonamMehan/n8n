@@ -12,6 +12,10 @@ interface TelegramCredentials{
     // Table: Created at, Last modified
 
 export async function addCredentialHandler(req: Request, res: Response){
+    const userId = req.userId;
+    if(!userId){
+        return res.status(400).send({success: false, errorMessage: "Unauthenticated."});
+    }
     //Get credentials of all the available things for credentials
     // all the available credentials, their interface based on the name of the credential
     const d = req.body;
@@ -24,16 +28,17 @@ export async function addCredentialHandler(req: Request, res: Response){
     //WHEN  WE WILL USE THOSE CREDENTIALS THEN WE WILL THRW THE ERROR THAT THE CREDENTIAL IS NOT COMPLETE.
     console.log(d);
 
-    if(!d.title || !d.platform || !d.data || !d.userId){
-        return res.status(400).send({errorMesasge: "Invalid payload sent."});
+    if(!d.title || !d.platform || !d.data){
+        return res.status(400).send({success: false, errorMessage: "Invalid payload sent."});
     }
+    
     try{
         const addedCredential = await prisma.credentials.create({
             data: {
                 title: d.title,
                 platform: d.platform,
                 data: d.data,
-                userId: d.userId //TODO: don't hard code it -> JWT HANDLER 
+                userId: userId
             }
         })
 
@@ -115,7 +120,16 @@ export async function editCredentialHandler (req:Request, res:Response){
 
 export async function getAllCredentialHandler(req: Request, res: Response){
     try{
-        const allCredentials = await prisma.credentials.findMany();
+        const userId = req.userId;
+        if(!userId){
+            return res.status(400).send({success: false, errorMessage: "Unauthenticated."})
+        }
+        const allCredentials = await prisma.credentials.findMany({
+            where: {
+                userId: userId
+            }
+        });
+
         return res.status(200).send(allCredentials);
     }catch(err: any){
         return res.status(500).send(`Some err occurred at the BE while fetching the creadentials from DB: ${err.message}`);
@@ -124,40 +138,55 @@ export async function getAllCredentialHandler(req: Request, res: Response){
 
 export async function getACredentialHandler(req: Request, res: Response){
     try{
+        const userId = req.userId;
+        if(!userId){
+            return res.status(400).send({success: false, errorMessage: "Unauthenticated."})
+        }
         const idParam = Number(req.params.id);
+
         if(!Number.isNaN(idParam)){
             const cred = await prisma.credentials.findUnique({
                 where: {
-                    id: idParam
+                    id: idParam,
+                    userId: userId
                 }
             })
             if(cred){
-                return res.status(200).send(cred);
+                return res.status(200).send({success: true, data: cred, error: null});
             }
-            return res.status(400).send("No credential with this id exists.");
+            return res.status(400).send({success: false, errorMessage: "No credential with this id exists."});
         }
-        return res.status(400).send("Invalid credential id.");
+
+        return res.status(400).send({success: false, errorMessage: "Invalid credential id."});
     }catch(err: any){
-        return res.status(500).send(`Some error occurred on our backend: ${err.message}`);
+        return res.status(500).send({success: false, errorMessage: `Some error occurred on our backend: ${err.message}`});
     }
 }
 
 export const getACredentialWithPlatformHandler = async (req: Request, res: Response)=>{
 	try{
+        const userId = req.userId;
+        if(!userId){
+            return res.status(400).send({success: false, error: "Unauthenticated."})
+        }
+
 		const {platform} = req.params;
 		if(!platform){
 			console.log("Incorrect credential platform.");
-			return res.status(400).send(`Give a valid platform to find the credentials for.`);
+			return res.status(400).send({success: false, error: "Invalid platform."});
 		}
+
 		const allCredentials = await prisma.credentials.findMany({
 			where: {
-				platform: platform 
+				platform: platform, 
+				userId: userId
 			}
 		})
-		return res.status(200).send(allCredentials);
+
+		return res.status(200).send({success: true, data: allCredentials, error: null});
 	}catch(err: any){
 		console.log("Some err occurred on the backend: ", err);
-		res.status(500).send(`Some error happened on the backend while fetching the credentials: ${err.message}`);
+		res.status(500).send({success: false, errorMessage: `Some error happened on the backend while fetching the credentials.`});
 	}
 }
 // get all credentials

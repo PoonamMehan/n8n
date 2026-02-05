@@ -41,7 +41,7 @@ export const Available_Actions: Avail_Actions_Obj = {
 						isCredential: true,
 						element: "select",
 						fetch: {
-							url: "http://localhost:8000/api/v1/credential/platform/TelegramAPI",
+							url: "/platform/TelegramAPI",
 							method: "GET"
 						}, // this is a special option which the renderer has to check and add and write the code for it
 						//when you click on the "create credentials" -> open the modal using the platform -> "TelegramAPI"
@@ -94,7 +94,7 @@ export const Available_Actions: Avail_Actions_Obj = {
 						isCredential: true,
 						element: "select",
 						fetch: {
-							url: "http://localhost:8000/api/v1/credential/platform/GmailAccount",
+							url: "/platform/GmailAccount",
 							method: "GET"
 						},
 						platform: "GmailAccount"
@@ -143,7 +143,7 @@ export const Available_Actions: Avail_Actions_Obj = {
 						isCredential: true,
 						element: "select",
 						fetch: {
-							url: "http://localhost:8000/api/v1/credential/platform/LLMApiKey", 
+							url: "/platform/LLMApiKey",
 							method: "GET"
 						},
 						platform: "LLMApiKey"

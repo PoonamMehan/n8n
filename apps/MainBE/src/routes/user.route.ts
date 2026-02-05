@@ -11,7 +11,7 @@ router.route("/signout").post(jwtHandler, signoutHandler);
 router.route("/refreshToken").get(refreshJWTokens);
 router.route("/me").get(getMe);
 router.route("/generateTokenForWsConnection").post(generateTokenForWsConnection);
-router.route("/google/login").get(googleAuthRequestHandler);
+router.route("/google/login").get(jwtHandler,googleAuthRequestHandler);
 router.route("/google/callback").get(googleAuthCallbackHandler); //TODO: add jwtHandler middleware
 router.route("/magic-login").get(magicLinkHandler);
 router.route("/magic-verification").get(magicLinkHandler);

@@ -6,16 +6,16 @@ import { setLoggedIn, setLoggedOut } from "./ReduxStore/features/auth/authSlice"
 interface Props {
   isLoggedIn: boolean;
   userId: string | null;
-  username: string | null;
+  email: string | null;
   children: React.ReactNode;
 }
 
-export const ClientAuthHandlerShell = ({ isLoggedIn, userId, username, children }: Props) => {
+export const ClientAuthHandlerShell = ({ isLoggedIn, userId, email, children }: Props) => {
 
   const dispatch = useDispatch<AppDispatch>();
 
-  if (isLoggedIn && userId !== null && username !== null) {
-    dispatch(setLoggedIn({ userId, username }));
+  if (isLoggedIn && userId !== null && email !== null) {
+    dispatch(setLoggedIn({ userId, email }));
   } else {
     dispatch(setLoggedOut());
   }
