@@ -5,6 +5,7 @@ import { MdWebhook } from 'react-icons/md';
 import { FaTelegram } from 'react-icons/fa6';
 import { BsRobot, BsLightningChargeFill } from 'react-icons/bs';
 import { SiGmail, SiOpenai } from 'react-icons/si';
+import { NetworkRightSolid, AutoFlash } from 'iconoir-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/ReduxStore/store';
 import Link from 'next/link';
@@ -136,73 +137,74 @@ const WorkflowVisualization = () => {
         <div className="w-[400px] h-[550px] rounded-full bg-gradient-to-b from-rose-500/25 via-pink-600/20 to-rose-700/15 blur-[100px]" />
       </motion.div>
 
-      {/* Lightning bolt background shape */}
-      <motion.svg
-        className="absolute inset-0 w-full h-full pointer-events-none"
-        style={{ overflow: 'visible' }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: showFlash ? 0.4 : 0.1 }}
-        transition={{ duration: 0.3 }}
-      >
-        <path
-          d="M 162 52 L 92 162 L 222 162 L 62 292 L 182 292 L 122 412"
-          stroke="url(#boltGradient)"
-          strokeWidth="4"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          filter="url(#boltGlow)"
-        />
-        <defs>
-          <linearGradient id="boltGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#f43f5e" />
-            <stop offset="50%" stopColor="#ec4899" />
-            <stop offset="100%" stopColor="#be185d" />
-          </linearGradient>
-          <filter id="boltGlow" x="-100%" y="-100%" width="300%" height="300%">
-            <feGaussianBlur stdDeviation="12" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-      </motion.svg>
 
       {/* SVG for connection lines */}
       <svg className="absolute inset-0 w-full h-full" style={{ overflow: 'visible' }}>
         <defs>
-          <linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#f43f5e" />
-            <stop offset="100%" stopColor="#ec4899" />
-          </linearGradient>
           <filter id="lineGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="6" result="blur" />
+            <feGaussianBlur stdDeviation="4" result="blur" />
             <feMerge>
+              <feMergeNode in="blur" />
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
         </defs>
 
-        {connections.map((conn, index) => (
-          <motion.path
-            key={index}
-            d={getConnectionPath(conn.from, conn.to)}
-            stroke="url(#connectionGradient)"
-            strokeWidth="3"
-            fill="none"
-            filter="url(#lineGlow)"
-            strokeLinecap="round"
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{
-              pathLength: activeConnection >= index ? 1 : 0,
-              opacity: activeConnection >= index ? 1 : 0,
-            }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-          />
-        ))}
+        {/* Connection 0: Webhook to AI Agent */}
+        <line
+          x1={thunderNodes[0].x + 32} y1={thunderNodes[0].y + 32}
+          x2={thunderNodes[1].x + 32} y2={thunderNodes[1].y + 32}
+          stroke="#ec4899" strokeWidth="3" strokeLinecap="round" filter="url(#lineGlow)"
+          style={{
+            opacity: activeConnection >= 0 ? 1 : 0,
+            transition: 'opacity 0.5s ease-out'
+          }}
+        />
+
+        {/* Connection 1: AI Agent to OpenAI (horizontal) */}
+        <line
+          x1={92} y1={162}
+          x2={222} y2={162}
+          stroke="#ec4899" strokeWidth="3" strokeLinecap="round" filter="url(#lineGlow)"
+          style={{
+            opacity: activeConnection >= 1 ? 1 : 0,
+            transition: 'opacity 0.5s ease-out'
+          }}
+        />
+
+        {/* Connection 2: OpenAI to Telegram */}
+        <line
+          x1={thunderNodes[2].x + 32} y1={thunderNodes[2].y + 32}
+          x2={thunderNodes[3].x + 32} y2={thunderNodes[3].y + 32}
+          stroke="#ec4899" strokeWidth="3" strokeLinecap="round" filter="url(#lineGlow)"
+          style={{
+            opacity: activeConnection >= 2 ? 1 : 0,
+            transition: 'opacity 0.5s ease-out'
+          }}
+        />
+
+        {/* Connection 3: Telegram to Gmail (horizontal) */}
+        <line
+          x1={62} y1={292}
+          x2={182} y2={292}
+          stroke="#ec4899" strokeWidth="3" strokeLinecap="round" filter="url(#lineGlow)"
+          style={{
+            opacity: activeConnection >= 3 ? 1 : 0,
+            transition: 'opacity 0.5s ease-out'
+          }}
+        />
+
+        {/* Connection 4: Gmail to Execute */}
+        <line
+          x1={thunderNodes[4].x + 32} y1={thunderNodes[4].y + 32}
+          x2={thunderNodes[5].x + 32} y2={thunderNodes[5].y + 32}
+          stroke="#ec4899" strokeWidth="3" strokeLinecap="round" filter="url(#lineGlow)"
+          style={{
+            opacity: activeConnection >= 4 ? 1 : 0,
+            transition: 'opacity 0.5s ease-out'
+          }}
+        />
       </svg>
 
       {/* Nodes */}
@@ -326,14 +328,14 @@ export const LandingPageHero = () => {
 
       {/* Navbar */}
       <motion.nav
-        className="relative z-50 flex items-center justify-between px-6 lg:px-8 py-5 max-w-6xl mx-auto"
+        className="relative z-50 flex items-center justify-between px-6 lg:px-20 py-5 max-w-8xl mx-auto"
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6 }}
       >
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-[0_0_25px_rgba(244,63,94,0.6)]">
-            <BsLightningChargeFill className="w-5 h-5 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.9)]" />
+            <NetworkRightSolid className="w-5 h-5 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.9)]" />
           </div>
           <span className="text-xl font-semibold text-white">FlowBolt</span>
         </div>
@@ -356,10 +358,10 @@ export const LandingPageHero = () => {
       </motion.nav>
 
       {/* Hero Section - Side by side layout */}
-      <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between min-h-[85vh] px-6 lg:px-8 max-w-6xl mx-auto gap-12 lg:gap-8">
+      <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between min-h-[85vh] px-6 lg:px-12 max-w-7xl mx-auto gap-20 lg:gap-24">
         {/* Left side - Text content */}
         <motion.div
-          className="flex-1 text-center lg:text-left max-w-xl"
+          className="flex-1 text-center lg:text-left max-w-3xl lg:pl-4"
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.7 }}
@@ -422,7 +424,7 @@ export const LandingPageHero = () => {
 
         {/* Right side - Thunder animation */}
         <motion.div
-          className="flex-1 flex items-center justify-center lg:justify-end"
+          className="flex-1 flex items-center justify-center lg:justify-end lg:pr-8"
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.7, delay: 0.2 }}
@@ -458,7 +460,7 @@ export const LandingPageHero = () => {
             delay={0.2}
           />
           <FeatureCard
-            icon={BsLightningChargeFill}
+            icon={AutoFlash}
             title="3. Run Automatically"
             description="Deploy your workflow and watch it run 24/7. Monitor executions in real-time from your dashboard."
             delay={0.3}
@@ -467,7 +469,7 @@ export const LandingPageHero = () => {
       </section >
 
       {/* Integrations Section */}
-      < section className="relative z-10 py-32 px-6 lg:px-8 max-w-6xl mx-auto border-t border-white/5" >
+      < section className="relative z-10 py-48 px-6 lg:px-8 max-w-6xl mx-auto border-t border-white/5 mb-20" >
         <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
@@ -509,34 +511,10 @@ export const LandingPageHero = () => {
         </motion.div>
       </section >
 
-      {/* CTA Section */}
-      < section className="relative z-10 py-32 px-6 lg:px-8 max-w-6xl mx-auto" >
-        <motion.div
-          className="text-center p-12 rounded-2xl bg-gradient-to-b from-white/[0.03] to-transparent border border-white/5"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">Ready to automate?</h2>
-          <p className="text-gray-500 max-w-md mx-auto mb-8">Get started for free. No credit card required.</p>
-          <Link
-            href={isLoggedIn ? "/home/workflows" : "/start-auth"}
-            className="inline-block px-8 py-3.5 rounded-lg bg-white text-black font-semibold text-sm hover:bg-gray-100 transition-all"
-          >
-            {isLoggedIn ? 'Go to Dashboard' : 'Start Building Free'}
-          </Link>
-        </motion.div>
-      </section >
-
       {/* Footer */}
       < footer className="relative z-10 py-8 px-6 lg:px-8 max-w-6xl mx-auto border-t border-white/5" >
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-[0_0_18px_rgba(244,63,94,0.5)]">
-              <BsLightningChargeFill className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="text-sm text-gray-500">FlowBolt</span>
-          </div>
+        <div className="flex flex-col sm:flex-row items-center justify-center">
+
           <p className="text-xs text-gray-600">© 2024 FlowBolt. All rights reserved.</p>
         </div>
       </footer >
