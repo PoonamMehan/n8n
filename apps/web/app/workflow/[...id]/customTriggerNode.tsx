@@ -14,25 +14,25 @@ export type CustomTriggerNode = Node<CustomNodeData>
 export function N8nStyleTriggerNode({ data }: NodeProps<CustomTriggerNode>) {
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="relative flex h-14 w-14 items-center justify-center rounded-xl border-2 border-slate-200 bg-white shadow-sm transition-all hover:border-blue-400 hover:shadow-md">
-        <div className="text-2xl text-slate-600">
+    <div className="flex flex-col items-center group">
+      <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-white border-2 border-slate-200 shadow-sm transition-all duration-200 hover:border-slate-400 hover:shadow-md">
+        <div className="text-lg text-slate-600">
           {TriggerIconMap[data.nodeIcon]}
         </div>
         <Handle
           type="source"
           position={Position.Right}
-          className="!bg-slate-400 !w-3 !h-3 !-right-2"
+          className="!bg-slate-400 !w-2 !h-2 !-right-1.5"
         />
       </div>
-      <div className="mt-1 max-w-[100px] text-center text-xs font-semibold text-slate-500">
+      <div className="mt-1.5 max-w-[90px] text-center text-[10px] font-medium text-slate-500 group-hover:text-slate-700 transition-colors truncate">
         {data.nodeName}
       </div>
     </div>
   )
 }
 // UI
-// FE: Start-auth & access_token refresh_token flow -> credentials -> nodes & logs -> workflow new -> new credential 
+// FE: Start-auth & access_token refresh_token flow -> credentials -> nodes & logs -> workflow new -> new credential
 
-//TODO: 
+//TODO:
 // Continue to app: after redirection

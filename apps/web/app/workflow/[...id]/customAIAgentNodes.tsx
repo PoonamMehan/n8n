@@ -52,9 +52,9 @@ export function N8nStyleAIAgentNode({ data }: NodeProps<CustomAIAgentNode>) {
 export function N8nStyleToolNode({ data }: NodeProps<CustomActionNode>) {
   return (
     <div className="flex flex-col items-center">
-      <div className="relative flex h-14 w-14 items-center justify-center rounded-full border-2 border-slate-200 bg-white shadow-sm transition-all hover:border-green-400 hover:shadow-md">
+      <div className="relative flex h-14 w-14 items-center justify-center rounded-full border-2 border-purple-200 bg-white shadow-sm transition-all hover:border-purple-400 hover:shadow-md">
 
-        <div className="text-xl text-slate-600">
+        <div className="text-xl text-purple-600">
           {TriggerIconMap[data.nodeIcon]}
         </div>
 
@@ -62,7 +62,7 @@ export function N8nStyleToolNode({ data }: NodeProps<CustomActionNode>) {
           type="target"
           position={Position.Top}
           id="tool-input"
-          className="bg-slate-400! w-3! h-3! -top-2!"
+          className="!bg-purple-400 !w-2 !h-2 !-top-1.5"
         />
 
       </div>
