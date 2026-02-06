@@ -43,21 +43,49 @@ const ConnectionLine = ({ delay }: { delay: number }) => (
   />
 );
 
-// Thunder bolt configuration - nodes positioned to form a ⚡ lightning bolt shape
-// The shape: starts top-right, goes down-left to middle, then back right, then down-left to bottom
+// Thunder bolt configuration - 6-corner lightning bolt shape (⚡)
+// Layout: 1 top → 2 center (spread) → 2 below-left → 1 bottom
+// This creates the classic zigzag lightning bolt pattern
+
+// All 6 nodes arranged as a 2D thunderbolt
 const thunderNodes = [
-  { id: 'webhook', icon: MdWebhook, color: '#f97316', label: 'Webhook', x: 200, y: 0 },      // Top right
-  { id: 'aiAgent', icon: BsRobot, color: '#a855f7', label: 'AI Agent', x: 80, y: 100 },      // Upper left
-  { id: 'telegram', icon: FaTelegram, color: '#0088cc', label: 'Telegram', x: 160, y: 180 }, // Middle right
-  { id: 'gmail', icon: SiGmail, color: '#EA4335', label: 'Gmail', x: 40, y: 280 },           // Lower left
-  { id: 'openai', icon: SiOpenai, color: '#10a37f', label: 'OpenAI', x: 120, y: 380 },       // Bottom
+  // Top node (1)
+  { id: 'webhook', icon: MdWebhook, color: '#f97316', label: 'Webhook', x: 130, y: 20 },
+
+  // Center nodes (2) - spread horizontally  
+  { id: 'aiAgent', icon: BsRobot, color: '#a855f7', label: 'AI Agent', x: 60, y: 130 },
+  { id: 'openai', icon: SiOpenai, color: '#10a37f', label: 'OpenAI', x: 190, y: 130 },
+
+  // Below center nodes (2) - shifted left
+  { id: 'telegram', icon: FaTelegram, color: '#0088cc', label: 'Telegram', x: 30, y: 260 },
+  { id: 'gmail', icon: SiGmail, color: '#EA4335', label: 'Gmail', x: 150, y: 260 },
+
+  // Bottom node (1)
+  { id: 'lightning', icon: BsLightningChargeFill, color: '#ec4899', label: 'Execute', x: 90, y: 380 },
 ];
 
+// No decorative nodes needed - all 6 are now main nodes
+const decorativeNodes: { id: string; x: number; y: number; color: string }[] = [];
+
+// Path coordinates for the lightning bolt shape (center of each node)
+// Follows a zigzag: top → left-center → right-center → left-below → right-below → bottom
+const boltCorners = [
+  { x: 162, y: 52 },   // Node 1 - Top
+  { x: 92, y: 162 },   // Node 2 - Center left
+  { x: 222, y: 162 },  // Node 3 - Center right
+  { x: 62, y: 292 },   // Node 4 - Below left
+  { x: 182, y: 292 },  // Node 5 - Below right  
+  { x: 122, y: 412 },  // Node 6 - Bottom
+];
+
+// Connections following the lightning bolt zigzag path
+// 0(top) → 1(center-left) → 2(center-right) → 3(below-left) → 4(below-right) → 5(bottom)
 const connections = [
-  { from: 0, to: 1 },
-  { from: 1, to: 2 },
-  { from: 2, to: 3 },
-  { from: 3, to: 4 },
+  { from: 0, to: 1 },  // Top to center-left
+  { from: 1, to: 2 },  // Center-left to center-right (horizontal zag)
+  { from: 2, to: 3 },  // Center-right to below-left (diagonal zig)
+  { from: 3, to: 4 },  // Below-left to below-right (horizontal zag)
+  { from: 4, to: 5 },  // Below-right to bottom
 ];
 
 // Main thunder bolt visualization with animated connections
@@ -105,7 +133,7 @@ const WorkflowVisualization = () => {
         animate={{ opacity: pulseActive ? [0.5, 0.8, 0.5] : 0.3 }}
         transition={{ duration: 2, repeat: Infinity }}
       >
-        <div className="w-[400px] h-[550px] rounded-full bg-gradient-to-b from-violet-500/15 via-purple-500/10 to-indigo-600/10 blur-[100px]" />
+        <div className="w-[400px] h-[550px] rounded-full bg-gradient-to-b from-rose-500/25 via-pink-600/20 to-rose-700/15 blur-[100px]" />
       </motion.div>
 
       {/* Lightning bolt background shape */}
@@ -117,7 +145,7 @@ const WorkflowVisualization = () => {
         transition={{ duration: 0.3 }}
       >
         <path
-          d="M 232 32 L 112 132 L 192 212 L 72 312 L 152 412"
+          d="M 162 52 L 92 162 L 222 162 L 62 292 L 182 292 L 122 412"
           stroke="url(#boltGradient)"
           strokeWidth="4"
           fill="none"
@@ -127,12 +155,12 @@ const WorkflowVisualization = () => {
         />
         <defs>
           <linearGradient id="boltGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#8b5cf6" />
-            <stop offset="50%" stopColor="#a855f7" />
-            <stop offset="100%" stopColor="#c084fc" />
+            <stop offset="0%" stopColor="#f43f5e" />
+            <stop offset="50%" stopColor="#ec4899" />
+            <stop offset="100%" stopColor="#be185d" />
           </linearGradient>
           <filter id="boltGlow" x="-100%" y="-100%" width="300%" height="300%">
-            <feGaussianBlur stdDeviation="8" result="blur" />
+            <feGaussianBlur stdDeviation="12" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="blur" />
@@ -146,11 +174,11 @@ const WorkflowVisualization = () => {
       <svg className="absolute inset-0 w-full h-full" style={{ overflow: 'visible' }}>
         <defs>
           <linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#8b5cf6" />
-            <stop offset="100%" stopColor="#c084fc" />
+            <stop offset="0%" stopColor="#f43f5e" />
+            <stop offset="100%" stopColor="#ec4899" />
           </linearGradient>
           <filter id="lineGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feGaussianBlur stdDeviation="6" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -219,6 +247,34 @@ const WorkflowVisualization = () => {
         </motion.div>
       ))}
 
+      {/* Decorative corner nodes to complete lightning bolt shape */}
+      {decorativeNodes.map((node, index) => (
+        <motion.div
+          key={node.id}
+          className="absolute"
+          style={{ left: node.x, top: node.y }}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{
+            delay: 0.6 + index * 0.15,
+            duration: 0.4,
+            type: 'spring',
+            stiffness: 200,
+          }}
+        >
+          <motion.div
+            className="w-4 h-4 rounded-full"
+            style={{ backgroundColor: node.color }}
+            animate={{
+              boxShadow: showFlash
+                ? `0 0 20px ${node.color}, 0 0 40px ${node.color}80`
+                : `0 0 10px ${node.color}50`,
+            }}
+            transition={{ duration: 0.3 }}
+          />
+        </motion.div>
+      ))}
+
       {/* Flash overlay effect */}
       {showFlash && (
         <motion.div
@@ -227,27 +283,33 @@ const WorkflowVisualization = () => {
           animate={{ opacity: [0, 0.6, 0] }}
           transition={{ duration: 0.4 }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-yellow-400/20 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-rose-500/25 via-transparent to-transparent" />
         </motion.div>
       )}
     </div>
   );
 };
 
-// Feature card for the features section
+// Feature card for the features section - enhanced with magenta glow
 const FeatureCard = ({ icon: Icon, title, description, delay }: { icon: any, title: string, description: string, delay: number }) => (
   <motion.div
-    className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all duration-300 hover:bg-white/[0.04]"
+    className="relative p-6 rounded-2xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/10 hover:border-rose-500/40 transition-all duration-500 group overflow-hidden"
     initial={{ opacity: 0, y: 30 }}
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true }}
     transition={{ delay, duration: 0.5 }}
+    whileHover={{ y: -5 }}
   >
-    <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mb-4">
-      <Icon className="w-6 h-6 text-white/70" />
+    {/* Subtle glow effect on hover */}
+    <div className="absolute inset-0 bg-gradient-to-b from-rose-500/0 to-rose-500/0 group-hover:from-rose-500/8 group-hover:to-transparent transition-all duration-500 pointer-events-none" />
+
+    <div className="relative z-10">
+      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500/25 to-pink-600/15 border border-rose-500/25 flex items-center justify-center mb-4 group-hover:shadow-[0_0_25px_rgba(244,63,94,0.4)] transition-all duration-500">
+        <Icon className="w-6 h-6 text-rose-400" />
+      </div>
+      <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-rose-100 transition-colors">{title}</h3>
+      <p className="text-gray-400 text-sm leading-relaxed">{description}</p>
     </div>
-    <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
-    <p className="text-gray-500 text-sm leading-relaxed">{description}</p>
   </motion.div>
 );
 
@@ -258,8 +320,8 @@ export const LandingPageHero = () => {
     <div className="min-h-screen bg-[#030303] text-white">
       {/* Subtle background elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 right-0 w-[800px] h-[600px] bg-gradient-to-bl from-violet-900/15 via-purple-900/10 to-transparent blur-[120px]" />
-        <div className="absolute bottom-0 left-0 w-[600px] h-[400px] bg-gradient-to-tr from-indigo-900/10 to-transparent blur-[100px]" />
+        <div className="absolute top-0 right-0 w-[800px] h-[600px] bg-gradient-to-bl from-rose-900/30 via-pink-900/20 to-transparent blur-[120px]" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[400px] bg-gradient-to-tr from-rose-950/20 to-transparent blur-[100px]" />
       </div>
 
       {/* Navbar */}
@@ -270,8 +332,8 @@ export const LandingPageHero = () => {
         transition={{ duration: 0.6 }}
       >
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-            <BsLightningChargeFill className="w-5 h-5 text-white" />
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-[0_0_25px_rgba(244,63,94,0.6)]">
+            <BsLightningChargeFill className="w-5 h-5 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.9)]" />
           </div>
           <span className="text-xl font-semibold text-white">FlowBolt</span>
         </div>
@@ -322,7 +384,7 @@ export const LandingPageHero = () => {
           >
             <span className="text-white">Automate your workflows</span>
             <br />
-            <span className="bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400 bg-clip-text text-transparent">at lightning speed</span>
+            <span className="bg-gradient-to-r from-rose-400 via-pink-400 to-rose-300 bg-clip-text text-transparent drop-shadow-[0_0_40px_rgba(244,63,94,0.7)]">at lightning speed</span>
           </motion.h1>
 
           {/* Subheadline */}
@@ -431,14 +493,17 @@ export const LandingPageHero = () => {
           ].map((item, index) => (
             <motion.div
               key={item.name}
-              className="flex items-center gap-3 px-5 py-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all"
+              className="flex items-center gap-3 px-5 py-3 rounded-xl bg-white/[0.03] border border-white/10 hover:border-rose-500/50 transition-all hover:bg-white/[0.06] hover:shadow-[0_0_30px_rgba(244,63,94,0.25)]"
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
+              whileHover={{ scale: 1.02 }}
             >
-              <item.icon className="w-5 h-5" style={{ color: item.color }} />
-              <span className="text-sm text-gray-400">{item.name}</span>
+              <div className="p-2 rounded-lg bg-white/5" style={{ boxShadow: `0 0 15px ${item.color}30` }}>
+                <item.icon className="w-5 h-5" style={{ color: item.color }} />
+              </div>
+              <span className="text-sm text-gray-300 font-medium">{item.name}</span>
             </motion.div>
           ))}
         </motion.div>
@@ -467,7 +532,7 @@ export const LandingPageHero = () => {
       < footer className="relative z-10 py-8 px-6 lg:px-8 max-w-6xl mx-auto border-t border-white/5" >
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-[0_0_18px_rgba(244,63,94,0.5)]">
               <BsLightningChargeFill className="w-3.5 h-3.5 text-white" />
             </div>
             <span className="text-sm text-gray-500">FlowBolt</span>

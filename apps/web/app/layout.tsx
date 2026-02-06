@@ -42,7 +42,7 @@ export default async function RootLayout({
     })
     const resData = await res.json();
     console.log("User Login Data full object: ", resData);
-    
+
     if (res.ok) {
       userLoginStatus = resData.isAuthenticated;
       user = resData.user
@@ -66,7 +66,22 @@ export default async function RootLayout({
           <ClientAuthHandlerShell isLoggedIn={userLoginStatus} userId={user?.id} email={user?.email}>
             <SocketInitializer />
             {children}
-            <Toaster position="bottom-right" />
+            <Toaster
+              position="bottom-right"
+              theme="dark"
+              toastOptions={{
+                style: {
+                  background: 'rgba(10, 10, 10, 0.95)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(20px)',
+                  color: '#fff',
+                },
+                classNames: {
+                  success: 'border-rose-500/30 bg-gradient-to-r from-rose-500/10 to-transparent',
+                  error: 'border-red-500/30 bg-gradient-to-r from-red-500/10 to-transparent',
+                },
+              }}
+            />
           </ClientAuthHandlerShell>
         </StoreProvider>
 
