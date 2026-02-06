@@ -56,14 +56,19 @@ export async function getWorkflows(req:Request, res:Response){
 			if(!userId){
 				return res.status(400).send({success: false, data: null, error: "No user id found."});
 			}
-			const allWorkflows = await prisma.workflow.findMany();
+			const allWorkflows = await prisma.workflow.findMany({
+				where: {
+					userId: userId
+				}
+			});
+			
 			if(allWorkflows){
-					return res.status(200).send(allWorkflows);
+					return res.status(200).send({success: true, data: allWorkflows, error: null});
 			}
-			return res.status(500).send(`Some error happened at the backemd while fetching the workflows: ${allWorkflows}`);
+			return res.status(500).send({success: false, data: null, error: `Some error occurred at the backend while fetching the workflows.`});
 	}
 	catch(err){
-			res.status(500).send(`Error happened while fetching workflows from the db: ${err}`);
+			res.status(500).send({success: false, data: null, error: `Error happened while fetching workflows from the db.`});
     }
 }
 

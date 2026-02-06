@@ -48,7 +48,7 @@ export const aiAgentNodeExecutor = async (wsClients: Map<string, WebSocket>, wor
     }
     fullExecutionData[nodeName] = { status: "running", output: "", log: "" }
     if (currWSClient) {
-      currWSClient.send(JSON.stringify({ nodeName: { status: "running", output: "", log: "" } }));
+      currWSClient.send(JSON.stringify({ [nodeName]: { status: "running", output: "", log: "" } }));
     }
   }
 
@@ -58,7 +58,7 @@ export const aiAgentNodeExecutor = async (wsClients: Map<string, WebSocket>, wor
       console.log("No credential");
       fullExecutionData[nodeName] = { status: "failed", output: "", log: "No credential provided." }
       if (currWSClient) {
-        currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "No credential provided." } }));
+        currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "No credential provided." } }));
       }
       return;
     }
@@ -73,7 +73,7 @@ export const aiAgentNodeExecutor = async (wsClients: Map<string, WebSocket>, wor
       console.log("No credential found.");
       fullExecutionData[nodeName] = { status: "failed", output: "", log: "No credential found." }
       if (currWSClient) {
-        currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "No credential found." } }));
+        currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "No credential found." } }));
       }
       return;
     }
@@ -84,7 +84,7 @@ export const aiAgentNodeExecutor = async (wsClients: Map<string, WebSocket>, wor
       console.log("Credential is invalid. No API Key found.");
       fullExecutionData[nodeName] = { status: "failed", output: "", log: "Invalid credential. No API KEY found." }
       if (currWSClient) {
-        currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "Invalid credential. No API KEY found." } }));
+        currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "Invalid credential. No API KEY found." } }));
       }
       return;
     }
@@ -129,7 +129,7 @@ export const aiAgentNodeExecutor = async (wsClients: Map<string, WebSocket>, wor
       console.log("Failed to get response from AI.");
       fullExecutionData[nodeName] = { status: "failed", output: "", log: "Failed to get response from AI." }
       if (currWSClient) {
-        currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "Failed to get response from AI." } }));
+        currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "Failed to get response from AI." } }));
       }
       return;
     }
@@ -139,7 +139,7 @@ export const aiAgentNodeExecutor = async (wsClients: Map<string, WebSocket>, wor
       console.log("Failed to get response from AI.");
       fullExecutionData[nodeName] = { status: "failed", output: "", log: "Failed to get correct response from AI." }
       if (currWSClient) {
-        currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "Failed to get correct response from AI." } }));
+        currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "Failed to get correct response from AI." } }));
       }
       return;
     }
@@ -159,7 +159,7 @@ export const aiAgentNodeExecutor = async (wsClients: Map<string, WebSocket>, wor
       console.log("Failed to parse AI response as JSON:", toolsToRunText);
       fullExecutionData[nodeName] = { status: "failed", output: "", log: "Failed to get correct response from AI." }
       if (currWSClient) {
-        currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "Failed to get correct response from AI." } }));
+        currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "Failed to get correct response from AI." } }));
       }
       return;
     }
@@ -167,7 +167,7 @@ export const aiAgentNodeExecutor = async (wsClients: Map<string, WebSocket>, wor
     console.log("AI Agent execution completed.");
     fullExecutionData[nodeName] = { status: "success", output: "", log: "AI Agent node ran successfully." }
     if (currWSClient) {
-      currWSClient.send(JSON.stringify({ nodeName: { status: "success", output: "", log: "AI Agent node ran successfully." } }));
+      currWSClient.send(JSON.stringify({ [nodeName]: { status: "success", output: "", log: "AI Agent node ran successfully." } }));
     }
 
     console.log("Tools to run:", toolsToRun);
@@ -198,7 +198,7 @@ export const aiAgentNodeExecutor = async (wsClients: Map<string, WebSocket>, wor
     console.error("AI Agent Error:", error);
     fullExecutionData[nodeName] = { status: "failed", output: "", log: "AI Agent node failed." }
     if (currWSClient) {
-      currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "AI Agent node failed." } }));
+      currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "AI Agent node failed." } }));
     }
     return { status: 'failed', error: error.message };
   }

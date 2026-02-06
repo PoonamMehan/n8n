@@ -6,6 +6,7 @@ import { Available_Credential_Apps } from "@/app/workflow/[...id]/Available_Cred
 import { TriggerIconMap } from "@/app/workflow/[...id]/NodeIcons";
 import { useRouter } from "next/navigation";
 import { TrashIcon } from "@heroicons/react/24/outline";
+import { toast } from 'sonner';
 
 export const UpdateCredentialModal = ({ credFormData }: { credFormData: AllCredentialsData }) => {
   const router = useRouter();
@@ -40,7 +41,7 @@ export const UpdateCredentialModal = ({ credFormData }: { credFormData: AllCrede
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/credential/${credFormData.id}`, {
+      const response = await fetch(`/api/v1/credential/${credFormData.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -53,17 +54,17 @@ export const UpdateCredentialModal = ({ credFormData }: { credFormData: AllCrede
 
       if (!response.ok) {
         console.log("Error while updating the credential");
-        // TODO: toaster error
+        toast.error('Failed to update credential. Please try again.');
         setIsSaving(false);
         return;
       }
 
-      // TODO: toaster success
+      toast.success('Credential updated successfully!');
       handleClose();
     } catch (error) {
       console.error("Update failed:", error);
       setIsSaving(false);
-      // TODO: toaster error
+      toast.error('Something went wrong. Please try again.');
     }
   };
 
@@ -78,16 +79,16 @@ export const UpdateCredentialModal = ({ credFormData }: { credFormData: AllCrede
 
       if (!response.ok) {
         console.log("Error while deleting the credential");
-        // TODO: toaster error
+        toast.error('Failed to delete credential. Please try again.');
         return;
       }
 
-      // TODO: toaster success
+      toast.success('Credential deleted successfully!');
       handleClose();
       router.refresh(); // Refresh to update the credentials list
     } catch (error) {
       console.error("Delete failed:", error);
-      // TODO: toaster error
+      toast.error('Something went wrong. Please try again.');
     }
   };
 

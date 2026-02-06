@@ -4,6 +4,8 @@ import "./globals.css";
 import StoreProvider from "./StoreProvider";
 import { SocketInitializer } from "../components/SocketInitializer";
 import { ClientAuthHandlerShell } from "./ClientAuthHandlerShell";
+import { Toaster } from "sonner";
+import { cookies } from "next/headers";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -30,22 +32,29 @@ export default async function RootLayout({
   let userLoginStatus;
   let user;
   try {
+    const cookieStore = await cookies();
     //SSR, cuz cache: 'no-store'
-    const res = await fetch('/api/v1/auth/me', {
-      credentials: "include",
+    const res = await fetch('http://localhost:8000/api/v1/auth/me', {
+      headers: {
+        Cookie: cookieStore.toString()
+      },
       cache: 'no-store'
     })
+    const resData = await res.json();
+    console.log("User Login Data full object: ", resData);
+    
     if (res.ok) {
-      const resData = await res.json();
-      console.log("User Login Data full object: ", resData)
       userLoginStatus = resData.isAuthenticated;
       user = resData.user
     } else {
       userLoginStatus = false
+      console.log("User is not logged in.");
     }
+
   } catch (err) {
     userLoginStatus = false;
     //toaster: error
+    console.log("Error while fetching user login status: ", err);
   }
 
 
@@ -57,6 +66,7 @@ export default async function RootLayout({
           <ClientAuthHandlerShell isLoggedIn={userLoginStatus} userId={user?.id} email={user?.email}>
             <SocketInitializer />
             {children}
+            <Toaster position="bottom-right" />
           </ClientAuthHandlerShell>
         </StoreProvider>
 

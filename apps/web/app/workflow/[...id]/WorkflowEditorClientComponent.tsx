@@ -44,6 +44,8 @@ export const WorkflowClientComponent = () => {
   const [isSaved, setIsSaved] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isWorkflowRunning, setIsWorkflowRunning] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editableTitle, setEditableTitle] = useState("");
   const router = useRouter();
 
   // as + clicked -> create entry in prisma.workflows table -> 
@@ -55,8 +57,9 @@ export const WorkflowClientComponent = () => {
       socket.send(JSON.stringify({ type: 'SUBSCRIBE', workflowId }));
 
       socket.onmessage = (event: any) => {
-        console.log("Message: ", JSON.parse(event.data));
-        alert(JSON.parse(event.data));
+        const data = JSON.parse(event.data);
+        console.log("WS Message received: ", data);
+        alert(JSON.stringify(data, null, 2));
       }
     }
 
@@ -145,6 +148,48 @@ export const WorkflowClientComponent = () => {
     } catch (err: any) {
       console.log("Failed to change workflow execution status:", err.message);
       // TODO: toaster error
+    }
+  }
+
+  const saveWorkflowTitle = async () => {
+    // Don't save if title hasn't changed or is empty
+    if (!editableTitle.trim() || editableTitle === workflow?.title) {
+      setIsEditingTitle(false);
+      setEditableTitle(workflow?.title || "");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/v1/workflow/${workflowId}`, {
+        method: "PUT",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: editableTitle.trim()
+        }),
+        credentials: "include"
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.log("Error updating workflow title:", result.error);
+        // TODO: add toaster - if error is about duplicate name, show "A workflow with this name already exists"
+        setEditableTitle(workflow?.title || "");
+        setIsEditingTitle(false);
+        return;
+      }
+
+      // Update local workflow state with new title
+      setWorkflow(prev => prev ? { ...prev, title: editableTitle.trim() } : prev);
+      setIsEditingTitle(false);
+      // TODO: toaster success - "Workflow title updated"
+    } catch (err: any) {
+      console.log("Failed to update workflow title:", err.message);
+      // TODO: toaster error
+      setEditableTitle(workflow?.title || "");
+      setIsEditingTitle(false);
     }
   }
 
@@ -327,7 +372,37 @@ export const WorkflowClientComponent = () => {
         <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
           <span className="text-gray-400">Personal</span>
           <span className="text-gray-300">/</span>
-          <span className="text-gray-900">{workflow && workflow.title}</span>
+          {isEditingTitle ? (
+            <input
+              type="text"
+              className="text-gray-900 border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={editableTitle}
+              onChange={(e) => setEditableTitle(e.target.value)}
+              onBlur={() => saveWorkflowTitle()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  saveWorkflowTitle();
+                } else if (e.key === 'Escape') {
+                  setIsEditingTitle(false);
+                  setEditableTitle(workflow?.title || "");
+                }
+              }}
+              autoFocus
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <span
+              className="text-gray-900 cursor-pointer hover:bg-gray-100 px-2 py-1 rounded"
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                setEditableTitle(workflow?.title || "");
+                setIsEditingTitle(true);
+              }}
+              title="Double-click to edit"
+            >
+              {workflow && workflow.title}
+            </span>
+          )}
         </div>
         <div>
           {/* TODO: Write a function which will save the workflow(nodes, edges, nodes' form info, credentials(separately)) in DB*/}

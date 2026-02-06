@@ -489,10 +489,14 @@ export const getMe = async (req: Request, res: Response) => {
     if (accessToken) {
       try {
         const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET!);
-        if (typeof decoded == 'object') {
+
+        if (typeof decoded == 'string') {
+          return res.status(200).json({ isAuthenticated: false, user: null });
+        }
+        else {
           const user = await prisma.user.findUnique({
             where: { id: decoded.userId },
-            select: { id: true, username: true, email: true }
+            select: { id: true, email: true }
           });
           return res.status(200).json({ isAuthenticated: true, user });
         }
@@ -535,7 +539,7 @@ export const getMe = async (req: Request, res: Response) => {
       // Refresh token is dead. Clear cookies and return false.
       res.clearCookie('__Host-access_token', { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
       res.clearCookie('__Host-refresh_token', { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
-      return res.status(400).json({ isAuthenticated: false, user: null });
+      return res.status(200).json({ isAuthenticated: false, user: null });
     }
     // Refresh was successful. Generate NEW tokens.
     const newAccessToken = jwt.sign({ userId: existingToken.id }, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: '15m' });
@@ -573,7 +577,7 @@ export const getMe = async (req: Request, res: Response) => {
 // custom status codes for different situations
 export const generateTokenForWsConnection = (req: Request, res: Response) => {
   try {
-    const userId = req.body.userId;
+    const userId = req.userId;
     console.log("userId for ws connection: ", userId);
     if (!userId) {
       return res.status(401).send("Unauthorized");

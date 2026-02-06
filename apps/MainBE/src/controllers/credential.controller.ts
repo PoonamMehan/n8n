@@ -31,7 +31,7 @@ export async function addCredentialHandler(req: Request, res: Response){
     if(!d.title || !d.platform || !d.data){
         return res.status(400).send({success: false, errorMessage: "Invalid payload sent."});
     }
-    
+
     try{
         const addedCredential = await prisma.credentials.create({
             data: {
@@ -52,69 +52,100 @@ export async function addCredentialHandler(req: Request, res: Response){
     }
 }
 
-export function deleteCredentialHandler (req: Request, res: Response){
+export async function deleteCredentialHandler (req: Request, res: Response){
     //delete the credential based on its id
+		console.log("Deleting credential: ", req.params.id);
+		const userId = req.userId;
+		if(!userId){
+			return res.status(400).send({success: false, error: "Unauthenticated.", data: null})
+		}
     const {id} = req.params;
     const credId = Number(id);
-    if(!Number.isNaN(credId)){
-        try{
-            const fetchedCred = prisma.credentials.delete({
-                where: {
-                    id: credId
-                }
-            })
-            res.status(200).send(fetchedCred);
+		if(Number.isNaN(credId)){
+			return res.status(400).send({success: false, error: "Invalid credential id.", data: null})
+		}
+    try{
+				const fetchedCred = await prisma.credentials.delete({
+						where: {
+								id: credId,
+								userId
+						}
+				})
+				if(!fetchedCred){
+					console.log("No credential with this id existed in the db.")
+					return res.status(400).send({success: false, error: "No credential with this id existed in the db.", data: null});
+				}
+				console.log("Credential deleted successfully: ", fetchedCred)
+				res.status(200).send({success: true, data: fetchedCred, error: null});
         }catch(err: any){
             if(err){
                 if(err.code === 'P2025'){
-                    return res.status(400).send("No credential with this id existed in the db.");
+                    console.log("No credential with this id existed in the db.")
+                    return res.status(400).send({success: false, error: "No credential with this id existed in the db.", data: null});
                 }
             }
-            return res.status(500).send(`Some error ocurred while deleting the credential from the db: ${err}`);
+						console.log("Some error ocurred while deleting the credential from the db.")
+            return res.status(500).send({success: false, error: `Some error ocurred while deleting the credential from the db.`, data: null});
         }
-    }else{
-
-    }
 }
 
 
 export async function editCredentialHandler (req:Request, res:Response){
     // edit a credential based on its id
-    // title
-    // data: accessToken
-    // baseURL
-    // usersSharing
-    
-    const {id, title, accessToken, baseURL, usersSharing} = req.body;
-    
-    let d: Partial<TelegramCredentials> = {};
-    if(accessToken){
-        d.accessToken = accessToken;
-    }if(baseURL){
-        d.baseURL = baseURL;
-    }if(usersSharing){
-        d.usersSharing = usersSharing;
+    const userId = req.userId;
+    if(!userId){
+        return res.status(401).send({success: false, error: "Unauthenticated.", data: null});
     }
     
-    try{    
-        const updatedRecord = await prisma.credentials.update({
-            where: {
-                id: id
-            },
-            data: {
-                title: title,
-                data: d
-            }
-        })
+    const credId = req.params.id;
+    if(!credId){
+        return res.status(400).send({success: false, error: "Invalid credential id.", data: null});
+    }
+    
+    const id = Number(credId);
+    if(Number.isNaN(id)){
+        return res.status(400).send({success: false, error: "Invalid credential id.", data: null});
+    }
 
-        res.status(200).send(updatedRecord);
-    }catch(err: any){
-        if(err){
-            if(err.code === 'P2025'){
-                res.status(400).send("No credential with this id existed in the db.");
-            }
+    if(!req.body){
+        return res.status(400).send({success: false, error: "Invalid payload.", data: null});
+    }
+    
+    // Frontend sends: { title, platform, data }
+    const { title, platform, data } = req.body;
+    
+    try{    
+        // First verify the credential belongs to this user
+        const existingCredential = await prisma.credentials.findUnique({
+            where: { id: id }
+        });
+        
+        if(!existingCredential){
+            return res.status(404).send({success: false, error: "Credential not found.", data: null});
         }
-        res.status(500).send(`Some error occured while updating the row in db: ${err}`);
+        
+        if(existingCredential.userId !== userId){
+            return res.status(403).send({success: false, error: "You don't have permission to edit this credential.", data: null});
+        }
+        
+        // Build update object with only provided fields
+        const updateData: Record<string, any> = {};
+        if(title) updateData.title = title;
+        if(platform) updateData.platform = platform;
+        if(data) updateData.data = data;
+        
+        const updatedRecord = await prisma.credentials.update({
+            where: { id: id },
+            data: updateData
+        });
+
+        return res.status(200).send({success: true, data: updatedRecord, error: null});
+    }catch(err: any){
+        console.error("Error updating credential:", err);
+        if(err.code === 'P2025'){
+            return res.status(404).send({success: false, error: "Credential not found.", data: null});
+        }
+        return res.status(500).send({success: false, error: "Failed to update credential.", data: null});
     }
 }
 

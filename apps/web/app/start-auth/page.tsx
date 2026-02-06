@@ -1,5 +1,6 @@
 'use client'
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function StartAuth() {
   const [email, setEmail] = useState("");
@@ -21,19 +22,22 @@ export default function StartAuth() {
         if (authenticatedUserData.success) {
           //Toaster: check your inbox
           console.log("User signed in successfully!");
-
+          toast.success("Check your inbox for the magic link!");
         } else {
           console.log("Something wrong happened on our end: ", authenticatedUser);
           //some error happened on our end, try agian later
+          toast.error("Something went wrong, please try again later.");
         }
       } else {
         //Toaster: if code 400, wrong credentials 
         //if 500, some error happened on our end, try again later
         console.log('Some error occured while logging in the user: ', authenticatedUserData)
+        toast.error("Something went wrong, please try again later.");
       }
     } catch (err: any) {
       //TOASTER: some error happened on our end, try again later
       console.log('Some error occured while logging in the user: ', err.message)
+      toast.error("Something went wrong, please try again later.");
     }
 
   }

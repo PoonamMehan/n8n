@@ -10,6 +10,7 @@ import { ChevronDownIcon, ChevronUpIcon, XMarkIcon } from "@heroicons/react/24/o
 import { Available_Credential_Apps } from "../app/workflow/[...id]/Available_Credentials";
 import { TriggerIconMap } from "../app/workflow/[...id]/NodeIcons";
 import { useRouter } from "next/navigation";
+import { toast } from 'sonner';
 
 export const CreateCredentialModal = ({ allCredentials }: { allCredentials: any }) => {
   const [listOpened, setListOpened] = useState(false);
@@ -49,7 +50,7 @@ export const CreateCredentialModal = ({ allCredentials }: { allCredentials: any 
     };
 
     try {
-      const response = await fetch("http://localhost:8000/api/v1/credential", {
+      const response = await fetch("/api/v1/credential", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -58,15 +59,15 @@ export const CreateCredentialModal = ({ allCredentials }: { allCredentials: any 
 
       if (!response.ok) {
         console.log("Error while saving the credential");
-        // TODO: toaster error
+        toast.error('Failed to save credential. Please try again.');
         return;
       }
 
-      // TODO: toaster success
+      toast.success('Credential saved successfully!');
       handleClose();
     } catch (error) {
       console.error("Save failed:", error);
-      // TODO: toaster error
+      toast.error('Something went wrong. Please try again.');
     }
   };
 

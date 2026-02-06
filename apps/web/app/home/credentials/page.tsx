@@ -3,6 +3,7 @@ import { AllCredentialsList } from "../../../components/AllCredentialsList";
 import { CreateDropdownComponent } from "../../../components/CreateDropdownComponent";
 import { CreateCredentialModal } from "../../../components/CreateCredentialModal";
 import { UpdateCredentialModal } from "../../../components/UpdateCredentialModal";
+import { cookies } from "next/headers";
 
 export interface AllCredentialsData {
   id: number;
@@ -24,19 +25,25 @@ export default async function CredentialsOverview({ searchParams }: { searchPara
   if (modal == "create") {
     openSearchBar = true;
   }
-
+  const cookieStore = await cookies();
   // SSR data fetching
   try {
-    const getCredentials = await fetch("http://localhost:8000/api/v1/credentials", {
-      method: "GET"
+    const getCredentials = await fetch("http://localhost:8000/api/v1/credential", {
+      method: "GET",
+      headers: {
+        Cookie: cookieStore.toString(),
+      }
     })
 
+    const credentialsData = await getCredentials.json();
     if (!getCredentials.ok) {
+      console.log("Bad result while fetching the credentials: ", credentialsData)
+      return;
       //toaster: 
       // credentials not fetched
     }
     console.log("Credentials fetching successful");
-    allCredentialsData = await getCredentials.json();
+    allCredentialsData = credentialsData;
     console.log("Fetched credentials: ", allCredentialsData);
 
   } catch (err: any) {

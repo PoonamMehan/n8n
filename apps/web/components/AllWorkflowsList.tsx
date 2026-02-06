@@ -33,10 +33,10 @@ export const AllWorkflowsList = ({ workflowsData, overview }: { workflowsData: W
               {
                 overview &&
                 <button>
-                  <UserIcon /><span>Personal</span>
+                  <UserIcon className="h-5 w-5" /><span>Personal</span>
                 </button>
               }
-              <EllipsisVerticalIcon />
+              <EllipsisVerticalIcon className="h-5 w-5"/>
             </div>
           </Link>
         )

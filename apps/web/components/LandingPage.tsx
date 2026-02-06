@@ -1,13 +1,9 @@
-import { LandingPageButton } from './LandingPageButton';
-import { LandingPageNavbar } from './LandingPageNavbar';
+import { LandingPageHero } from './landing/LandingPageHero';
 
 export const LandingPage = () => {
   return (
     <>
-      <div>
-        <LandingPageNavbar />
-        <LandingPageButton />
-      </div>
+      <LandingPageHero />
     </>
-  )
-}
+  );
+};

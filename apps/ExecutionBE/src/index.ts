@@ -259,7 +259,7 @@ try {
                 if (userId) {
                   const userWSClient = wsClients.get(userId);
                   if (userWSClient) {
-                    userWSClient.send(JSON.stringify({ executionId: executionId, triggerNodeName: { status: "success", output: payload, log: `${triggerNodeName} trigger node ran successfully.` } }));
+                    userWSClient.send(JSON.stringify({ executionId: executionId, [triggerNodeName]: { status: "success", output: payload, log: `${triggerNodeName} trigger node ran successfully.` } }));
                   }
                 }
 

@@ -17,7 +17,7 @@ export async function telegramNodeExecutor(wsClients: Map<string, WebSocket>, wo
     //TODO: we can save ourselves from redundantly writing this again and again.
     if (currWSClient) {
       console.log("EXECUTION DATA: ", executionData);
-      currWSClient.send(JSON.stringify({ nodeName: { status: "running", output: "", log: "" } }));
+      currWSClient.send(JSON.stringify({ [nodeName]: { status: "running", output: "", log: "" } }));
     }
   }
   console.log("Telegram mein execution data: ", executionData);
@@ -25,7 +25,7 @@ export async function telegramNodeExecutor(wsClients: Map<string, WebSocket>, wo
     console.log("No chat ID");
     fullExecutionData[nodeName] = { status: "failed", output: "", log: "No chat ID provided." }
     if (currWSClient) {
-      currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "No chat ID provided." } }));
+      currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "No chat ID provided." } }));
     }
     return;
   }
@@ -35,7 +35,7 @@ export async function telegramNodeExecutor(wsClients: Map<string, WebSocket>, wo
     fullExecutionData[nodeName] = { status: "failed", output: "", log: "No credential provided." }
     if (currWSClient) {
       console.log("Sending WS message that node failed due to no credential");
-      currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "No credential provided." } }));
+      currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "No credential provided." } }));
     }
     return;
   }
@@ -43,7 +43,7 @@ export async function telegramNodeExecutor(wsClients: Map<string, WebSocket>, wo
     console.log("No text to send");
     fullExecutionData[nodeName] = { status: "failed", output: "", log: "No text to send." }
     if (currWSClient) {
-      currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "No text to send." } }));
+      currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "No text to send." } }));
     }
     return
   }
@@ -58,7 +58,7 @@ export async function telegramNodeExecutor(wsClients: Map<string, WebSocket>, wo
     console.log("No credential found for this id");
     fullExecutionData[nodeName] = { status: "failed", output: "", log: "No credential found." }
     if (currWSClient) {
-      currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "No credential found." } }));
+      currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "No credential found." } }));
     }
     return;
   }
@@ -70,7 +70,7 @@ export async function telegramNodeExecutor(wsClients: Map<string, WebSocket>, wo
       console.log("No access token in credential");
       fullExecutionData[nodeName] = { status: "failed", output: "", log: "Invalid credential. No access token." }
       if (currWSClient) {
-        currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "Invalid credential. No access token." } }));
+        currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "Invalid credential. No access token." } }));
       }
       return;
     }
@@ -87,7 +87,7 @@ export async function telegramNodeExecutor(wsClients: Map<string, WebSocket>, wo
     if (currWSClient) {
       console.log("I AM TOH RUNNING");
       fullExecutionData[nodeName] = { status: "success", output: "", log: "Message sent successfully." }
-      currWSClient.send(JSON.stringify({ nodeName: { status: "success", output: "", log: "Message sent successfully." } }));
+      currWSClient.send(JSON.stringify({ [nodeName]: { status: "success", output: "", log: "Message sent successfully." } }));
     }
     return { status: 'success', data: response.data };
     // TODO: send WS message that we finished running this node -> successful
@@ -96,7 +96,7 @@ export async function telegramNodeExecutor(wsClients: Map<string, WebSocket>, wo
     console.error("Telegram API Error:", error.response?.data || error.message);
     fullExecutionData[nodeName] = { status: "failed", output: "", log: "Failed to send message." }
     if (currWSClient) {
-      currWSClient.send(JSON.stringify({ nodeName: { status: "failed", output: "", log: "Failed to send message." } }));
+      currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "Failed to send message." } }));
     }
     return { status: 'failed', error: error.response?.data || error.message };
   }
