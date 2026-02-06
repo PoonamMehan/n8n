@@ -60,8 +60,8 @@ const CredentialRow = ({ cred, index, onDelete }: { cred: AllCredentialsData, in
           </span>
         </div>
 
-        {/* Quick actions */}
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+        {/* Quick actions - always visible */}
+        <div className="flex items-center gap-1 flex-shrink-0">
           <button
             onClick={(e) => {
               e.preventDefault();

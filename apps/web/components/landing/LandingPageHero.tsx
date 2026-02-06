@@ -153,8 +153,8 @@ const WorkflowVisualization = () => {
 
         {/* Connection 0: Webhook to AI Agent */}
         <line
-          x1={thunderNodes[0].x + 32} y1={thunderNodes[0].y + 32}
-          x2={thunderNodes[1].x + 32} y2={thunderNodes[1].y + 32}
+          x1={thunderNodes[0]!.x + 32} y1={thunderNodes[0]!.y + 32}
+          x2={thunderNodes[1]!.x + 32} y2={thunderNodes[1]!.y + 32}
           stroke="#ec4899" strokeWidth="3" strokeLinecap="round" filter="url(#lineGlow)"
           style={{
             opacity: activeConnection >= 0 ? 1 : 0,
@@ -175,8 +175,8 @@ const WorkflowVisualization = () => {
 
         {/* Connection 2: OpenAI to Telegram */}
         <line
-          x1={thunderNodes[2].x + 32} y1={thunderNodes[2].y + 32}
-          x2={thunderNodes[3].x + 32} y2={thunderNodes[3].y + 32}
+          x1={thunderNodes[2]!.x + 32} y1={thunderNodes[2]!.y + 32}
+          x2={thunderNodes[3]!.x + 32} y2={thunderNodes[3]!.y + 32}
           stroke="#ec4899" strokeWidth="3" strokeLinecap="round" filter="url(#lineGlow)"
           style={{
             opacity: activeConnection >= 2 ? 1 : 0,
@@ -341,12 +341,29 @@ export const LandingPageHero = () => {
         </div>
 
         {isLoggedIn ? (
-          <Link
-            href="/home/workflows"
-            className="px-5 py-2.5 rounded-lg bg-white text-black font-medium text-sm hover:bg-gray-100 transition-colors"
-          >
-            Dashboard
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/home/workflows"
+              className="px-5 py-2.5 rounded-lg bg-white text-black font-medium text-sm hover:bg-gray-100 transition-colors"
+            >
+              Dashboard
+            </Link>
+            <button
+              onClick={async () => {
+                try {
+                  const res = await fetch('/api/v1/auth/signout', { method: 'GET' });
+                  if (res.ok) {
+                    window.location.href = '/';
+                  }
+                } catch (err) {
+                  console.error('Sign out failed:', err);
+                }
+              }}
+              className="px-5 py-2.5 rounded-lg border border-rose-500/30 text-pink-700 font-medium text-sm hover:bg-rose-500/10 hover:border-rose-500/50 transition-all"
+            >
+              Sign Out
+            </button>
+          </div>
         ) : (
           <Link
             href="/start-auth"
@@ -366,16 +383,7 @@ export const LandingPageHero = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.7 }}
         >
-          {/* Badge */}
-          <motion.div
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-xs text-gray-400">Now with AI-powered automation</span>
-          </motion.div>
+
 
           {/* Headline */}
           <motion.h1

@@ -1,8 +1,11 @@
 'use client'
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { HiOutlineDotsVertical, HiOutlinePlay } from "react-icons/hi";
+import { motion, AnimatePresence } from "framer-motion";
+import { HiOutlineDotsVertical, HiOutlineTrash } from "react-icons/hi";
 import { NetworkRight } from "iconoir-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface Workflow {
   id: number,
@@ -19,12 +22,15 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toISOString().split("T")[0];
 };
 
-const WorkflowRow = ({ workflow, index }: { workflow: Workflow, index: number }) => {
+const WorkflowRow = ({ workflow, index, onDelete }: { workflow: Workflow, index: number, onDelete: (id: number) => void }) => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.03, duration: 0.2 }}
+      className="relative"
     >
       <Link
         href={`/workflow/${workflow.id}`}
@@ -65,21 +71,51 @@ const WorkflowRow = ({ workflow, index }: { workflow: Workflow, index: number })
         </div>
 
         {/* Quick actions */}
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+        <div className="flex items-center gap-1 flex-shrink-0 relative">
           <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-green-400 hover:bg-green-500/10 transition-all"
-            title="Run"
-          >
-            <HiOutlinePlay className="w-4 h-4" />
-          </button>
-          <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setDropdownOpen(val => !val);
+            }}
             className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-all"
             title="More"
           >
             <HiOutlineDotsVertical className="w-4 h-4" />
           </button>
+
+          {/* Dropdown Menu */}
+          <AnimatePresence>
+            {dropdownOpen && (
+              <>
+                {/* Backdrop to close dropdown */}
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDropdownOpen(false); }}
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-full mt-1 z-50 bg-[#0c0c0c] border border-white/10 rounded-lg shadow-xl overflow-hidden min-w-[140px]"
+                >
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setDropdownOpen(false);
+                      onDelete(workflow.id);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-all"
+                  >
+                    <HiOutlineTrash className="w-4 h-4" />
+                    <span>Delete</span>
+                  </button>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </div>
       </Link>
     </motion.div>
@@ -93,7 +129,7 @@ const EmptyState = () => (
     className="flex flex-col items-center justify-center py-16"
   >
     <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-rose-500/15 to-pink-600/10 border border-rose-500/20 flex items-center justify-center mb-5">
-      <BsLightningChargeFill className="w-6 h-6 text-rose-400/60" />
+      <NetworkRight className="w-6 h-6 text-rose-400/60" />
     </div>
     <h3 className="text-base font-medium text-white mb-1.5">No workflows yet</h3>
     <p className="text-gray-500 text-sm text-center max-w-xs mb-4">
@@ -107,6 +143,40 @@ const EmptyState = () => (
 );
 
 export const AllWorkflowsList = ({ workflowsData, overview }: { workflowsData: Workflow[], overview: boolean }) => {
+  const router = useRouter();
+
+  const workflowDeletionHandler = async (workflowId: number) => {
+    try {
+      if (!workflowId) {
+        toast.error("Could not delete workflow.");
+        return;
+      }
+
+      const response = await fetch(`/api/v1/workflow/${workflowId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.log("Error while deleting workflow:", data);
+        toast.error(data.error || "Could not delete workflow.");
+        return;
+      }
+
+      if (data.success) {
+        toast.success("Workflow deleted successfully!");
+        router.refresh();
+      } else {
+        toast.error(data.error || "Could not delete workflow.");
+      }
+    } catch (error: any) {
+      console.log("Error deleting workflow:", error.message);
+      toast.error("Something went wrong. Please try again.");
+    }
+  };
+
   if (!workflowsData || workflowsData.length === 0) {
     return <EmptyState />;
   }
@@ -117,14 +187,19 @@ export const AllWorkflowsList = ({ workflowsData, overview }: { workflowsData: W
       <div className="flex items-center gap-4 px-4 py-2 text-xs text-gray-500 uppercase tracking-wider border-b border-white/5">
         <div className="w-8" /> {/* Icon spacer */}
         <div className="flex-1">Name</div>
-        <div className="w-20 text-center">Status</div>
-        <div className="w-24 text-center">Updated</div>
-        <div className="w-16" /> {/* Actions spacer */}
+        <div className="flex-shrink-0 w-20 text-center">Status</div>
+        <div className="flex-shrink-0 w-24 text-center">Updated</div>
+        <div className="w-8" /> {/* Actions spacer */}
       </div>
 
       {/* Workflow rows */}
       {workflowsData.map((workflow, index) => (
-        <WorkflowRow key={workflow.id} workflow={workflow} index={index} />
+        <WorkflowRow
+          key={workflow.id}
+          workflow={workflow}
+          index={index}
+          onDelete={workflowDeletionHandler}
+        />
       ))}
     </div>
   );

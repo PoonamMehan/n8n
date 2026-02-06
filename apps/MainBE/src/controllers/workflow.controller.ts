@@ -190,22 +190,27 @@ export async function editParticularWorkflow(req:Request, res:Response){
 
 export const deleteAParticularWorkflow = async (req: Request, res: Response)=>{
 	try{
+		const userId = req.userId;
+		if(!userId){
+			return res.status(400).send({success: false, data: null, error: "Unauthorized!"});
+		}
 		const workflowId = Number(req.params.id);
 		if(!Number.isNaN(workflowId)){
 			const workflow = await prisma.workflow.delete({
 				where: {
-					id: workflowId
+					id: workflowId,
+					userId: userId
 				}
 			})
-			return res.status(200).send(workflow);
+			return res.status(200).send({success: true, data: workflow, error: null});
 		}
-		return res.status(400).send("No workflow exists with this id.");
+		return res.status(400).send({success: false, data: null, error: "No workflow exists with this id."});
 		}catch(err: any){
 			if(err.code == 'P2025'){
-				return res.status(400).send("No workflow exists for this id.");
+				return res.status(400).send({success: false, data: null, error: "No workflow exists for this id."});
 			}
-			console.log(`Error while deleting a workflw: ${err.message}`);
-			return res.status(500).send(`Some error occurred at the backend while deleting the workflow: ${err.message}`);
+			console.log(`Error while deleting a workflow: ${err.message}`);
+			return res.status(500).send({success: false, data: null, error: `Some error occurred at the backend while deleting the workflow: ${err.message}`});
 		}
 }
 
