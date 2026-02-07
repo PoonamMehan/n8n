@@ -9,6 +9,8 @@ import { NetworkRightSolid, AutoFlash } from 'iconoir-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/ReduxStore/store';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
 
 // Modern node card component
 const NodeCard = ({ icon: Icon, color, label, delay }: { icon: any, color: string, label: string, delay: number }) => (
@@ -91,203 +93,149 @@ const connections = [
 
 // Main thunder bolt visualization with animated connections
 const WorkflowVisualization = () => {
-  const [activeConnection, setActiveConnection] = useState(-1);
+  const [activeStep, setActiveStep] = useState(-1);
   const [showFlash, setShowFlash] = useState(false);
-  const [pulseActive, setPulseActive] = useState(false);
 
   useEffect(() => {
-    // Animate connections sequentially - slower timing
-    const timers = connections.map((_, index) =>
-      setTimeout(() => setActiveConnection(index), 1000 + index * 600)
-    );
+    // Sequence:
+    // 0: Start (Webhook appears)
+    // 1: Connection to AI Agent
+    // 2: AI Agent appears
+    // 3: Connection to OpenAI
+    // 4: OpenAI appears
+    // 5: Connection to Telegram
+    // 6: Telegram appears
+    // 7: Connection to Gmail
+    // 8: Gmail appears
+    // 9: Connection to Execute
+    // 10: Execute appears
+    // 11: Flash!
 
-    // Flash effect after all connections
-    const flashTimer = setTimeout(() => {
-      setShowFlash(true);
-      setPulseActive(true);
-    }, 4000);
-    const flashEndTimer = setTimeout(() => setShowFlash(false), 4500);
+    const sequenceLength = 10;
+    const stepDuration = 400; // ms per step
 
-    return () => {
-      timers.forEach(clearTimeout);
-      clearTimeout(flashTimer);
-      clearTimeout(flashEndTimer);
+    const runSequence = () => {
+      setActiveStep(-1);
+      setShowFlash(false);
+
+      // Start sequence
+      for (let i = 0; i <= sequenceLength; i++) {
+        setTimeout(() => {
+          setActiveStep(i);
+        }, i * stepDuration);
+      }
+
+      // Flash at the end
+      setTimeout(() => {
+        setShowFlash(true);
+      }, (sequenceLength + 1) * stepDuration);
+
+      // Reset flash
+      setTimeout(() => {
+        setShowFlash(false);
+      }, (sequenceLength + 2) * stepDuration);
     };
-  }, []);
 
-  const getConnectionPath = (fromIndex: number, toIndex: number) => {
-    const from = thunderNodes[fromIndex];
-    const to = thunderNodes[toIndex];
-    if (!from || !to) return '';
-    const startX = from.x + 32;
-    const startY = from.y + 32;
-    const endX = to.x + 32;
-    const endY = to.y + 32;
-    return `M ${startX} ${startY} L ${endX} ${endY}`;
-  };
+    runSequence();
+
+    // Repeat the sequence every 8 seconds
+    const interval = setInterval(runSequence, 8000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="relative w-[320px] h-[480px]">
       {/* Glow background */}
-      <motion.div
-        className="absolute inset-0 flex items-center justify-center pointer-events-none"
-        animate={{ opacity: pulseActive ? [0.5, 0.8, 0.5] : 0.3 }}
-        transition={{ duration: 2, repeat: Infinity }}
-      >
-        <div className="w-[400px] h-[550px] rounded-full bg-gradient-to-b from-rose-500/25 via-pink-600/20 to-rose-700/15 blur-[100px]" />
-      </motion.div>
-
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className={`w-[400px] h-[550px] rounded-full bg-gradient-to-b from-rose-500/25 via-pink-600/20 to-rose-700/15 blur-[100px] transition-opacity duration-1000 ${activeStep > 0 ? 'opacity-100' : 'opacity-30'}`} />
+      </div>
 
       {/* SVG for connection lines */}
-      <svg className="absolute inset-0 w-full h-full" style={{ overflow: 'visible' }}>
-        <defs>
-          <filter id="lineGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="4" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        style={{ overflow: 'visible' }}
+      >
+        {connections.map((conn, index) => {
+          const from = thunderNodes[conn.from];
+          const to = thunderNodes[conn.to];
+          const x1 = from.x + 32;
+          const y1 = from.y + 32;
+          const x2 = to.x + 32;
+          const y2 = to.y + 32;
 
-        {/* Connection 0: Webhook to AI Agent */}
-        <line
-          x1={thunderNodes[0]!.x + 32} y1={thunderNodes[0]!.y + 32}
-          x2={thunderNodes[1]!.x + 32} y2={thunderNodes[1]!.y + 32}
-          stroke="#ec4899" strokeWidth="3" strokeLinecap="round" filter="url(#lineGlow)"
-          style={{
-            opacity: activeConnection >= 0 ? 1 : 0,
-            transition: 'opacity 0.5s ease-out'
-          }}
-        />
+          // The connection should appear after the 'from' node is active based on our sequence
+          // Connection 0 (index 0) corresponds to step 1 (appearing after Node 0 at step 0)
+          // Connection 1 (index 1) corresponds to step 3
+          // Connection index -> Step number: i -> 2*i + 1
+          const showLine = activeStep >= (index * 2) + 1;
 
-        {/* Connection 1: AI Agent to OpenAI (horizontal) */}
-        <line
-          x1={92} y1={162}
-          x2={222} y2={162}
-          stroke="#ec4899" strokeWidth="3" strokeLinecap="round" filter="url(#lineGlow)"
-          style={{
-            opacity: activeConnection >= 1 ? 1 : 0,
-            transition: 'opacity 0.5s ease-out'
-          }}
-        />
-
-        {/* Connection 2: OpenAI to Telegram */}
-        <line
-          x1={thunderNodes[2]!.x + 32} y1={thunderNodes[2]!.y + 32}
-          x2={thunderNodes[3]!.x + 32} y2={thunderNodes[3]!.y + 32}
-          stroke="#ec4899" strokeWidth="3" strokeLinecap="round" filter="url(#lineGlow)"
-          style={{
-            opacity: activeConnection >= 2 ? 1 : 0,
-            transition: 'opacity 0.5s ease-out'
-          }}
-        />
-
-        {/* Connection 3: Telegram to Gmail (horizontal) */}
-        <line
-          x1={62} y1={292}
-          x2={182} y2={292}
-          stroke="#ec4899" strokeWidth="3" strokeLinecap="round" filter="url(#lineGlow)"
-          style={{
-            opacity: activeConnection >= 3 ? 1 : 0,
-            transition: 'opacity 0.5s ease-out'
-          }}
-        />
-
-        {/* Connection 4: Gmail to Execute */}
-        <line
-          x1={thunderNodes[4].x + 32} y1={thunderNodes[4].y + 32}
-          x2={thunderNodes[5].x + 32} y2={thunderNodes[5].y + 32}
-          stroke="#ec4899" strokeWidth="3" strokeLinecap="round" filter="url(#lineGlow)"
-          style={{
-            opacity: activeConnection >= 4 ? 1 : 0,
-            transition: 'opacity 0.5s ease-out'
-          }}
-        />
+          return (
+            <motion.line
+              key={index}
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
+              stroke="#ec4899"
+              strokeWidth={3}
+              strokeLinecap="round"
+              style={{ filter: 'drop-shadow(0 0 4px #ec4899)' }}
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{
+                pathLength: showLine ? 1 : 0,
+                opacity: showLine ? 1 : 0
+              }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            />
+          );
+        })}
       </svg>
 
       {/* Nodes */}
-      {thunderNodes.map((node, index) => (
-        <motion.div
-          key={node.id}
-          className="absolute group cursor-pointer"
-          style={{ left: node.x, top: node.y }}
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{
-            scale: 1,
-            opacity: 1,
-          }}
-          transition={{
-            delay: index * 0.12,
-            duration: 0.5,
-            type: 'spring',
-            stiffness: 180,
-          }}
-        >
-          <motion.div
-            className="w-16 h-16 rounded-2xl bg-[#0c0c0c] border border-white/10 flex items-center justify-center relative overflow-hidden"
-            animate={{
-              boxShadow: showFlash
-                ? `0 0 40px ${node.color}, 0 0 80px ${node.color}50`
-                : `0 0 20px ${node.color}30`,
-              borderColor: showFlash ? `${node.color}60` : 'rgba(255,255,255,0.1)',
-            }}
-            transition={{ duration: 0.3 }}
-            whileHover={{ scale: 1.08, borderColor: `${node.color}80` }}
-          >
-            <node.icon className="w-7 h-7 relative z-10" style={{ color: node.color }} />
-            {/* Inner glow */}
-            <div
-              className="absolute inset-0 opacity-20"
-              style={{ background: `radial-gradient(circle at center, ${node.color}40, transparent)` }}
-            />
-          </motion.div>
-          <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[11px] text-gray-500 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity font-medium">
-            {node.label}
-          </span>
-        </motion.div>
-      ))}
+      {thunderNodes.map((node, index) => {
+        // Node sequence:
+        // Node 0: step 0
+        // Node 1: step 2
+        // Node i -> Step 2*i
+        const showNode = activeStep >= index * 2;
 
-      {/* Decorative corner nodes to complete lightning bolt shape */}
-      {decorativeNodes.map((node, index) => (
-        <motion.div
-          key={node.id}
-          className="absolute"
-          style={{ left: node.x, top: node.y }}
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{
-            delay: 0.6 + index * 0.15,
-            duration: 0.4,
-            type: 'spring',
-            stiffness: 200,
-          }}
-        >
+        return (
           <motion.div
-            className="w-4 h-4 rounded-full"
-            style={{ backgroundColor: node.color }}
+            key={node.id}
+            className="absolute group"
+            style={{ left: node.x, top: node.y }}
+            initial={{ scale: 0, opacity: 0 }}
             animate={{
-              boxShadow: showFlash
-                ? `0 0 20px ${node.color}, 0 0 40px ${node.color}80`
-                : `0 0 10px ${node.color}50`,
+              scale: showNode ? 1 : 0,
+              opacity: showNode ? 1 : 0,
             }}
-            transition={{ duration: 0.3 }}
-          />
-        </motion.div>
-      ))}
+            transition={{
+              type: 'spring',
+              stiffness: 260,
+              damping: 20,
+              duration: 0.3
+            }}
+          >
+            <div
+              className={`w-16 h-16 rounded-2xl bg-[#0c0c0c] border border-white/10 flex items-center justify-center relative overflow-hidden transition-all duration-300 ${showFlash ? 'border-rose-500/50 shadow-[0_0_30px_rgba(244,63,94,0.4)]' : ''}`}
+            >
+              <node.icon className="w-7 h-7 relative z-10" style={{ color: node.color }} />
+              <div
+                className="absolute inset-0 opacity-20"
+                style={{ background: `radial-gradient(circle at center, ${node.color}40, transparent)` }}
+              />
+            </div>
+          </motion.div>
+        );
+      })}
 
       {/* Flash overlay effect */}
-      {showFlash && (
-        <motion.div
-          className="absolute inset-0 pointer-events-none"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 0.6, 0] }}
-          transition={{ duration: 0.4 }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-b from-rose-500/25 via-transparent to-transparent" />
-        </motion.div>
-      )}
+      <div
+        className={`absolute inset-0 pointer-events-none transition-opacity duration-300 ${showFlash ? 'opacity-100' : 'opacity-0'}`}
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-rose-500/10 via-transparent to-transparent" />
+      </div>
     </div>
   );
 };
@@ -317,6 +265,7 @@ const FeatureCard = ({ icon: Icon, title, description, delay }: { icon: any, tit
 
 export const LandingPageHero = () => {
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-[#030303] text-white">
@@ -351,9 +300,10 @@ export const LandingPageHero = () => {
             <button
               onClick={async () => {
                 try {
-                  const res = await fetch('/api/v1/auth/signout', { method: 'GET' });
+                  const res = await fetch('/api/v1/auth/signout', { method: 'GET', credentials: 'include' });
                   if (res.ok) {
-                    window.location.href = '/';
+                    router.push('/');
+                    router.refresh();
                   }
                 } catch (err) {
                   console.error('Sign out failed:', err);

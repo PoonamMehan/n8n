@@ -7,7 +7,7 @@ const router: Router = Router();
 router.route("/signup").post(signupHandler);
 router.route("/login").post(loginHandler);
 router.route("/startAuth").post(startAuthHandler);
-router.route("/signout").post(jwtHandler, signoutHandler);
+router.route("/signout").get(jwtHandler, signoutHandler);
 router.route("/refreshToken").get(refreshJWTokens);
 router.route("/me").get(getMe);
 router.route("/generateTokenForWsConnection").post(jwtHandler, generateTokenForWsConnection);
