@@ -67,7 +67,7 @@ export function N8nStyleToolNode({ data }: NodeProps<CustomActionNode>) {
 
       </div>
 
-      <div className="mt-2 max-w-[100px] text-center text-xs font-semibold text-slate-500">
+      <div className="mt-2 max-w-[100px] text-center text-xs font-semibold text-slate-500 whitespace-normal leading-tight">
         {data.nodeName}
       </div>
 

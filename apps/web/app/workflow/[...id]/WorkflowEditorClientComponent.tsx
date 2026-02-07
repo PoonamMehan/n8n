@@ -385,32 +385,25 @@ export const WorkflowClientComponent = () => {
   };
 
   return (
-    <>
-      {/* Toggleable Left Sidebar */}
-      <div className={`fixed left-0 top-0 h-screen z-50 transition-all duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}>
-        <div className={`h-full w-56 flex flex-col ${isDarkMode
-          ? 'bg-[#0a0a0a] border-r border-white/10'
-          : 'bg-white border-r border-gray-200 shadow-lg'
-          }`}>
+    <div className="flex h-screen w-full overflow-hidden bg-white dark:bg-[#0c0c0c]">
+      {/* Toggleable Left Sidebar - Push Layout */}
+      <div
+        className={`flex-shrink-0 h-full border-r transition-all duration-300 ease-in-out overflow-hidden ${isSidebarOpen ? 'w-56' : 'w-0'
+          } ${isDarkMode ? 'bg-[#0a0a0a] border-white/10' : 'bg-white border-gray-200'
+          }`}
+      >
+        <div className="w-56 h-full flex flex-col">
           {/* Sidebar Header */}
-          <div className={`flex items-center justify-between p-4 border-b ${isDarkMode ? 'border-white/10' : 'border-gray-100'
-            }`}>
+          <div className={`flex shrink-0 h-16 items-center justify-between px-4 border-b ${isDarkMode ? 'border-white/10' : 'border-gray-100'}`}>
             <div className="flex items-center gap-2">
-              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isDarkMode
-                ? 'bg-rose-500/20 text-rose-400'
-                : 'bg-rose-100 text-rose-600'
-                }`}>
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isDarkMode ? 'bg-rose-500/20 text-rose-400' : 'bg-rose-100 text-rose-600'}`}>
                 <NetworkRight className="w-4 h-4" />
               </div>
               <span className={`text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>FlowBolt</span>
             </div>
             <button
               onClick={() => setIsSidebarOpen(false)}
-              className={`p-1 rounded-lg transition-colors ${isDarkMode
-                ? 'text-gray-500 hover:bg-white/5 hover:text-gray-300'
-                : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
-                }`}
+              className={`p-1 rounded-lg transition-colors ${isDarkMode ? 'text-gray-500 hover:bg-white/5 hover:text-gray-300' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'}`}
             >
               <XMarkIcon className="w-5 h-5" />
             </button>
@@ -420,20 +413,14 @@ export const WorkflowClientComponent = () => {
           <nav className="flex-1 p-3 space-y-1">
             <Link
               href="/home/workflows"
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isDarkMode
-                ? 'text-gray-300 hover:bg-white/5 hover:text-white'
-                : 'text-gray-700 hover:bg-gray-50'
-                }`}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isDarkMode ? 'text-gray-300 hover:bg-white/5 hover:text-white' : 'text-gray-700 hover:bg-gray-50'}`}
             >
               <NetworkRight className="w-5 h-5" />
               <span className="text-sm font-medium">Workflows</span>
             </Link>
             <Link
               href="/home/credentials"
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isDarkMode
-                ? 'text-gray-300 hover:bg-white/5 hover:text-white'
-                : 'text-gray-700 hover:bg-gray-50'
-                }`}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isDarkMode ? 'text-gray-300 hover:bg-white/5 hover:text-white' : 'text-gray-700 hover:bg-gray-50'}`}
             >
               <KeyIcon className="w-5 h-5" />
               <span className="text-sm font-medium">Credentials</span>
@@ -444,10 +431,7 @@ export const WorkflowClientComponent = () => {
           <div className={`p-3 border-t ${isDarkMode ? 'border-white/10' : 'border-gray-100'}`}>
             <button
               onClick={signoutHandler}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isDarkMode
-                ? 'text-red-400 hover:bg-red-500/10'
-                : 'text-red-600 hover:bg-red-50'
-                }`}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isDarkMode ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'}`}
             >
               <LogOut className="w-5 h-5" />
               <span className="text-sm font-medium">Sign Out</span>
@@ -456,303 +440,281 @@ export const WorkflowClientComponent = () => {
         </div>
       </div>
 
-      {/* Sidebar Backdrop */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* Header Section */}
-      <div className={`flex h-14 w-full items-center justify-between border-b px-4 ${isDarkMode
-        ? 'bg-[#0a0a0a] border-white/10'
-        : 'bg-white border-gray-200 shadow-sm'
-        }`} onClick={(e) => { setIsOpen(false) }}>
-        <div className={`flex items-center gap-3 text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-          {/* Sidebar Toggle */}
-          <button
-            onClick={(e) => { e.stopPropagation(); setIsSidebarOpen(true); }}
-            className={`p-2 rounded-lg transition-all ${isDarkMode
-              ? 'text-gray-400 hover:bg-white/5 hover:text-white'
-              : 'text-gray-500 hover:bg-gray-100'
-              }`}
-          >
-            <Bars3Icon className="w-5 h-5" />
-          </button>
-          <span className={isDarkMode ? 'text-gray-500' : 'text-gray-400'}>Personal</span>
-          <span className={isDarkMode ? 'text-gray-600' : 'text-gray-300'}>/</span>
-          {isEditingTitle ? (
-            <input
-              type="text"
-              className={`border rounded px-2 py-1 focus:outline-none focus:ring-2 ${isDarkMode
-                ? 'bg-white/5 border-rose-500/50 text-white focus:ring-rose-500/25'
-                : 'border-blue-500 text-gray-900 focus:ring-blue-500'
-                }`}
-              value={editableTitle}
-              onChange={(e) => setEditableTitle(e.target.value)}
-              onBlur={() => saveWorkflowTitle()}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  saveWorkflowTitle();
-                } else if (e.key === 'Escape') {
-                  setIsEditingTitle(false);
+      {/* Main Content Wrapper */}
+      <div className="flex flex-col flex-1 min-w-0 h-full">
+        {/* Header Section */}
+        <div className={`flex h-16 shrink-0 w-full items-center justify-between border-b px-4 ${isDarkMode ? 'bg-[#0a0a0a] border-white/10' : 'bg-white border-gray-200 shadow-sm'}`} onClick={(e) => { setIsOpen(false) }}>
+          <div className={`flex items-center gap-3 text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            {/* Sidebar Toggle */}
+            {!isSidebarOpen && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setIsSidebarOpen(true); }}
+                className={`p-2 rounded-lg transition-all ${isDarkMode ? 'text-gray-400 hover:bg-white/5 hover:text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+              >
+                <Bars3Icon className="w-5 h-5" />
+              </button>
+            )}
+            <span className={isDarkMode ? 'text-gray-500' : 'text-gray-400'}>Personal</span>
+            <span className={isDarkMode ? 'text-gray-600' : 'text-gray-300'}>/</span>
+            {isEditingTitle ? (
+              <input
+                type="text"
+                className={`border rounded px-2 py-1 focus:outline-none focus:ring-2 ${isDarkMode ? 'bg-white/5 border-rose-500/50 text-white focus:ring-rose-500/25' : 'border-blue-500 text-gray-900 focus:ring-blue-500'}`}
+                value={editableTitle}
+                onChange={(e) => setEditableTitle(e.target.value)}
+                onBlur={() => saveWorkflowTitle()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    saveWorkflowTitle();
+                  } else if (e.key === 'Escape') {
+                    setIsEditingTitle(false);
+                    setEditableTitle(workflow?.title || "");
+                  }
+                }}
+                autoFocus
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <span
+                className={`cursor-pointer px-2 py-1 rounded ${isDarkMode ? 'text-white hover:bg-white/5' : 'text-gray-900 hover:bg-gray-100'}`}
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
                   setEditableTitle(workflow?.title || "");
-                }
-              }}
-              autoFocus
-              onClick={(e) => e.stopPropagation()}
-            />
-          ) : (
-            <span
-              className={`cursor-pointer px-2 py-1 rounded ${isDarkMode
-                ? 'text-white hover:bg-white/5'
-                : 'text-gray-900 hover:bg-gray-100'
-                }`}
-              onDoubleClick={(e) => {
-                e.stopPropagation();
-                setEditableTitle(workflow?.title || "");
-                setIsEditingTitle(true);
-              }}
-              title="Double-click to edit"
-            >
-              {workflow && workflow.title}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {/* Theme Toggle */}
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`h-8 w-8 flex items-center justify-center rounded-lg transition-all ${isDarkMode
-              ? 'bg-white/5 border border-white/10 text-amber-400 hover:bg-white/10 hover:text-amber-300'
-              : 'bg-gray-100 border border-gray-200 text-indigo-600 hover:bg-gray-200'
-              }`}
-            title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          >
-            {isDarkMode ? <SunLight className="w-5 h-5" /> : <HalfMoon className="w-5 h-5" />}
-          </button>
+                  setIsEditingTitle(true);
+                }}
+                title="Double-click to edit"
+              >
+                {workflow && workflow.title}
+              </span>
+            )}
 
-          {/* Save Button */}
-          <button
-            className={`h-8 px-4 flex items-center justify-center rounded-lg text-sm font-medium transition-all ${isSaved || isSaving
-              ? isDarkMode
-                ? 'bg-white/5 text-gray-500 border border-white/10 cursor-not-allowed'
-                : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
-              : isDarkMode
-                ? 'bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:border-white/20'
-                : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
-              }`}
-            onClick={e => { e.preventDefault(); saveWorkflow() }}
-            disabled={isSaved || isSaving}
-          >
-            {isSaving ? 'Saving...' : isSaved ? 'Saved' : 'Save'}
-          </button>
+            {/* Moved Buttons Group */}
+            <div className="flex items-center gap-6">
+              {/* Group 1: Theme & Save */}
+              <div className="flex items-center gap-2 border-r pr-6 border-gray-200 dark:border-white/10">
+                {/* Theme Toggle */}
+                <button
+                  onClick={() => setIsDarkMode(!isDarkMode)}
+                  className={`h-8 w-8 flex items-center justify-center rounded-lg transition-all ${isDarkMode ? 'bg-white/5 border border-white/10 text-amber-400 hover:bg-white/10 hover:text-amber-300' : 'bg-gray-100 border border-gray-200 text-indigo-600 hover:bg-gray-200'}`}
+                  title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                >
+                  {isDarkMode ? <SunLight className="w-5 h-5 text-white" /> : <HalfMoon className="w-5 h-5 text-black" />}
+                </button>
 
-          {/* Start Workflow Button */}
-          <button
-            className={`h-8 px-4 flex items-center gap-2 justify-center rounded-lg text-sm font-medium transition-all ${isDarkMode
-              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/30'
-              : 'bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100'
-              }`}
-            onClick={(e) => { e.preventDefault(); changeWorkflowExecutionStatus(true) }}
-          >
-            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-            </svg>
-            Start
-          </button>
-
-          {/* Stop Button */}
-          {isWorkflowRunning && (
-            <button
-              onClick={(e) => { e.preventDefault(); changeWorkflowExecutionStatus(false) }}
-              className={`h-8 w-8 flex items-center justify-center rounded-lg transition-all ${isDarkMode
-                ? 'bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20'
-                : 'bg-red-50 border border-red-200 text-red-500 hover:bg-red-100'
-                }`}
-            >
-              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                <rect x="4" y="4" width="12" height="12" rx="1" />
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Main Content Area with Push Sidebar */}
-      <div className="flex h-[calc(100vh-56px)]">
-        {/* Canvas Area - shrinks when sidebar opens */}
-        <div className={`relative flex-1 transition-all duration-300 ${isDarkMode ? 'bg-[#0c0c0c]' : 'bg-slate-50'}`}>
-          {/* react flow          &       nodes modal? */}
-          {/* This is definitely a client component, TODO:  we should separately render it for performance boost. */}
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            fitView
-            isValidConnection={isValidConnection}
-            nodeTypes={nodeTypes}
-            onClick={(e) => { setIsOpen(false) }}
-            // Logic: When a node is clicked, set the activeNode state to open the modal
-            onNodeClick={(event, node) => setActiveNodeForm(node as CustomActionNode)}
-            className={isDarkMode ? 'dark-flow' : ''}
-            style={{ background: isDarkMode ? '#0c0c0c' : undefined }}
-          >
-            <Background
-              variant={BackgroundVariant.Dots}
-              gap={12}
-              size={1}
-              color={isDarkMode ? '#333' : '#ccc'}
-            />
-            <Controls
-              className={isDarkMode ? 'dark-controls' : ''}
-              style={{
-                background: isDarkMode ? '#1a1a1a' : undefined,
-                borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : undefined
-              }}
-            />
-            <MiniMap
-              position="bottom-left"
-              style={{
-                background: isDarkMode ? '#0c0c0c' : '#f8f8f8',
-                border: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e5e5e5',
-                borderRadius: '8px',
-                marginLeft: '60px'
-              }}
-              nodeColor={(node) => {
-                if (node.type === 'triggerNode') return isDarkMode ? '#f43f5e' : '#3b82f6';
-                if (node.type === 'aiAgentNode') return isDarkMode ? '#8b5cf6' : '#8b5cf6';
-                if (node.type === 'toolNode') return isDarkMode ? '#a855f7' : '#a855f7';
-                return isDarkMode ? '#f97316' : '#f97316';
-              }}
-              maskColor={isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.7)'}
-            />
-          </ReactFlow>
-
-          {/* Add Node Button & Logs - Right side panel */}
-          <div className="absolute right-4 top-16 z-20 flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
-            {/* Add Node Button */}
-            <button
-              className={`flex h-10 w-10 items-center justify-center rounded-xl shadow-lg transition-all ${isDarkMode
-                ? 'bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
-                : 'bg-white text-gray-600 ring-1 ring-gray-900/5 hover:bg-gray-50 hover:text-blue-600'
-                }`}
-              onClick={(e: any) => { e.preventDefault(); setIsOpen(true) }}
-            >
-              <PlusIcon className="h-5 w-5" />
-            </button>
-
-            {/* Logs Panel */}
-            <div className={`w-64 max-h-[400px] rounded-xl shadow-lg overflow-hidden ${isDarkMode
-              ? 'bg-[#0c0c0c]/95 border border-white/10'
-              : 'bg-white/95 border border-gray-200'
-              }`}>
-              <div className={`px-3 py-2 border-b flex items-center justify-between ${isDarkMode ? 'border-white/10' : 'border-gray-100'}`}>
-                <span className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Logs</span>
-                <div className={`h-2 w-2 rounded-full ${isWorkflowRunning ? 'bg-green-500 animate-pulse' : isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+                {/* Save Button */}
+                <button
+                  className={`h-8 px-4 flex items-center justify-center rounded-lg text-sm font-medium transition-all ${isSaved || isSaving ? (isDarkMode ? 'bg-white/5 text-gray-500 border border-white/10 cursor-not-allowed' : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed') : (isDarkMode ? 'bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:border-white/20' : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200')}`}
+                  onClick={e => { e.preventDefault(); saveWorkflow() }}
+                  disabled={isSaved || isSaving}
+                >
+                  {isSaving ? 'Saving...' : isSaved ? 'Saved' : 'Save'}
+                </button>
               </div>
-              <div className={`p-3 overflow-y-auto max-h-[350px] font-mono text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                {/* Logs will be populated from websocket */}
-                <div className={`italic ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
-                  {isWorkflowRunning ? 'Waiting for logs...' : 'Run workflow to see logs'}
+
+              {/* Group 2: Start & Stop (Tightly Grouped) */}
+              <div className="flex items-center gap-1">
+                {/* Start Workflow Button */}
+                <button
+                  className={`h-8 px-4 flex items-center gap-2 justify-center rounded-lg text-sm font-medium transition-all ${isDarkMode ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100'}`}
+                  onClick={(e) => { e.preventDefault(); changeWorkflowExecutionStatus(true) }}
+                >
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                  </svg>
+                  Start
+                </button>
+
+                {/* Stop Button */}
+                {isWorkflowRunning && (
+                  <button
+                    onClick={(e) => { e.preventDefault(); changeWorkflowExecutionStatus(false) }}
+                    className={`h-8 w-8 flex items-center justify-center rounded-lg transition-all ${isDarkMode ? 'bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border border-red-200 text-red-500 hover:bg-red-100'}`}
+                  >
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                      <rect x="4" y="4" width="12" height="12" rx="1" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+
+          </div>
+        </div>
+
+        {/* Main Content Area (Editor + Right Sidebar) */}
+        <div className="flex flex-1 overflow-hidden relative">
+          {/* Canvas Area - flexible */}
+          <div className={`relative flex-1 h-full transition-all duration-300 ${isDarkMode ? 'bg-[#0c0c0c]' : 'bg-slate-50'}`}>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              fitView
+              isValidConnection={isValidConnection}
+              nodeTypes={nodeTypes}
+              onClick={(e) => { setIsOpen(false) }}
+              onNodeClick={(event, node) => setActiveNodeForm(node as CustomActionNode)}
+              className={isDarkMode ? 'dark-flow' : ''}
+              style={{ background: isDarkMode ? '#0c0c0c' : undefined }}
+            >
+              <Background
+                variant={BackgroundVariant.Dots}
+                gap={12}
+                size={1}
+                color={isDarkMode ? '#333' : '#ccc'}
+              />
+              <Controls
+                className={isDarkMode ? 'dark-controls' : ''}
+                style={{
+                  background: isDarkMode ? '#1a1a1a' : undefined,
+                  borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : undefined
+                }}
+              />
+              <MiniMap
+                position="bottom-left"
+                style={{
+                  background: isDarkMode ? '#0c0c0c' : '#f8f8f8',
+                  border: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e5e5e5',
+                  borderRadius: '8px',
+                  marginLeft: '60px'
+                }}
+                nodeColor={(node) => {
+                  if (node.type === 'triggerNode') return isDarkMode ? '#f43f5e' : '#3b82f6';
+                  if (node.type === 'aiAgentNode') return isDarkMode ? '#8b5cf6' : '#8b5cf6';
+                  if (node.type === 'toolNode') return isDarkMode ? '#a855f7' : '#a855f7';
+                  return isDarkMode ? '#f97316' : '#f97316';
+                }}
+                maskColor={isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.7)'}
+              />
+            </ReactFlow>
+
+            {/* Add Node Button - Floating Right */}
+            <div className="absolute right-12 top-12 z-20" onClick={(e) => e.stopPropagation()}>
+              <button
+                className={`flex h-12 w-12 items-center justify-center rounded-2xl shadow-xl transition-all transform hover:scale-105 ${isDarkMode
+                  ? 'bg-rose-500 text-white hover:bg-rose-600 shadow-rose-900/20'
+                  : 'bg-rose-500 text-white hover:bg-rose-600 shadow-rose-200'
+                  }`}
+                onClick={(e: any) => { e.preventDefault(); setIsOpen(true) }}
+              >
+                <PlusIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Logs Panel - Bottom Right Floating */}
+            <div className="absolute right-6 bottom-6 z-20" onClick={(e) => e.stopPropagation()}>
+              <div className={`w-80 max-h-[300px] rounded-xl shadow-2xl overflow-hidden backdrop-blur-md transition-all ${isDarkMode
+                ? 'bg-[#0c0c0c]/80 border border-white/10'
+                : 'bg-white/80 border border-gray-200'
+                }`}>
+                <div className={`px-3 py-2 border-b flex items-center justify-between ${isDarkMode ? 'border-white/10' : 'border-gray-100'}`}>
+                  <span className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Logs</span>
+                  <div className={`h-2 w-2 rounded-full ${isWorkflowRunning ? 'bg-green-500 animate-pulse' : isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+                </div>
+                <div className={`p-3 overflow-y-auto max-h-[350px] font-mono text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  {/* Logs will be populated from websocket */}
+                  <div className={`italic ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
+                    {isWorkflowRunning ? 'Waiting for logs...' : 'Run workflow to see logs'}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Right Sidebar - Push layout */}
-        {isOpen && (
-          <div className={`w-80 shrink-0 overflow-y-auto border-l p-4 ${isDarkMode
-            ? 'bg-[#0c0c0c] border-white/10'
-            : 'bg-white border-gray-200'
-            }`} onClick={(e) => e.stopPropagation()}>
-            <div className={`mb-4 border-b pb-2 ${isDarkMode ? 'border-white/10' : 'border-gray-100'}`}>
-              <div className="flex items-center justify-between mb-2">
-                <div className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>TRIGGERS</div>
-                <button className={`rounded p-1 transition-colors ${isDarkMode ? 'text-gray-500 hover:bg-white/5 hover:text-gray-300' : 'text-gray-400 hover:bg-slate-100 hover:text-gray-600'}`} onClick={(e: any) => { e.preventDefault(); setIsOpen(false) }}>
-                  <XMarkIcon className="h-5 w-5" />
-                </button>
-              </div>
-              {/* <div>LIST OF TRIGGERS: Clickable, title & description & icn </div> */}
-              <div className="block space-y-1 mb-4">{Object.entries(Available_Triggers).map(([key, val]) => (
-                <Link href="" onClick={(e) => addNodeToCanvas('triggerNode', val.title, val.icon, val.defaultName)} key={key} className={`group flex items-center gap-3 rounded-lg p-2 transition-all cursor-pointer ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
-                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded transition-colors ${isDarkMode ? 'bg-white/5 text-gray-400 group-hover:bg-rose-500/20 group-hover:text-rose-400' : 'bg-slate-100 text-gray-500 group-hover:bg-blue-100 group-hover:text-blue-600'}`}>{TriggerIconMap[val.icon] || TriggerIconMap['default']}</div>
-                  <div className="flex flex-col"><span className={`text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>{val.title}</span><span className={`text-xs line-clamp-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>{val.description}</span></div>
-                </Link>
-              ))}</div>
-            </div>
-            <div className={`mb-4 border-b pb-2 ${isDarkMode ? 'border-white/10' : 'border-gray-100'}`}>
-              <div className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Actions</div>
-              {/* <div>LIST OF ACTIONS: Clickable, title & description & Icon   -- --  onClick: open a modal, add the node on the screen & custom name(check the nodes with the same name -> add +1 number at the next node -> the modal finally(LOGIC)</div> */}
-              <div className="block space-y-1 mb-4">{Object.entries(Available_Actions).map(([key, val]) => {
-                const isAIAgent = val.title === "AI Agent";
-                return (
-                  <Link href="" onClick={(e) => addNodeToCanvas(isAIAgent ? 'aiAgentNode' : 'actionNode', val.title, val.icon, val.defaultName)} key={key} className={`group flex items-center gap-3 rounded-lg p-2 transition-all cursor-pointer ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
-                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded transition-colors ${isAIAgent
-                      ? isDarkMode
-                        ? 'bg-purple-500/20 text-purple-400'
-                        : 'bg-purple-100 text-purple-600'
-                      : isDarkMode
-                        ? 'bg-white/5 text-gray-400 group-hover:bg-amber-500/20 group-hover:text-amber-400'
-                        : 'bg-slate-100 text-gray-500 group-hover:bg-orange-100 group-hover:text-orange-600'
-                      }`}>{TriggerIconMap[val.icon] || TriggerIconMap['default']}</div>
+          {/* Right Sidebar - Push layout */}
+          {isOpen && (
+            <div className={`w-80 shrink-0 overflow-y-auto border-l p-4 ${isDarkMode
+              ? 'bg-[#0c0c0c] border-white/10'
+              : 'bg-white border-gray-200'
+              }`} onClick={(e) => e.stopPropagation()}>
+              <div className={`mb-4 border-b pb-2 ${isDarkMode ? 'border-white/10' : 'border-gray-100'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>TRIGGERS</div>
+                  <button className={`rounded p-1 transition-colors ${isDarkMode ? 'text-gray-500 hover:bg-white/5 hover:text-gray-300' : 'text-gray-400 hover:bg-slate-100 hover:text-gray-600'}`} onClick={(e: any) => { e.preventDefault(); setIsOpen(false) }}>
+                    <XMarkIcon className="h-5 w-5" />
+                  </button>
+                </div>
+                {/* <div>LIST OF TRIGGERS: Clickable, title & description & icn </div> */}
+                <div className="block space-y-1 mb-4">{Object.entries(Available_Triggers).map(([key, val]) => (
+                  <Link href="" onClick={(e) => addNodeToCanvas('triggerNode', val.title, val.icon, val.defaultName)} key={key} className={`group flex items-center gap-3 rounded-lg p-2 transition-all cursor-pointer ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
+                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded transition-colors ${isDarkMode ? 'bg-white/5 text-gray-400 group-hover:bg-rose-500/20 group-hover:text-rose-400' : 'bg-slate-100 text-gray-500 group-hover:bg-blue-100 group-hover:text-blue-600'}`}>{TriggerIconMap[val.icon] || TriggerIconMap['default']}</div>
                     <div className="flex flex-col"><span className={`text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>{val.title}</span><span className={`text-xs line-clamp-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>{val.description}</span></div>
                   </Link>
-                )
-              })}</div>
+                ))}</div>
+              </div>
+              <div className={`mb-4 border-b pb-2 ${isDarkMode ? 'border-white/10' : 'border-gray-100'}`}>
+                <div className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Actions</div>
+                {/* <div>LIST OF ACTIONS: Clickable, title & description & Icon   -- --  onClick: open a modal, add the node on the screen & custom name(check the nodes with the same name -> add +1 number at the next node -> the modal finally(LOGIC)</div> */}
+                <div className="block space-y-1 mb-4">{Object.entries(Available_Actions).map(([key, val]) => {
+                  const isAIAgent = val.title === "AI Agent";
+                  return (
+                    <Link href="" onClick={(e) => addNodeToCanvas(isAIAgent ? 'aiAgentNode' : 'actionNode', val.title, val.icon, val.defaultName)} key={key} className={`group flex items-center gap-3 rounded-lg p-2 transition-all cursor-pointer ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
+                      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded transition-colors ${isAIAgent
+                        ? isDarkMode
+                          ? 'bg-purple-500/20 text-purple-400'
+                          : 'bg-purple-100 text-purple-600'
+                        : isDarkMode
+                          ? 'bg-white/5 text-gray-400 group-hover:bg-amber-500/20 group-hover:text-amber-400'
+                          : 'bg-slate-100 text-gray-500 group-hover:bg-orange-100 group-hover:text-orange-600'
+                        }`}>{TriggerIconMap[val.icon] || TriggerIconMap['default']}</div>
+                      <div className="flex flex-col"><span className={`text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>{val.title}</span><span className={`text-xs line-clamp-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>{val.description}</span></div>
+                    </Link>
+                  )
+                })}</div>
+              </div>
+              <div className="mb-2 pb-2">
+                <div className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Tools</div>
+                <div className="space-y-1">{Object.entries(Available_Tools).map(([key, val]) => (
+                  <Link href="" onClick={(e) => addNodeToCanvas('toolNode', val.title, val.icon, val.defaultName)} key={key} className={`group flex items-center gap-3 rounded-lg p-2 transition-all cursor-pointer ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
+                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded transition-colors ${isDarkMode ? 'bg-white/5 text-gray-400 group-hover:bg-purple-500/20 group-hover:text-purple-400' : 'bg-slate-100 text-gray-500 group-hover:bg-orange-100 group-hover:text-orange-600'}`}>{TriggerIconMap[val.icon] || TriggerIconMap['default']}</div>
+                    <div className="flex flex-col"><span className={`text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>{val.title}</span><span className={`text-xs line-clamp-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>{val.description}</span></div>
+                  </Link>
+                ))}</div>
+              </div>
+              {/* import Avail_Triggers & [0].title & [0].description & icon  */}
             </div>
-            <div className="mb-2 pb-2">
-              <div className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Tools</div>
-              <div className="space-y-1">{Object.entries(Available_Tools).map(([key, val]) => (
-                <Link href="" onClick={(e) => addNodeToCanvas('toolNode', val.title, val.icon, val.defaultName)} key={key} className={`group flex items-center gap-3 rounded-lg p-2 transition-all cursor-pointer ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
-                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded transition-colors ${isDarkMode ? 'bg-white/5 text-gray-400 group-hover:bg-purple-500/20 group-hover:text-purple-400' : 'bg-slate-100 text-gray-500 group-hover:bg-orange-100 group-hover:text-orange-600'}`}>{TriggerIconMap[val.icon] || TriggerIconMap['default']}</div>
-                  <div className="flex flex-col"><span className={`text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>{val.title}</span><span className={`text-xs line-clamp-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>{val.description}</span></div>
-                </Link>
-              ))}</div>
-            </div>
-            {/* import Avail_Triggers & [0].title & [0].description & icon  */}
-          </div>
-        )}
+          )}
 
-        {/* NODE FORM MODAL OVERLAY */}
-        {activeNodeForm && (
-          <div
-            className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            onClick={() => setActiveNodeForm(null)}
-          >
+          {/* NODE FORM MODAL OVERLAY */}
+          {activeNodeForm && (
             <div
-              className="relative h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white shadow-2xl"
-              onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside the form
+              className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+              onClick={() => setActiveNodeForm(null)}
             >
-              {/* THE NODE FORM CONTENT GOES HERE */}
-              <div className="p-6">
-                {/* You can now pass activeNode.id or activeNode.data to your form component */}
-                <h2 className="text-lg font-bold">{activeNodeForm.data.nodeName}</h2>
-                <button className="absolute top-4 right-4" onClick={() => setActiveNodeForm(null)}><XMarkIcon className="h-6 w-6" /></button>
-              </div>
-              <div>
-                {/* Parse the parameters & just go thru them -> each parameter with a React element + all the options */}
-                {/* Render the component, send a callback -> that callback will take all the objects in a variable -> the variable will be used to add the data to the "nodes" state -> when the cross is pressed or outside the component is pressed and the form is exited from the screen -> we call the callback with the updated values at the last time in the form -> then add those values in the "nodes" state */}
-                {/* To e.propgate thingy: inside the activeNodeForm -> activeCredentialForm -> When cross clicked use a callback -> when outside clicked that div will live in here */}
+              <div
+                className="relative h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white shadow-2xl"
+                onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside the form
+              >
+                {/* THE NODE FORM CONTENT GOES HERE */}
+                <div className="p-6">
+                  {/* You can now pass activeNode.id or activeNode.data to your form component */}
+                  <h2 className="text-lg font-bold">{activeNodeForm.data.nodeName}</h2>
+                  <button className="absolute top-4 right-4" onClick={() => setActiveNodeForm(null)}><XMarkIcon className="h-6 w-6" /></button>
+                </div>
+                <div>
+                  {/* Parse the parameters & just go thru them -> each parameter with a React element + all the options */}
+                  {/* Render the component, send a callback -> that callback will take all the objects in a variable -> the variable will be used to add the data to the "nodes" state -> when the cross is pressed or outside the component is pressed and the form is exited from the screen -> we call the callback with the updated values at the last time in the form -> then add those values in the "nodes" state */}
+                  {/* To e.propgate thingy: inside the activeNodeForm -> activeCredentialForm -> When cross clicked use a callback -> when outside clicked that div will live in here */}
 
-                {/* cmponent that will render the nodes form here -> then add the nodes form -> will take a callback that will update the activeCredentialForm here */}
-                {/* TODO: later add a global store for state management */}
-                {/* COMPONENT */}
-                {/* send type & title to render right node form */};
-                {/*  */}
-                <NodeForm formDataHandler={formDataHandler} title={activeNodeForm.data.nodeTitle} type={activeNodeForm.type!} alreadyFilledValues={activeNodeForm.data.executionData} nodeId={activeNodeForm.id} nodes={nodes} />
+                  {/* cmponent that will render the nodes form here -> then add the nodes form -> will take a callback that will update the activeCredentialForm here */}
+                  {/* TODO: later add a global store for state management */}
+                  {/* COMPONENT */}
+                  {/* send type & title to render right node form */};
+                  {/*  */}
+                  <NodeForm formDataHandler={formDataHandler} title={activeNodeForm.data.nodeTitle} type={activeNodeForm.type!} alreadyFilledValues={activeNodeForm.data.executionData} nodeId={activeNodeForm.id} nodes={nodes} />
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-      {/* When clicked upon action -> check state if anyActionAlreadyExists -> If exists -> Toaster(You cannot add more than one trigger as of now. We will soon introduce this functionality.) */}
+          )}
+        </div>
+        {/* When clicked upon action -> check state if anyActionAlreadyExists -> If exists -> Toaster(You cannot add more than one trigger as of now. We will soon introduce this functionality.) */}
 
-    </>
+      </div>
+    </div>
   )
 }
 {/* TODO: Actions */ }

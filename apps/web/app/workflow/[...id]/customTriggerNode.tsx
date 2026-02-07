@@ -25,7 +25,7 @@ export function N8nStyleTriggerNode({ data }: NodeProps<CustomTriggerNode>) {
           className="!bg-slate-400 !w-2 !h-2 !-right-1.5"
         />
       </div>
-      <div className="mt-1.5 max-w-[90px] text-center text-[10px] font-medium text-slate-500 group-hover:text-slate-700 transition-colors truncate">
+      <div className="mt-1.5 max-w-[90px] text-center text-[10px] font-medium text-slate-500 group-hover:text-slate-700 transition-colors whitespace-normal leading-tight">
         {data.nodeName}
       </div>
     </div>
