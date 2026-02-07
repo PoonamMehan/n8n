@@ -48,6 +48,7 @@ export const WorkflowClientComponent = () => {
   const [isWorkflowRunning, setIsWorkflowRunning] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editableTitle, setEditableTitle] = useState("");
+  const [logs, setLogs] = useState<string[]>([]);
   const router = useRouter();
 
   // as + clicked -> create entry in prisma.workflows table -> 
@@ -61,7 +62,7 @@ export const WorkflowClientComponent = () => {
       socket.onmessage = (event: any) => {
         const data = JSON.parse(event.data);
         console.log("WS Message received: ", data);
-        alert(JSON.stringify(data, null, 2));
+        setLogs((prev) => [...prev, `> ${JSON.stringify(data, null, 2)}`]);
       }
     }
 
@@ -488,7 +489,9 @@ export const WorkflowClientComponent = () => {
               </span>
             )}
 
-            {/* Moved Buttons Group */}
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Moved Buttons Group - EXTREME RIGHT */}
             <div className="flex items-center gap-6">
               {/* Group 1: Theme & Save */}
               <div className="flex items-center gap-2 border-r pr-6 border-gray-200 dark:border-white/10">
@@ -511,12 +514,25 @@ export const WorkflowClientComponent = () => {
                 </button>
               </div>
 
-              {/* Group 2: Start & Stop (Tightly Grouped) */}
               <div className="flex items-center gap-1">
-                {/* Start Workflow Button */}
+
                 <button
-                  className={`h-8 px-4 flex items-center gap-2 justify-center rounded-lg text-sm font-medium transition-all ${isDarkMode ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100'}`}
                   onClick={(e) => { e.preventDefault(); changeWorkflowExecutionStatus(true) }}
+                  disabled={isWorkflowRunning}
+                  className={`
+    h-8 px-3.5
+    flex items-center gap-2
+    rounded-lg text-sm font-medium
+    bg-neutral-900/80 backdrop-blur
+    text-emerald-400
+    border border-white/10
+    ring-1 ring-white/5
+    shadow-lg shadow-black/40
+    transition-all duration-150
+    ${isWorkflowRunning
+                      ? 'opacity-50 cursor-not-allowed grayscale'
+                      : 'hover:scale-[1.03] hover:bg-neutral-800 hover:ring-emerald-500/30'}
+  `}
                 >
                   <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
@@ -524,28 +540,38 @@ export const WorkflowClientComponent = () => {
                   Start
                 </button>
 
-                {/* Stop Button */}
                 {isWorkflowRunning && (
                   <button
                     onClick={(e) => { e.preventDefault(); changeWorkflowExecutionStatus(false) }}
-                    className={`h-8 w-8 flex items-center justify-center rounded-lg transition-all ${isDarkMode ? 'bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border border-red-200 text-red-500 hover:bg-red-100'}`}
+                    className="
+      h-8 w-8
+      flex items-center justify-center
+      rounded-lg
+      bg-neutral-900/80 backdrop-blur
+      text-neutral-400
+      border border-white/10
+      ring-1 ring-white/5
+      shadow-lg shadow-black/40
+      transition-all duration-150
+      hover:scale-[1.05]
+      hover:text-red-400
+      hover:ring-red-500/30
+      hover:bg-neutral-800
+    "
                   >
                     <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                       <rect x="4" y="4" width="12" height="12" rx="1" />
                     </svg>
                   </button>
                 )}
+
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-
-          </div>
         </div>
 
-        {/* Main Content Area (Editor + Right Sidebar) */}
         <div className="flex flex-1 overflow-hidden relative">
-          {/* Canvas Area - flexible */}
+
           <div className={`relative flex-1 h-full transition-all duration-300 ${isDarkMode ? 'bg-[#0c0c0c]' : 'bg-slate-50'}`}>
             <ReactFlow
               nodes={nodes}
@@ -593,91 +619,154 @@ export const WorkflowClientComponent = () => {
             </ReactFlow>
 
             {/* Add Node Button - Floating Right */}
-            <div className="absolute right-12 top-12 z-20" onClick={(e) => e.stopPropagation()}>
+            <div className="absolute right-12 top-12 z-20 flex flex-col items-center gap-1" onClick={(e) => e.stopPropagation()}>
               <button
-                className={`flex h-12 w-12 items-center justify-center rounded-2xl shadow-xl transition-all transform hover:scale-105 ${isDarkMode
-                  ? 'bg-rose-500 text-white hover:bg-rose-600 shadow-rose-900/20'
-                  : 'bg-rose-500 text-white hover:bg-rose-600 shadow-rose-200'
-                  }`}
+                className={`flex h-12 w-12 items-center justify-center rounded-xl bg-neutral-900/80 backdrop-blur text-neutral-200 border border-white/10 ring-1 ring-white/5 shadow-lg shadow-black/20 transition-all duration-200 hover:scale-105 hover:bg-neutral-800/90 hover:text-white hover:ring-white/10`}
                 onClick={(e: any) => { e.preventDefault(); setIsOpen(true) }}
               >
                 <PlusIcon className="h-6 w-6" />
               </button>
+              <p className={`text-[10px] font-medium tracking-wide uppercase ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Add Node</p>
             </div>
 
             {/* Logs Panel - Bottom Right Floating */}
             <div className="absolute right-6 bottom-6 z-20" onClick={(e) => e.stopPropagation()}>
-              <div className={`w-80 max-h-[300px] rounded-xl shadow-2xl overflow-hidden backdrop-blur-md transition-all ${isDarkMode
+              <div className={`w-[500px] max-h-[500px] flex flex-col rounded-xl shadow-2xl overflow-hidden backdrop-blur-md transition-all ${isDarkMode
                 ? 'bg-[#0c0c0c]/80 border border-white/10'
                 : 'bg-white/80 border border-gray-200'
                 }`}>
                 <div className={`px-3 py-2 border-b flex items-center justify-between ${isDarkMode ? 'border-white/10' : 'border-gray-100'}`}>
                   <span className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Logs</span>
-                  <div className={`h-2 w-2 rounded-full ${isWorkflowRunning ? 'bg-green-500 animate-pulse' : isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
-                </div>
-                <div className={`p-3 overflow-y-auto max-h-[350px] font-mono text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  {/* Logs will be populated from websocket */}
-                  <div className={`italic ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
-                    {isWorkflowRunning ? 'Waiting for logs...' : 'Run workflow to see logs'}
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setLogs([])} className="text-[10px] hover:underline opacity-70">Clear</button>
+                    <div className={`h-2 w-2 rounded-full ${isWorkflowRunning ? 'bg-green-500 animate-pulse' : isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
                   </div>
+                </div>
+                <div className={`p-3 overflow-y-auto font-mono text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  {logs.length === 0 ? (
+                    <div className={`italic ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
+                      {isWorkflowRunning ? 'Waiting for logs...' : 'Run workflow to see logs'}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-1">
+                      {logs.map((log, i) => (
+                        <div key={i} className="break-all border-b border-white/5 pb-1 mb-1 last:border-0 last:mb-0 last:pb-0">
+                          {log}
+                        </div>
+                      ))}
+                      <div id="logs-end" />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Right Sidebar - Push layout */}
+          {/* Nodes Modal Overlay */}
           {isOpen && (
-            <div className={`w-80 shrink-0 overflow-y-auto border-l p-4 ${isDarkMode
-              ? 'bg-[#0c0c0c] border-white/10'
-              : 'bg-white border-gray-200'
-              }`} onClick={(e) => e.stopPropagation()}>
-              <div className={`mb-4 border-b pb-2 ${isDarkMode ? 'border-white/10' : 'border-gray-100'}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>TRIGGERS</div>
-                  <button className={`rounded p-1 transition-colors ${isDarkMode ? 'text-gray-500 hover:bg-white/5 hover:text-gray-300' : 'text-gray-400 hover:bg-slate-100 hover:text-gray-600'}`} onClick={(e: any) => { e.preventDefault(); setIsOpen(false) }}>
-                    <XMarkIcon className="h-5 w-5" />
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+              onClick={() => setIsOpen(false)}
+            >
+              <div
+                className={`w-[800px] max-h-[85vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col ${isDarkMode ? 'bg-[#151515] border border-white/10' : 'bg-white'}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className={`p-4 border-b flex items-center justify-between ${isDarkMode ? 'border-white/10' : 'border-gray-100'}`}>
+                  <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Select a Node</h2>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'}`}
+                  >
+                    <XMarkIcon className="w-5 h-5" />
                   </button>
                 </div>
-                {/* <div>LIST OF TRIGGERS: Clickable, title & description & icn </div> */}
-                <div className="block space-y-1 mb-4">{Object.entries(Available_Triggers).map(([key, val]) => (
-                  <Link href="" onClick={(e) => addNodeToCanvas('triggerNode', val.title, val.icon, val.defaultName)} key={key} className={`group flex items-center gap-3 rounded-lg p-2 transition-all cursor-pointer ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
-                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded transition-colors ${isDarkMode ? 'bg-white/5 text-gray-400 group-hover:bg-rose-500/20 group-hover:text-rose-400' : 'bg-slate-100 text-gray-500 group-hover:bg-blue-100 group-hover:text-blue-600'}`}>{TriggerIconMap[val.icon] || TriggerIconMap['default']}</div>
-                    <div className="flex flex-col"><span className={`text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>{val.title}</span><span className={`text-xs line-clamp-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>{val.description}</span></div>
-                  </Link>
-                ))}</div>
+
+                <div className="flex-1 overflow-y-auto p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                    {/* Triggers Section */}
+                    <div className="flex flex-col gap-3">
+                      <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-rose-400' : 'text-rose-600'}`}>Triggers</div>
+                      {Object.entries(Available_Triggers).map(([key, val]) => (
+                        <div
+                          key={key}
+                          onClick={(e) => addNodeToCanvas('triggerNode', val.title, val.icon, val.defaultName)}
+                          className={`group flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isDarkMode
+                            ? 'bg-[#1a1a1a] border-white/5 hover:border-rose-500/50 hover:bg-[#202020]'
+                            : 'bg-white border-gray-100 hover:border-rose-200 hover:shadow-sm'
+                            }`}
+                        >
+                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${isDarkMode ? 'bg-rose-500/10 text-rose-400' : 'bg-rose-50 text-rose-600'}`}>
+                            {TriggerIconMap[val.icon] || TriggerIconMap['default']}
+                          </div>
+                          <div>
+                            <div className={`text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{val.title}</div>
+                            <div className={`text-[10px] line-clamp-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{val.description}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Actions Section */}
+                    <div className="flex flex-col gap-3">
+                      <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>Actions</div>
+                      {Object.entries(Available_Actions).map(([key, val]) => {
+                        const isAIAgent = val.title === "AI Agent";
+                        return (
+                          <div
+                            key={key}
+                            onClick={(e) => addNodeToCanvas(isAIAgent ? 'aiAgentNode' : 'actionNode', val.title, val.icon, val.defaultName)}
+                            className={`group flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isDarkMode
+                              ? 'bg-[#1a1a1a] border-white/5 hover:border-amber-500/50 hover:bg-[#202020]'
+                              : 'bg-white border-gray-100 hover:border-amber-200 hover:shadow-sm'
+                              }`}
+                          >
+                            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${isAIAgent
+                              ? (isDarkMode ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-600')
+                              : (isDarkMode ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600')
+                              }`}>
+                              {TriggerIconMap[val.icon] || TriggerIconMap['default']}
+                            </div>
+                            <div>
+                              <div className={`text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{val.title}</div>
+                              <div className={`text-[10px] line-clamp-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{val.description}</div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    {/* Tools Section */}
+                    <div className="flex flex-col gap-3">
+                      <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>Tools</div>
+                      {Object.entries(Available_Tools).map(([key, val]) => (
+                        <div
+                          key={key}
+                          onClick={(e) => addNodeToCanvas('toolNode', val.title, val.icon, val.defaultName)}
+                          className={`group flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isDarkMode
+                            ? 'bg-[#1a1a1a] border-white/5 hover:border-purple-500/50 hover:bg-[#202020]'
+                            : 'bg-white border-gray-100 hover:border-purple-200 hover:shadow-sm'
+                            }`}
+                        >
+                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${isDarkMode ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-600'}`}>
+                            {TriggerIconMap[val.icon] || TriggerIconMap['default']}
+                          </div>
+                          <div>
+                            <div className={`text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{val.title}</div>
+                            <div className={`text-[10px] line-clamp-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{val.description}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                  </div>
+                </div>
               </div>
-              <div className={`mb-4 border-b pb-2 ${isDarkMode ? 'border-white/10' : 'border-gray-100'}`}>
-                <div className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Actions</div>
-                {/* <div>LIST OF ACTIONS: Clickable, title & description & Icon   -- --  onClick: open a modal, add the node on the screen & custom name(check the nodes with the same name -> add +1 number at the next node -> the modal finally(LOGIC)</div> */}
-                <div className="block space-y-1 mb-4">{Object.entries(Available_Actions).map(([key, val]) => {
-                  const isAIAgent = val.title === "AI Agent";
-                  return (
-                    <Link href="" onClick={(e) => addNodeToCanvas(isAIAgent ? 'aiAgentNode' : 'actionNode', val.title, val.icon, val.defaultName)} key={key} className={`group flex items-center gap-3 rounded-lg p-2 transition-all cursor-pointer ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
-                      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded transition-colors ${isAIAgent
-                        ? isDarkMode
-                          ? 'bg-purple-500/20 text-purple-400'
-                          : 'bg-purple-100 text-purple-600'
-                        : isDarkMode
-                          ? 'bg-white/5 text-gray-400 group-hover:bg-amber-500/20 group-hover:text-amber-400'
-                          : 'bg-slate-100 text-gray-500 group-hover:bg-orange-100 group-hover:text-orange-600'
-                        }`}>{TriggerIconMap[val.icon] || TriggerIconMap['default']}</div>
-                      <div className="flex flex-col"><span className={`text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>{val.title}</span><span className={`text-xs line-clamp-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>{val.description}</span></div>
-                    </Link>
-                  )
-                })}</div>
-              </div>
-              <div className="mb-2 pb-2">
-                <div className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Tools</div>
-                <div className="space-y-1">{Object.entries(Available_Tools).map(([key, val]) => (
-                  <Link href="" onClick={(e) => addNodeToCanvas('toolNode', val.title, val.icon, val.defaultName)} key={key} className={`group flex items-center gap-3 rounded-lg p-2 transition-all cursor-pointer ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
-                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded transition-colors ${isDarkMode ? 'bg-white/5 text-gray-400 group-hover:bg-purple-500/20 group-hover:text-purple-400' : 'bg-slate-100 text-gray-500 group-hover:bg-orange-100 group-hover:text-orange-600'}`}>{TriggerIconMap[val.icon] || TriggerIconMap['default']}</div>
-                    <div className="flex flex-col"><span className={`text-sm font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>{val.title}</span><span className={`text-xs line-clamp-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>{val.description}</span></div>
-                  </Link>
-                ))}</div>
-              </div>
-              {/* import Avail_Triggers & [0].title & [0].description & icon  */}
             </div>
           )}
+
+          {/* End of Node Selection Modal */}
 
           {/* NODE FORM MODAL OVERLAY */}
           {activeNodeForm && (
