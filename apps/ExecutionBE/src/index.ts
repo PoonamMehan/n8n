@@ -10,7 +10,7 @@ import { gmailNodeExecutor } from "./Executors/gmailExecutor.js";
 import { aiAgentNodeExecutor } from "./Executors/aiAgentExecutor.js";
 
 const wsClients = new Map<string, WebSocket>();
-const workflowIdToUserId = new Map<string, string>();
+const workflowSubscribers = new Map<string, Set<WebSocket>>();
 
 const kafka = new Kafka({
   clientId: 'my-execution-app',
@@ -41,7 +41,7 @@ interface Edges {
 
 
 
-const nodeTitleToExecutionFunction: Record<string, (data: Map<string, WebSocket>, data2: Map<string, string>, data3: Record<string, any>, data4: any, data5: any, data6?: any, data7?: any, data8?: any, data9?: any) => Promise<any>> = {
+const nodeTitleToExecutionFunction: Record<string, (data: Map<string, WebSocket>, data2: Map<string, Set<WebSocket>>, data3: Record<string, any>, data4: any, data5: any, data6?: any, data7?: any, data8?: any, data9?: any) => Promise<any>> = {
   Telegram: telegramNodeExecutor,
   Gmail: gmailNodeExecutor,
   "AI Agent": aiAgentNodeExecutor,
@@ -133,18 +133,26 @@ wss.on('connection', async (ws, req) => {
           return;
         }
         console.log("User is authorized to access this workflow: ", workflowId);
-        workflowIdToUserId.set(workflowId, userId);
-        console.log("WS clients rn connected to the server for a particular workflow: ", workflowIdToUserId.keys());
-        console.log("New ws client connected: ", workflowId);
+
+        if (!workflowSubscribers.has(workflowId)) {
+          workflowSubscribers.set(workflowId, new Set());
+        }
+        workflowSubscribers.get(workflowId)?.add(ws);
+
+        console.log("New ws client subscribed to workflow: ", workflowId);
       } else if (msg.type == 'UNSUBSCRIBE') {
         const workflowId = msg.workflowId;
-        workflowIdToUserId.delete(workflowId);
+        workflowSubscribers.get(workflowId)?.delete(ws);
         console.log("Ws client unsubscribed from workflow: ", workflowId);
       }
     })
 
     ws.on('close', (code, reason) => {
       wsClients.delete(userId);
+      // Remove from all subscriptions
+      workflowSubscribers.forEach((subscribers) => {
+        subscribers.delete(ws);
+      });
       console.log("Ws client disconnected: ", userId, " code: ", code, " reason: ", reason);
     })
 
@@ -256,11 +264,14 @@ try {
                 console.log("Stored payload under key: ", triggerNodeName, dataWithEveryNode[triggerNodeName]);
 
                 // here use WebSocket to tell that trigger node has run successfully -> add the payload to the db/redis
-                if (userId) {
-                  const userWSClient = wsClients.get(userId);
-                  if (userWSClient) {
-                    userWSClient.send(JSON.stringify({ executionId: executionId, [triggerNodeName]: { status: "success", output: payload, log: `${triggerNodeName} trigger node ran successfully.` } }));
-                  }
+                // here use WebSocket to tell that trigger node has run successfully -> add the payload to the db/redis
+                const subscribers = workflowSubscribers.get(workflowId);
+                if (subscribers) {
+                  subscribers.forEach(ws => {
+                    if (ws.readyState === 1) {
+                      ws.send(JSON.stringify({ executionId: executionId, [triggerNodeName]: { status: "success", output: payload, log: `${triggerNodeName} trigger node ran successfully.` } }));
+                    }
+                  });
                 }
 
                 // go onto processing the connections -> BFS -> then in a queue add the nodes sequentially
@@ -359,9 +370,9 @@ try {
                         console.log("nodeTitle: ", nodeTitle);
                         if (nodeTitle == "AI Agent") {
                           console.log("AI node to run");
-                          result = await nodeTitleToExecutionFunction[nodeTitle](wsClients, workflowIdToUserId, fullExecutionData, executionData, workflowId, currNodeInfo.data.nodeName, currNodeInfo.id, edges, nodes);
+                          result = await nodeTitleToExecutionFunction[nodeTitle](wsClients, workflowSubscribers, fullExecutionData, executionData, workflowId, currNodeInfo.data.nodeName, currNodeInfo.id, edges, nodes);
                         } else {
-                          result = await nodeTitleToExecutionFunction[nodeTitle](wsClients, workflowIdToUserId, fullExecutionData, executionData, workflowId, currNodeInfo.data.nodeName);
+                          result = await nodeTitleToExecutionFunction[nodeTitle](wsClients, workflowSubscribers, fullExecutionData, executionData, workflowId, currNodeInfo.data.nodeName);
                         }
                       }
                       // Store the result for future nodes to use
@@ -406,11 +417,13 @@ try {
                   fullExecutionData.log = workflowLog;
                   //TODO: save the fullExecutionData to the DB
                   //TODO: create executions table
-                  if (userId) {
-                    const userWSClient = wsClients.get(userId);
-                    if (userWSClient) {
-                      userWSClient.send(JSON.stringify({ status: workflowStatus, log: workflowLog, workflowId: workflowId }));
-                    }
+                  const subscribers = workflowSubscribers.get(workflowId);
+                  if (subscribers) {
+                    subscribers.forEach(ws => {
+                      if (ws.readyState === 1) {
+                        ws.send(JSON.stringify({ status: workflowStatus, log: workflowLog, workflowId: workflowId }));
+                      }
+                    });
                   }
 
                   let nodeDetails: any = {};

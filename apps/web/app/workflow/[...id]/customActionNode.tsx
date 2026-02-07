@@ -6,15 +6,22 @@ type CustomNodeData = {
   nodeTitle: string,
   nodeIcon: string,
   nodeName: string,
-  executionData: object
+  executionData: object,
+  executionStatus?: 'running' | 'success' | 'failed'
 }
 export type CustomActionNode = Node<CustomNodeData>
 
 export function N8nStyleActionNode({ data }: NodeProps<CustomActionNode>) {
 
+  const status = data.executionStatus;
+  let statusClasses = "border-slate-200";
+  if (status === 'success') statusClasses = "border-green-500 ring-2 ring-green-200/50 shadow-md shadow-green-100";
+  if (status === 'failed') statusClasses = "border-red-500 ring-2 ring-red-200/50 shadow-md shadow-red-100";
+  if (status === 'running') statusClasses = "border-amber-400 ring-2 ring-amber-200/50 animate-pulse";
+
   return (
     <div className="flex flex-col items-center group">
-      <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-white border-2 border-slate-200 shadow-sm transition-all duration-200 hover:border-slate-400 hover:shadow-md">
+      <div className={`relative flex h-12 w-12 items-center justify-center rounded-xl bg-white border-2 shadow-sm transition-all duration-200 ${status ? '' : 'hover:border-slate-400 hover:shadow-md'} ${statusClasses}`}>
         <div className="text-lg text-slate-600">
           {TriggerIconMap[data.nodeIcon]}
         </div>

@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useSelector } from 'react-redux';
 import { RootState } from '../../ReduxStore/store';
 import { ReactFlow, addEdge, applyNodeChanges, applyEdgeChanges, ReactFlowProvider, Node, OnNodesChange, OnEdgesChange, Edge, OnConnect, Background, BackgroundVariant, Panel, Controls, MiniMap, useReactFlow } from "@xyflow/react";
@@ -51,6 +51,13 @@ export const WorkflowClientComponent = () => {
   const [logs, setLogs] = useState<string[]>([]);
   const router = useRouter();
 
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const nodesRef = useRef(nodes);
+
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
+
   // as + clicked -> create entry in prisma.workflows table -> 
   // add a delete workflows button on top or somewhere
   //sidebar: 
@@ -62,6 +69,76 @@ export const WorkflowClientComponent = () => {
       socket.onmessage = (event: any) => {
         const data = JSON.parse(event.data);
         console.log("WS Message received: ", data);
+        // Filter out logs that don't belong to this workflow
+        if (data.workflowId && String(data.workflowId) !== String(workflowId)) {
+          console.log("Ignoring log for different workflow:", data.workflowId);
+          return;
+        }
+        // Check for node execution updates
+        // It's a node execution update if it has executionId OR if it has keys that match node names
+        const nodeNames = nodesRef.current.map(n => n.data.nodeName);
+        const hasNodeUpdate = Object.keys(data).some(key => nodeNames.includes(key));
+
+        if (data.executionId || hasNodeUpdate) {
+          // It's a node execution update
+          // format: { executionId: "...", [NodeName]: { status: "...", ... } }
+          Object.keys(data).forEach(key => {
+            if (key !== 'executionId' && key !== 'workflowId' && key !== 'type') {
+              const nodeName = key;
+              const nodeData = data[key];
+              const status = nodeData?.status; // 'running' | 'success' | 'failed'
+
+              if (status) {
+                setNodes((nds) => nds.map((node) => {
+                  if (node.data.nodeName === nodeName) {
+                    return {
+                      ...node,
+                      data: {
+                        ...node.data,
+                        executionStatus: status
+                      }
+                    }
+                  }
+                  return node;
+                }));
+
+                // Handle Edge Animation
+                if (status === 'running') {
+                  setEdges((eds) => eds.map((edge) => {
+                    const targetNode = nodesRef.current.find(n => n.data.nodeName === nodeName);
+                    if (targetNode && edge.target === targetNode.id) {
+                      return { ...edge, animated: true, style: { stroke: '#fbbf24' } }; // amber-400
+                    }
+                    return edge;
+                  }));
+                } else if (status === 'success' || status === 'failed') {
+                  setEdges((eds) => eds.map((edge) => {
+                    const targetNode = nodesRef.current.find(n => n.data.nodeName === nodeName);
+                    if (targetNode && edge.target === targetNode.id) {
+                      return { ...edge, animated: false, style: { stroke: status === 'success' ? '#22c55e' : '#ef4444' } }; // green-500 or red-500
+                    }
+                    return edge;
+                  }));
+                }
+              }
+            }
+          });
+        }
+
+        // Check for Workflow Completion
+        if (data.status && data.workflowId && (data.status === 'success' || data.status === 'failed') && !data.executionId) {
+          if (data.status === 'success') {
+            toast.success(data.log);
+            setIsWorkflowRunning(false);
+          } else if (data.status === 'failed') {
+            toast.error(data.log);
+            setIsWorkflowRunning(false);
+          }
+
+          // REVERTED: Reset visualization after 2 seconds based on user feedback
+          // to better support overlapping executions.
+        }
+
         setLogs((prev) => [...prev, `> ${JSON.stringify(data, null, 2)}`]);
       }
     }
@@ -147,6 +224,9 @@ export const WorkflowClientComponent = () => {
       }
 
       setIsWorkflowRunning(changeStatusTo);
+      if (changeStatusTo) {
+        toast.info("Workflow Started");
+      }
       // TODO: toaster success
     } catch (err: any) {
       console.log("Failed to change workflow execution status:", err.message);
@@ -231,7 +311,7 @@ export const WorkflowClientComponent = () => {
   }
   // /api/v1/workflow/:id      (put, :id) 
   const [isOpen, setIsOpen] = useState(false);
-  const [nodes, setNodes] = useState<Node[]>([]);
+  // const [nodes, setNodes] = useState<Node[]>([]); // MOVED UP
   const [edges, setEdges] = useState<Edge[]>([]);
   const { screenToFlowPosition, getNode } = useReactFlow();
   const [isTriggerNodePresent, setIsTriggerNodePresent] = useState(false);
@@ -519,20 +599,9 @@ export const WorkflowClientComponent = () => {
                 <button
                   onClick={(e) => { e.preventDefault(); changeWorkflowExecutionStatus(true) }}
                   disabled={isWorkflowRunning}
-                  className={`
-    h-8 px-3.5
-    flex items-center gap-2
-    rounded-lg text-sm font-medium
-    bg-neutral-900/80 backdrop-blur
-    text-emerald-400
-    border border-white/10
-    ring-1 ring-white/5
-    shadow-lg shadow-black/40
-    transition-all duration-150
-    ${isWorkflowRunning
-                      ? 'opacity-50 cursor-not-allowed grayscale'
-                      : 'hover:scale-[1.03] hover:bg-neutral-800 hover:ring-emerald-500/30'}
-  `}
+                  className={`h-8 px-3.5 flex items-center gap-2 rounded-lg text-sm font-medium bg-neutral-900/80 backdrop-blur text-emerald-400 border border-white/10 ring-1 ring-white/5 shadow-lg shadow-black/20 transition-all duration-150 ${isWorkflowRunning
+                    ? 'opacity-50 cursor-not-allowed grayscale'
+                    : 'hover:scale-[1.03] hover:bg-neutral-800 hover:ring-emerald-500/30'}`}
                 >
                   <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
@@ -543,21 +612,7 @@ export const WorkflowClientComponent = () => {
                 {isWorkflowRunning && (
                   <button
                     onClick={(e) => { e.preventDefault(); changeWorkflowExecutionStatus(false) }}
-                    className="
-      h-8 w-8
-      flex items-center justify-center
-      rounded-lg
-      bg-neutral-900/80 backdrop-blur
-      text-neutral-400
-      border border-white/10
-      ring-1 ring-white/5
-      shadow-lg shadow-black/40
-      transition-all duration-150
-      hover:scale-[1.05]
-      hover:text-red-400
-      hover:ring-red-500/30
-      hover:bg-neutral-800
-    "
+                    className="h-8 w-8 flex items-center justify-center rounded-lg bg-neutral-900/80 backdrop-blur text-neutral-400 border border-white/10 ring-1 ring-white/5 shadow-lg shadow-black/20 transition-all duration-150 hover:scale-[1.05] hover:text-red-400 hover:ring-red-500/30 hover:bg-neutral-800"
                   >
                     <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                       <rect x="4" y="4" width="12" height="12" rx="1" />
@@ -631,7 +686,7 @@ export const WorkflowClientComponent = () => {
 
             {/* Logs Panel - Bottom Right Floating */}
             <div className="absolute right-6 bottom-6 z-20" onClick={(e) => e.stopPropagation()}>
-              <div className={`w-[500px] max-h-[500px] flex flex-col rounded-xl shadow-2xl overflow-hidden backdrop-blur-md transition-all ${isDarkMode
+              <div className={`w-96 max-h-[325px] min-h-[325px] flex flex-col rounded-xl shadow-2xl overflow-hidden backdrop-blur-md transition-all ${isDarkMode
                 ? 'bg-[#0c0c0c]/80 border border-white/10'
                 : 'bg-white/80 border border-gray-200'
                 }`}>
@@ -639,10 +694,13 @@ export const WorkflowClientComponent = () => {
                   <span className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Logs</span>
                   <div className="flex items-center gap-2">
                     <button onClick={() => setLogs([])} className="text-[10px] hover:underline opacity-70">Clear</button>
-                    <div className={`h-2 w-2 rounded-full ${isWorkflowRunning ? 'bg-green-500 animate-pulse' : isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+                    {/* <div className={`h-2 w-2 rounded-full ${isWorkflowRunning ? 'bg-green-500 animate-pulse' : isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div> */}
                   </div>
                 </div>
-                <div className={`p-3 overflow-y-auto font-mono text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <div className={`p-3 overflow-y-auto font-mono text-xs ${isDarkMode
+                  ? 'text-gray-400 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent'
+                  : 'text-gray-600'
+                  }`}>
                   {logs.length === 0 ? (
                     <div className={`italic ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
                       {isWorkflowRunning ? 'Waiting for logs...' : 'Run workflow to see logs'}

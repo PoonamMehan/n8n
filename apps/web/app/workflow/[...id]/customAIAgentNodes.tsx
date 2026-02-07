@@ -5,7 +5,8 @@ type CustomNodeData = {
   nodeIcon: string,
   nodeTitle: string,
   nodeName: string,
-  executionData: object
+  executionData: object,
+  executionStatus?: 'running' | 'success' | 'failed'
 }
 
 export type CustomAIAgentNode = Node<CustomNodeData>
@@ -13,8 +14,14 @@ export type CustomActionNode = Node<CustomNodeData>
 
 export function N8nStyleAIAgentNode({ data }: NodeProps<CustomAIAgentNode>) {
 
+  const status = data.executionStatus;
+  let statusClasses = "border-purple-200";
+  if (status === 'success') statusClasses = "border-green-500 ring-2 ring-green-200/50 shadow-md shadow-green-100";
+  if (status === 'failed') statusClasses = "border-red-500 ring-2 ring-red-200/50 shadow-md shadow-red-100";
+  if (status === 'running') statusClasses = "border-amber-400 ring-2 ring-amber-200/50 animate-pulse";
+
   return (
-    <div className="relative flex min-w-[120px] items-center gap-3 rounded-xl border-2 border-purple-200 bg-white px-4 py-3 shadow-sm transition-all hover:border-purple-500 hover:shadow-md">
+    <div className={`relative flex min-w-[120px] items-center gap-3 rounded-xl border-2 bg-white px-4 py-3 shadow-sm transition-all ${status ? '' : 'hover:border-purple-500 hover:shadow-md'} ${statusClasses}`}>
 
       <div className="text-xl text-purple-600">
         {TriggerIconMap[data.nodeIcon]}
@@ -50,9 +57,16 @@ export function N8nStyleAIAgentNode({ data }: NodeProps<CustomAIAgentNode>) {
 }
 
 export function N8nStyleToolNode({ data }: NodeProps<CustomActionNode>) {
+
+  const status = data.executionStatus;
+  let statusClasses = "border-purple-200";
+  if (status === 'success') statusClasses = "border-green-500 ring-2 ring-green-200/50 shadow-md shadow-green-100";
+  if (status === 'failed') statusClasses = "border-red-500 ring-2 ring-red-200/50 shadow-md shadow-red-100";
+  if (status === 'running') statusClasses = "border-amber-400 ring-2 ring-amber-200/50 animate-pulse";
+
   return (
     <div className="flex flex-col items-center">
-      <div className="relative flex h-14 w-14 items-center justify-center rounded-full border-2 border-purple-200 bg-white shadow-sm transition-all hover:border-purple-400 hover:shadow-md">
+      <div className={`relative flex h-14 w-14 items-center justify-center rounded-full border-2 bg-white shadow-sm transition-all ${status ? '' : 'hover:border-purple-400 hover:shadow-md'} ${statusClasses}`}>
 
         <div className="text-xl text-purple-600">
           {TriggerIconMap[data.nodeIcon]}

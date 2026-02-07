@@ -2,29 +2,31 @@ import { prisma } from "@repo/db";
 import type { WebSocket } from "ws";
 import nodemailer from "nodemailer";
 
-export const gmailNodeExecutor = async (wsClients: Map<string, WebSocket>, workflowIdToUserId: Map<string, string>, fullExecutionData: Record<string, any>, executionData: any, workflowId: string, nodeName: string) => {
+export const gmailNodeExecutor = async (wsClients: Map<string, WebSocket>, workflowSubscribers: Map<string, Set<WebSocket>>, fullExecutionData: Record<string, any>, executionData: any, workflowId: string, nodeName: string) => {
+
+  const subscribers = workflowSubscribers.get(workflowId);
   console.log("GMAIL NODE EXECUTOR");
-  let currWSClient = null;
+  const broadcast = (message: any) => {
+    subscribers?.forEach(ws => {
+      if (ws.readyState === 1) { // WebSocket.OPEN
+        ws.send(JSON.stringify(message));
+      }
+    });
+  }
+
+  if (subscribers) {
+    fullExecutionData[nodeName] = { status: "running", output: "", log: "" }
+    broadcast({ [nodeName]: { status: "running", output: "", log: "" } });
+  }
 
   try {
-    if (workflowIdToUserId.get(workflowId)) {
-      const userId = workflowIdToUserId.get(workflowId);
-      if (userId) {
-        currWSClient = wsClients.get(userId);
-      }
-      fullExecutionData[nodeName] = { status: "running", output: "", log: "" }
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ [nodeName]: { status: "running", output: "", log: "" } }));
-      }
-    }
-
     // credential
     const cred = executionData['Credential to connect with'];
     if (!cred) {
       console.log("No credential");
       fullExecutionData[nodeName] = { status: "failed", output: "", log: "No credential provided." }
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "No credential provided." } }));
+      if (subscribers) {
+        broadcast({ [nodeName]: { status: "failed", output: "", log: "No credential provided." } });
       }
       return;
     }
@@ -37,8 +39,8 @@ export const gmailNodeExecutor = async (wsClients: Map<string, WebSocket>, workf
     if (!credential) {
       console.log("No credential found");
       fullExecutionData[nodeName] = { status: "failed", output: "", log: "No credential found." }
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "No credential found." } }));
+      if (subscribers) {
+        broadcast({ [nodeName]: { status: "failed", output: "", log: "No credential found." } });
       }
       return;
     }
@@ -60,8 +62,8 @@ export const gmailNodeExecutor = async (wsClients: Map<string, WebSocket>, workf
     if (!email || !refreshToken || !accessToken) {
       console.log("Credential is missing some data.");
       fullExecutionData[nodeName] = { status: "failed", output: "", log: "Invalid credential." }
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "Invalid credential." } }));
+      if (subscribers) {
+        broadcast({ [nodeName]: { status: "failed", output: "", log: "Invalid credential." } });
       }
       return;
     }
@@ -86,8 +88,8 @@ export const gmailNodeExecutor = async (wsClients: Map<string, WebSocket>, workf
     if (!to) {
       console.log("No destination email provided");
       fullExecutionData[nodeName] = { status: "failed", output: "", log: "No destination email provided." }
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "No destination email provided." } }));
+      if (subscribers) {
+        broadcast({ [nodeName]: { status: "failed", output: "", log: "No destination email provided." } });
       }
       return;
     }
@@ -115,24 +117,24 @@ export const gmailNodeExecutor = async (wsClients: Map<string, WebSocket>, workf
 
       console.log("Email sent successfully:", info);
       fullExecutionData[nodeName] = { status: "success", output: "", log: "Email sent successfully." }
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ [nodeName]: { status: "success", output: "", log: "Email sent successfully." } }));
+      if (subscribers) {
+        broadcast({ [nodeName]: { status: "success", output: "", log: "Email sent successfully." } });
       }
       return { status: 'success', data: info };
 
     } catch (error: any) {
       console.error("Gmail Send Error:", error);
       fullExecutionData[nodeName] = { status: "failed", output: "", log: "Failed to send email." }
-      if (currWSClient) {
-        currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "Failed to send email." } }));
+      if (subscribers) {
+        broadcast({ [nodeName]: { status: "failed", output: "", log: "Failed to send email." } });
       }
       return { status: 'failed', error: error.message };
     }
   } catch (error: any) {
     console.error("Gmail Send Error:", error);
     fullExecutionData[nodeName] = { status: "failed", output: "", log: "Failed to send email." }
-    if (currWSClient) {
-      currWSClient.send(JSON.stringify({ [nodeName]: { status: "failed", output: "", log: "Failed to send email." } }));
+    if (subscribers) {
+      broadcast({ [nodeName]: { status: "failed", output: "", log: "Failed to send email." } });
     }
     return { status: 'failed', error: error.message };
   }
