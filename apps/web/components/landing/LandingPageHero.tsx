@@ -218,7 +218,7 @@ const WorkflowVisualization = () => {
             }}
           >
             <div
-              className={`w-16 h-16 rounded-2xl bg-[#0c0c0c] border border-white/10 flex items-center justify-center relative overflow-hidden transition-all duration-300 ${showFlash ? 'border-rose-500/50 shadow-[0_0_30px_rgba(244,63,94,0.4)]' : ''}`}
+              className={`w-16 h-16 rounded-2xl bg-[#0c0c0c] border border-white/10 flex items-center justify-center relative overflow-hidden transition-all duration-500 ${showFlash ? 'border-rose-500/80 shadow-[0_0_40px_rgba(244,63,94,0.5),0_0_15px_rgba(244,63,94,0.8)] scale-105' : ''}`}
             >
               <node.icon className="w-7 h-7 relative z-10" style={{ color: node.color }} />
               <div
@@ -232,9 +232,9 @@ const WorkflowVisualization = () => {
 
       {/* Flash overlay effect */}
       <div
-        className={`absolute inset-0 pointer-events-none transition-opacity duration-300 ${showFlash ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute -inset-20 pointer-events-none transition-opacity duration-500 ${showFlash ? 'opacity-100' : 'opacity-0'}`}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-rose-500/10 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-rose-500/5 blur-[80px] rounded-full" />
       </div>
     </div>
   );
