@@ -10,7 +10,7 @@ router.route("/startAuth").post(startAuthHandler);
 router.route("/signout").get(jwtHandler, signoutHandler);
 router.route("/refreshToken").get(refreshJWTokens);
 router.route("/me").get(getMe);
-router.route("/generateTokenForWsConnection").post(jwtHandler, generateTokenForWsConnection);
+router.route("/generateTokenForWsConnection").get(jwtHandler, generateTokenForWsConnection);
 router.route("/google/login").get(jwtHandler, googleAuthRequestHandler);
 router.route("/google/callback").get(googleAuthCallbackHandler); //TODO: add jwtHandler middleware
 router.route("/magic-login").get(magicLinkHandler);

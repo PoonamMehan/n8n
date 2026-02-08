@@ -53,6 +53,7 @@ export default async function CredentialsOverview({ searchParams }: { searchPara
       <DashboardLayout activeTab="credentials">
         <AllCredentialsList allCredentialsData={allCredentialsData} />
       </DashboardLayout>
+
       {openSearchBar && <CreateCredentialModal allCredentials={allCredentialsData} />}
       {credId && openedCredFormData && <UpdateCredentialModal credFormData={openedCredFormData} />}
     </>

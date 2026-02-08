@@ -31,7 +31,9 @@ export default function StartAuth() {
         console.log("Logged in user response: ", authenticatedUser);
         if (authenticatedUserData.success) {
           console.log("User signed in successfully!");
-          toast.success("Check your inbox for the magic link!");
+          toast.success("Check your inbox for the magic link!",
+            { duration: 5000 }
+          );
         } else {
           console.log("Something wrong happened on our end: ", authenticatedUser);
           toast.error("Something went wrong, please try again later.");

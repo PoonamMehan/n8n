@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/ReduxStore/store';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 
 // Modern node card component
@@ -159,10 +160,10 @@ const WorkflowVisualization = () => {
         {connections.map((conn, index) => {
           const from = thunderNodes[conn.from];
           const to = thunderNodes[conn.to];
-          const x1 = from.x + 32;
-          const y1 = from.y + 32;
-          const x2 = to.x + 32;
-          const y2 = to.y + 32;
+          const x1 = from!.x + 32;
+          const y1 = from!.y + 32;
+          const x2 = to!.x + 32;
+          const y2 = to!.y + 32;
 
           // The connection should appear after the 'from' node is active based on our sequence
           // Connection 0 (index 0) corresponds to step 1 (appearing after Node 0 at step 0)
@@ -268,7 +269,7 @@ export const LandingPageHero = () => {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-[#030303] text-white">
+    <div className="min-h-screen bg-[#030303] text-white overflow-x-hidden">
       {/* Subtle background elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 right-0 w-[800px] h-[600px] bg-gradient-to-bl from-rose-900/30 via-pink-900/20 to-transparent blur-[120px]" />
@@ -277,7 +278,7 @@ export const LandingPageHero = () => {
 
       {/* Navbar */}
       <motion.nav
-        className="relative z-50 flex items-center justify-between px-6 lg:px-20 py-5 max-w-8xl mx-auto"
+        className="relative z-50 flex items-center justify-between px-4 sm:px-6 lg:px-20 py-4 sm:py-5 max-w-8xl mx-auto"
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6 }}
@@ -304,9 +305,11 @@ export const LandingPageHero = () => {
                   if (res.ok) {
                     router.push('/');
                     router.refresh();
+                    toast.success('Signed out successfully');
                   }
                 } catch (err) {
                   console.error('Sign out failed:', err);
+                  toast.error('Sign out failed');
                 }
               }}
               className="px-5 py-2.5 rounded-lg border border-rose-500/30 text-pink-700 font-medium text-sm hover:bg-rose-500/10 hover:border-rose-500/50 transition-all"
@@ -325,7 +328,7 @@ export const LandingPageHero = () => {
       </motion.nav>
 
       {/* Hero Section - Side by side layout */}
-      <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between min-h-[85vh] px-6 lg:px-12 max-w-7xl mx-auto gap-20 lg:gap-24">
+      <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between min-h-[85vh] px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto gap-16 lg:gap-24 pt-12 lg:pt-0">
         {/* Left side - Text content */}
         <motion.div
           className="flex-1 text-center lg:text-left max-w-3xl lg:pl-4"
@@ -337,7 +340,7 @@ export const LandingPageHero = () => {
 
           {/* Headline */}
           <motion.h1
-            className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.1] mb-6"
+            className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.1] mb-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -349,7 +352,7 @@ export const LandingPageHero = () => {
 
           {/* Subheadline */}
           <motion.p
-            className="text-base lg:text-lg text-gray-400 mb-10 leading-relaxed"
+            className="text-base sm:text-lg text-gray-400 mb-12 leading-relaxed max-w-xl mx-auto lg:mx-0"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -369,7 +372,7 @@ export const LandingPageHero = () => {
               href={isLoggedIn ? "/home/workflows" : "/start-auth"}
               className="px-8 py-3.5 rounded-lg bg-white text-black font-semibold text-sm hover:bg-gray-100 transition-all hover:shadow-[0_0_30px_rgba(255,255,255,0.15)]"
             >
-              {isLoggedIn ? 'Go to Dashboard' : 'Start Building — It\'s Free'}
+              {isLoggedIn ? 'Go to Dashboard' : 'Start Building'}
             </Link>
             <a
               href="#how-it-works"
@@ -382,18 +385,20 @@ export const LandingPageHero = () => {
 
         {/* Right side - Thunder animation */}
         <motion.div
-          className="flex-1 flex items-center justify-center lg:justify-end lg:pr-8"
+          className="flex-1 flex items-center justify-center lg:justify-end lg:pr-8 w-full"
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.7, delay: 0.2 }}
         >
-          <WorkflowVisualization />
+          <div className="scale-[0.7] sm:scale-100 origin-center">
+            <WorkflowVisualization />
+          </div>
         </motion.div>
       </div>
 
 
       {/* How It Works Section */}
-      < section id="how-it-works" className="relative z-10 py-32 px-6 lg:px-8 max-w-6xl mx-auto" >
+      < section id="how-it-works" className="relative z-10 py-20 lg:py-32 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto" >
         <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
@@ -427,7 +432,7 @@ export const LandingPageHero = () => {
       </section >
 
       {/* Integrations Section */}
-      < section className="relative z-10 py-48 px-6 lg:px-8 max-w-6xl mx-auto border-t border-white/5 mb-20" >
+      < section className="relative z-10 py-24 lg:py-48 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto border-t border-white/5 mb-10 lg:mb-20" >
         <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
@@ -470,7 +475,7 @@ export const LandingPageHero = () => {
       </section >
 
       {/* Footer */}
-      < footer className="relative z-10 py-8 px-6 lg:px-8 max-w-6xl mx-auto border-t border-white/5" >
+      < footer className="relative z-10 py-6 sm:py-8 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto border-t border-white/5" >
         <div className="flex flex-col sm:flex-row items-center justify-center">
 
           <p className="text-xs text-gray-600">© 2024 FlowBolt. All rights reserved.</p>

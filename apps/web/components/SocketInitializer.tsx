@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { setSocket, disconnectSocket } from '../app/ReduxStore/features/socket/socketSlice';
+import { toast } from 'sonner';
 
 export const SocketInitializer = () => {
   const dispatch = useDispatch();
@@ -10,12 +11,12 @@ export const SocketInitializer = () => {
   useEffect(() => {
     const connectSocket = async () => {
       try {
+        console.log("I am fetching token for ws connection.")
         const response = await fetch('/api/v1/auth/generateTokenForWsConnection', {
-          method: 'POST',
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ userId: "933680c6-5d6f-4f0a-92c8-72c3eca5ea31" })
+          }
         });
         if (response.ok) {
           const tokenData = await response.json();
@@ -29,6 +30,7 @@ export const SocketInitializer = () => {
           socket.onopen = () => {
             console.log('Connected to WebSocket');
             dispatch(setSocket(socket));
+            toast.success("Connected to WebSocket.");
           };
 
           socket.onclose = () => {

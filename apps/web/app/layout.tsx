@@ -34,7 +34,7 @@ export default async function RootLayout({
   try {
     const cookieStore = await cookies();
     //SSR, cuz cache: 'no-store'
-    const res = await fetch('http://localhost:8000/api/v1/auth/me', {
+    const res = await fetch('http://localhost:8000/api/v1/auth/me?wsToken=true', {
       headers: {
         Cookie: cookieStore.toString()
       },

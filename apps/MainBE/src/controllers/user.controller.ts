@@ -505,7 +505,7 @@ export const getMe = async (req: Request, res: Response) => {
       }
     }
 
-    console.log("I did not run.")
+    console.log("Access Token failed. Trying refresh token now.");
     // Access Token failed/missing, try REFRESH TOKEN.
     const refreshToken = req.cookies['__Host-refresh_token'];
 
@@ -541,6 +541,15 @@ export const getMe = async (req: Request, res: Response) => {
       res.clearCookie('__Host-refresh_token', { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
       return res.status(200).json({ isAuthenticated: false, user: null });
     }
+
+    //Let's check if our refresh tokens exists.
+    if(!existingToken.sessions.includes(refreshToken)){
+      res.clearCookie('__Host-access_token', {httpOnly: true, secure: true, sameSite: 'lax', path: '/'});
+      res.clearCookie('__Host-refresh_token', {httpOnly: true, secure: true, sameSite: 'lax', path: '/'});
+      return res.status(200).json({ isAuthenticated: false, user: null });
+    }
+
+
     // Refresh was successful. Generate NEW tokens.
     const newAccessToken = jwt.sign({ userId: existingToken.id }, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: '15m' });
     const newRefreshToken = jwt.sign({ userId: existingToken.id }, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: '7d' });
@@ -549,7 +558,7 @@ export const getMe = async (req: Request, res: Response) => {
     newSessionArr.push(newRefreshToken);
 
     // Update DB with new refresh token (Rotate)
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: {
         id: existingToken.id
       },
@@ -557,6 +566,10 @@ export const getMe = async (req: Request, res: Response) => {
         sessions: newSessionArr
       }
     });
+
+    if(!updatedUser){
+      return res.status(500).send("Internal server error.");
+    }
 
     // set new Cookies
     res.cookie('__Host-access_token', newAccessToken, { httpOnly: true, secure: true, sameSite: 'lax', path: '/' });
@@ -583,13 +596,13 @@ export const generateTokenForWsConnection = (req: Request, res: Response) => {
       return res.status(401).send("Unauthorized");
     }
 
-    const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
-    if (!ACCESS_TOKEN_SECRET) {
+    const WS_TOKEN_SECRET = process.env.WS_TOKEN_SECRET;
+    if (!WS_TOKEN_SECRET) {
       return res.status(500).send("Internal Server Error");
     }
 
-    const accessToken = jwt.sign({ userId }, ACCESS_TOKEN_SECRET, { expiresIn: '5m' });
-    return res.status(200).json({ token: accessToken });
+    const wsToken = jwt.sign({ userId }, WS_TOKEN_SECRET, { expiresIn: '5m' });
+    return res.status(200).json({ token: wsToken });
   } catch (err) {
     console.log("Error in generateTokenForWsConnection controller: ", err);
     return res.status(500).send("Internal Server Error");
