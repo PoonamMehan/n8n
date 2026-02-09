@@ -66,9 +66,9 @@ wss.on('connection', async (ws, req) => {
   }
 
   try {
-    const jwt_secret = process.env.ACCESS_TOKEN_SECRET;
+    const jwt_secret = process.env.WS_TOKEN_SECRET;
     if (!jwt_secret) {
-      console.log("Missing ACCESS_TOKEN_SECRET env variable, closing the ws connection.");
+      console.log("Missing WS_TOKEN_SECRET env variable, closing the ws connection.");
       ws.close(1011, "Internal server error.");
       return;
     }
@@ -80,6 +80,7 @@ wss.on('connection', async (ws, req) => {
     }
 
     const userId = decoded.userId;
+    console.log("User ID from ws connection: ", userId);
     if (!userId) {
       ws.close(1008, "Invalid auth token.");
       return;
@@ -97,7 +98,7 @@ wss.on('connection', async (ws, req) => {
     }
 
     wsClients.set(userId, ws);
-    console.log("WS clients rn cnnected to the server: ", wsClients.keys());
+    console.log("WS clients rn connected to the server: ", wsClients.keys());
     console.log("New ws client connected: ", userId);
 
     ws.on('message', async (message) => {

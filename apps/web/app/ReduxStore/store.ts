@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import socketReducer from './features/socket/socketSlice';
 import authReducer from "./features/auth/authSlice";
+import workflowsAndCredentialReducer from "./features/workflows/workflowsSlice";
 
 export const store = configureStore({
   reducer: {
     socket: socketReducer,
-    auth: authReducer
+    auth: authReducer,
+    workflow: workflowsAndCredentialReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

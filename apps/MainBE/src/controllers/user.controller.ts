@@ -602,6 +602,7 @@ export const generateTokenForWsConnection = (req: Request, res: Response) => {
     }
 
     const wsToken = jwt.sign({ userId }, WS_TOKEN_SECRET, { expiresIn: '5m' });
+    console.log("Token generated for ws connection: ", wsToken);
     return res.status(200).json({ token: wsToken });
   } catch (err) {
     console.log("Error in generateTokenForWsConnection controller: ", err);

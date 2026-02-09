@@ -6,15 +6,13 @@ import { NetworkRight } from "iconoir-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useSelector } from "react-redux";
+import { RootState } from "../app/ReduxStore/store"
 
 interface Workflow {
   id: number,
   title: string,
-  nodes: object,
-  connections: object,
-  createdAt: string,
   updatedAt: string,
-  userId: string,
   executing: boolean
 }
 
@@ -142,8 +140,9 @@ const EmptyState = () => (
   </motion.div>
 );
 
-export const AllWorkflowsList = ({ workflowsData, overview }: { workflowsData: Workflow[], overview: boolean }) => {
+export const AllWorkflowsList = () => {
   const router = useRouter();
+  const workflowsData = useSelector((state: RootState) => state.workflow.workflows)
 
   const workflowDeletionHandler = async (workflowId: number) => {
     try {

@@ -21,6 +21,7 @@ export const SocketInitializer = () => {
         if (response.ok) {
           const tokenData = await response.json();
           const token = tokenData.token;
+          console.log("Token received from the server: ", token);
           if (!token) {
             console.log("No token received from the server, hence the ws connection cannot be established.");
             return;
@@ -33,8 +34,8 @@ export const SocketInitializer = () => {
             toast.success("Connected to WebSocket.");
           };
 
-          socket.onclose = () => {
-            console.log('WebSocket disconnected');
+          socket.onclose = (event) => {
+            console.log('WebSocket disconnected, code: ', event.code, ", reason: ", event.reason);
             dispatch(disconnectSocket());
           };
 

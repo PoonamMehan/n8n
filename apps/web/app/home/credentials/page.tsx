@@ -10,8 +10,8 @@ export interface AllCredentialsData {
   data: Record<string, any>;
   title: string;
   platform: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export default async function CredentialsOverview({ searchParams }: { searchParams: Promise<{ modal: string, credId: string }> }) {
