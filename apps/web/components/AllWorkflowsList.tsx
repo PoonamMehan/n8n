@@ -6,8 +6,9 @@ import { NetworkRight } from "iconoir-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../app/ReduxStore/store"
+import { deleteWorkflow } from "@/app/ReduxStore/features/workflows/workflowsSlice";
 
 interface Workflow {
   id: number,
@@ -141,7 +142,7 @@ const EmptyState = () => (
 );
 
 export const AllWorkflowsList = () => {
-  const router = useRouter();
+  const dispatch = useDispatch();
   const workflowsData = useSelector((state: RootState) => state.workflow.workflows)
 
   const workflowDeletionHandler = async (workflowId: number) => {
@@ -166,7 +167,8 @@ export const AllWorkflowsList = () => {
 
       if (data.success) {
         toast.success("Workflow deleted successfully!");
-        router.refresh();
+        dispatch(deleteWorkflow(workflowId));
+        // router.refresh();
       } else {
         toast.error(data.error || "Could not delete workflow.");
       }

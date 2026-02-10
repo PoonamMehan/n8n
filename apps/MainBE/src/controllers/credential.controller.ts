@@ -171,7 +171,7 @@ export async function getACredentialHandler(req: Request, res: Response){
     try{
         const userId = req.userId;
         if(!userId){
-            return res.status(400).send({success: false, errorMessage: "Unauthenticated."})
+            return res.status(400).send({success: false, error: "Unauthenticated."})
         }
         const idParam = Number(req.params.id);
 
@@ -185,12 +185,12 @@ export async function getACredentialHandler(req: Request, res: Response){
             if(cred){
                 return res.status(200).send({success: true, data: cred, error: null});
             }
-            return res.status(400).send({success: false, errorMessage: "No credential with this id exists."});
+            return res.status(400).send({success: false, error: "No credential with this id exists."});
         }
 
-        return res.status(400).send({success: false, errorMessage: "Invalid credential id."});
+        return res.status(400).send({success: false, error: "Invalid credential id."});
     }catch(err: any){
-        return res.status(500).send({success: false, errorMessage: `Some error occurred on our backend: ${err.message}`});
+        return res.status(500).send({success: false, error: `Some error occurred on our end.`});
     }
 }
 

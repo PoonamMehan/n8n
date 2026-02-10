@@ -9,6 +9,8 @@ import { BsLightningChargeFill } from "react-icons/bs";
 import { NetworkRightSolid, NetworkRight } from "iconoir-react";
 import { HiOutlineMenuAlt2, HiOutlineX, HiOutlineLogout, HiOutlineViewGrid, HiPlus, HiChevronDown, HiKey } from "react-icons/hi";
 import { CreateDropdownCompact } from "./CreateDropdownComponent";
+import { useDispatch } from "react-redux";
+import { addWorkflow } from "@/app/ReduxStore/features/workflows/workflowsSlice";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -20,6 +22,7 @@ interface SidebarProps {
 const Sidebar = ({ isOpen, onToggle, currentPath }: SidebarProps) => {
   const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dispatch = useDispatch();
 
   const signoutHandler = async () => {
     try {
@@ -53,6 +56,14 @@ const Sidebar = ({ isOpen, onToggle, currentPath }: SidebarProps) => {
       }
       toast.success('Workflow created!');
       const data = await newWorkflowResponse.json();
+
+      dispatch(addWorkflow({
+        id: data.data.id,
+        title: data.data.title,
+        executing: data.data.executing,
+        updatedAt: data.data.updatedAt
+      }));
+
       router.push(`/workflow/${data.data.id}`);
     } catch (error) {
       toast.error('Something went wrong. Please try again.');
@@ -185,7 +196,7 @@ interface DashboardLayoutProps {
 }
 
 export const DashboardLayout = ({ children, activeTab }: DashboardLayoutProps) => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
 
   return (

@@ -1,9 +1,3 @@
-//just be a search bar? 
-// list of available credentials
-// as credential clicked
-// open the modal to enter the details
-// save the modal, close it
-// close the search bar by: router.push('/home/credentials')
 'use client';
 import { useState } from "react";
 import { ChevronDownIcon, ChevronUpIcon, XMarkIcon } from "@heroicons/react/24/outline";
@@ -11,13 +5,18 @@ import { Available_Credential_Apps } from "../app/workflow/[...id]/Available_Cre
 import { TriggerIconMap } from "../app/workflow/[...id]/NodeIcons";
 import { useRouter } from "next/navigation";
 import { toast } from 'sonner';
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/app/ReduxStore/store";
+import { addCredential } from "@/app/ReduxStore/features/workflows/workflowsSlice";
 
-export const CreateCredentialModal = ({ allCredentials }: { allCredentials: any }) => {
+export const CreateCredentialModal = () => {
   const [listOpened, setListOpened] = useState(false);
   const [selectedCredential, setSelectedCredential] = useState<string | null>(null);
   const [credentialsFormValues, setCredentialsFormValues] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
+  const allCredentials = useSelector((state: RootState) => state.workflow.credentials);
+  const dispatch = useDispatch();
 
   const handleCredentialInputChange = (label: string, value: string) => {
     setCredentialsFormValues(prev => ({
@@ -62,6 +61,16 @@ export const CreateCredentialModal = ({ allCredentials }: { allCredentials: any 
         toast.error('Failed to save credential. Please try again.');
         return;
       }
+
+      const newCredential = await response.json();
+
+      dispatch(addCredential({
+        id: newCredential.id,
+        title: newCredential.title,
+        platform: newCredential.platform,
+        createdAt: newCredential.createdAt,
+        data: { name: newCredential.data.name }
+      }));
 
       toast.success('Credential saved successfully!');
       handleClose();

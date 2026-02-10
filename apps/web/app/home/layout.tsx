@@ -24,14 +24,14 @@ export default async function HomeLayout({ children }: { children: React.ReactNo
         headers: {
           Cookie: cookieStore.toString()
         },
-        cache: 'no-store'
+        next: {revalidate: 60}
       }),
       fetch('http://localhost:8000/api/v1/credential', {
         method: 'GET',
         headers: {
           Cookie: cookieStore.toString()
         },
-        cache: 'no-store'
+        next: {revalidate: 60}
       })
     ]);
 
@@ -51,7 +51,7 @@ export default async function HomeLayout({ children }: { children: React.ReactNo
       const credentialsVerboseData = credentialsJson || [];
 
       workflowsData = workflowsVerboseData.map((workflow: any) => ({ id: workflow.id, title: workflow.title, updatedAt: workflow.updatedAt, executing: workflow.executing }));
-      credentialsData = credentialsVerboseData;
+      credentialsData = credentialsVerboseData.map((credential: any) => ({ id: credential.id, title: credential.title, platform: credential.platform, createdAt: credential.updatedAt, data: { name: credential.data.name } }));
 
       console.log("Fetched Workflows: ", workflowsData)
       console.log("Fetched Credentials: ", credentialsData)

@@ -1,17 +1,19 @@
 'use client';
 import { TriggerIconMap } from "@/app/workflow/[...id]/NodeIcons";
-import type { AllCredentialsData } from "@/app/home/credentials/page";
+import type { CredentialData } from "@/app/home/credentials/page";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { HiOutlineDotsVertical, HiOutlineTrash, HiOutlinePencil, HiKey } from "react-icons/hi";
 import { useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/ReduxStore/store";
 
-const formatDate = (dateString: Date) => {
+const formatDate = (dateString: string) => {
   return new Date(dateString).toISOString().split("T")[0];
 };
 
-const CredentialRow = ({ cred, index, onDelete }: { cred: AllCredentialsData, index: number, onDelete: (id: number) => void }) => {
+const CredentialRow = ({ cred, index, onDelete }: { cred: CredentialData, index: number, onDelete: (id: number) => void }) => {
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
 
@@ -110,8 +112,10 @@ const EmptyState = () => (
   </motion.div>
 );
 
-export const AllCredentialsList = ({ allCredentialsData }: { allCredentialsData: AllCredentialsData[] }) => {
+export const AllCredentialsList = () => {
   const router = useRouter();
+  const allCredentialsData = useSelector((state: RootState) => state.workflow.credentials)
+  
 
   const deleteCredential = async (credId: number) => {
     try {

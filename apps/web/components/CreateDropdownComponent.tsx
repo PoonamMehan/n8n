@@ -5,10 +5,13 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiPlus, HiChevronDown, HiKey } from 'react-icons/hi';
 import { BsLightningChargeFill } from 'react-icons/bs';
+import { useDispatch } from 'react-redux';
+import { addWorkflow } from '@/app/ReduxStore/features/workflows/workflowsSlice';
 
 export function CreateDropdownComponent({ component }: { component: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const newWorkflowCreator = async () => {
     try {
@@ -28,6 +31,14 @@ export function CreateDropdownComponent({ component }: { component: string }) {
       }
       toast.success('Workflow created!');
       const data = await newWorkflowResponse.json();
+
+      dispatch(addWorkflow({
+        id: data.data.id,
+        title: data.data.title,
+        executing: data.data.executing,
+        updatedAt: data.data.updatedAt
+      }));
+
       const workflowId = data.data.id;
       router.push(`/workflow/${workflowId}`);
     } catch (error) {
@@ -105,6 +116,7 @@ export function CreateDropdownComponent({ component }: { component: string }) {
 export function CreateDropdownCompact({ component }: { component: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const newWorkflowCreator = async () => {
     try {
@@ -124,6 +136,14 @@ export function CreateDropdownCompact({ component }: { component: string }) {
       }
       toast.success('Workflow created!');
       const data = await newWorkflowResponse.json();
+
+      dispatch(addWorkflow({
+        id: data.data.id,
+        title: data.data.title,
+        executing: data.data.executing,
+        updatedAt: data.data.updatedAt
+      }));
+
       const workflowId = data.data.id;
       router.push(`/workflow/${workflowId}`);
     } catch (error) {

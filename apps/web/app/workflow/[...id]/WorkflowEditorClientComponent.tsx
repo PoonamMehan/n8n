@@ -1,8 +1,9 @@
 
 'use client';
 import { useState, useCallback, useEffect, useRef } from "react";
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../ReduxStore/store';
+import { updateWorkflow } from "@/app/ReduxStore/features/workflows/workflowsSlice";
 import { ReactFlow, addEdge, applyNodeChanges, applyEdgeChanges, ReactFlowProvider, Node, OnNodesChange, OnEdgesChange, Edge, OnConnect, Background, BackgroundVariant, Panel, Controls, MiniMap, useReactFlow } from "@xyflow/react";
 import type { Connection } from "@xyflow/react";
 import { N8nStyleActionNode } from "./customActionNode";
@@ -50,6 +51,7 @@ export const WorkflowClientComponent = () => {
   const [editableTitle, setEditableTitle] = useState("");
   const [logs, setLogs] = useState<string[]>([]);
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const [nodes, setNodes] = useState<Node[]>([]);
   const nodesRef = useRef(nodes);
@@ -227,6 +229,16 @@ export const WorkflowClientComponent = () => {
       if (changeStatusTo) {
         toast.info("Workflow Started");
       }
+
+      if (workflow) {
+        dispatch(updateWorkflow({
+          id: Number(workflow.id),
+          title: workflow.title,
+          executing: changeStatusTo,
+          updatedAt: new Date().toISOString()
+        }));
+      }
+
       // TODO: toaster success
     } catch (err: any) {
       console.log("Failed to change workflow execution status:", err.message);
@@ -266,6 +278,17 @@ export const WorkflowClientComponent = () => {
 
       // Update local workflow state with new title
       setWorkflow(prev => prev ? { ...prev, title: editableTitle.trim() } : prev);
+
+      if (workflow) {
+        console.log("Updating workflow title in redux store: ", workflow.id);
+        dispatch(updateWorkflow({
+          id: Number(workflow.id),
+          title: editableTitle.trim(),
+          executing: workflow.executing,
+          updatedAt: new Date().toISOString()
+        }));
+      }
+
       setIsEditingTitle(false);
       // TODO: toaster success - "Workflow title updated"
     } catch (err: any) {

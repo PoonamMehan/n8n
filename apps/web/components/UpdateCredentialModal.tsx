@@ -1,20 +1,70 @@
-'use client'
-import type { AllCredentialsData } from "@/app/home/credentials/page";
-import { useState } from "react";
+'use client';
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Available_Credential_Apps } from "@/app/workflow/[...id]/Available_Credentials";
 import { TriggerIconMap } from "@/app/workflow/[...id]/NodeIcons";
 import { useRouter } from "next/navigation";
 import { toast } from 'sonner';
 import { HiOutlineX, HiOutlineTrash, HiKey } from "react-icons/hi";
+import { useDispatch } from "react-redux";
+import { updateCredential, deleteCredential } from "@/app/ReduxStore/features/workflows/workflowsSlice";
 
-export const UpdateCredentialModal = ({ credFormData }: { credFormData: AllCredentialsData }) => {
+interface CredFormData {
+  data: Record<string, any>;
+  id: number;
+  userId: string;
+  title: string;
+  platform: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const UpdateCredentialModal = ({ credId }: { credId: number }) => {
   const router = useRouter();
-  const platform = credFormData.platform;
-  const credentialConfig = Available_Credential_Apps[platform];
+  const [credFormData, setCredFormData] = useState<CredFormData | null>(null);
+  useEffect(() => {
+    try {
+      if (!credId || Number.isNaN(credId)) {
+        router.push("/home/credentials");
+        toast.error("Invalid credential. Cannot find any record of this credential.")
+        return;
+      }
+      const getCredentials = async () => {
+        const response = await fetch(`/api/v1/credential/${credId}`, {
+          credentials: "include"
+        });
+        const data = await response.json();
+        console.log("Data credential: ", data);
+        if (!response.ok) {
+          router.replace('/home/credentials');
+          toast.error(data.error);
+          return;
+        }
+        setCredFormData(data.data);
+      }
+      getCredentials();
+
+    } catch (err) {
+      console.log("Error while fetching data of this credential.");
+      router.push("/home/credentials");
+      toast.error("Something went wrong. Please try again.");
+    }
+  }, [])
+
+
+
+  const platform = credFormData?.platform;
+  const credentialConfig = platform ? Available_Credential_Apps[platform] : null;
 
   // Initialize form with existing credential data
-  const [formData, setFormData] = useState<Record<string, string>>(credFormData.data || {});
+  const [formData, setFormData] = useState<Record<string, string>>(credFormData?.data || {});
+
+  useEffect(() => {
+    if (credFormData?.data) {
+      setFormData(credFormData.data);
+    }
+  }, [credFormData]);
+
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -39,10 +89,12 @@ export const UpdateCredentialModal = ({ credFormData }: { credFormData: AllCrede
     }
   };
 
+  const dispatch = useDispatch();
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const response = await fetch(`/api/v1/credential/${credFormData.id}`, {
+      const response = await fetch(`/api/v1/credential/${credFormData?.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -60,6 +112,18 @@ export const UpdateCredentialModal = ({ credFormData }: { credFormData: AllCrede
         return;
       }
 
+      const updatedCred = await response.json();
+      // Inspect the API response to see if it's wrapped in { data: ... } or direct
+      const credData = updatedCred.data || updatedCred;
+
+      dispatch(updateCredential({
+        id: credData.id,
+        title: credData.title,
+        platform: credData.platform,
+        createdAt: credData.createdAt,
+        data: { name: credData.data.name }
+      }));
+
       toast.success('Credential updated successfully!');
       handleClose();
     } catch (error) {
@@ -69,7 +133,7 @@ export const UpdateCredentialModal = ({ credFormData }: { credFormData: AllCrede
     }
   };
 
-  const deleteCredential = async (credId: number) => {
+  const deleteCredentialHandler = async (credId: number) => {
     if (!confirm("Are you sure you want to delete this credential?")) return;
 
     setIsDeleting(true);
@@ -86,9 +150,10 @@ export const UpdateCredentialModal = ({ credFormData }: { credFormData: AllCrede
         return;
       }
 
+      dispatch(deleteCredential(credId));
+
       toast.success('Credential deleted successfully!');
       handleClose();
-      router.refresh();
     } catch (error) {
       console.error("Delete failed:", error);
       toast.error('Something went wrong. Please try again.');
@@ -100,7 +165,7 @@ export const UpdateCredentialModal = ({ credFormData }: { credFormData: AllCrede
     router.replace("/home/credentials");
   };
 
-  const IconComponent = TriggerIconMap[platform];
+  const IconComponent = platform ? TriggerIconMap[platform] : null;
 
   return (
     <AnimatePresence>
@@ -136,7 +201,7 @@ export const UpdateCredentialModal = ({ credFormData }: { credFormData: AllCrede
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => deleteCredential(credFormData.id)}
+                onClick={() => credFormData?.id && deleteCredentialHandler(credFormData?.id)}
                 disabled={isDeleting}
                 className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50"
                 title="Delete credential"
@@ -222,8 +287,8 @@ export const UpdateCredentialModal = ({ credFormData }: { credFormData: AllCrede
               onClick={handleSave}
               disabled={isSaving}
               className={`px-5 py-2 rounded-lg text-sm font-semibold text-white transition-all ${isSaving
-                  ? 'bg-amber-600/50 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40'
+                ? 'bg-amber-600/50 cursor-not-allowed'
+                : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40'
                 }`}
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
