@@ -54,28 +54,13 @@ export async function signupHandler(req: Request, res: Response) {
         }
       });
       console.log("userEntryInDb: ", userEntryInDb);
-
-      // send an email using nodemailer
-      // generate a token
       const tempToken = jwt.sign({ userId: userEntryInDb.id, email: userEntryInDb.email }, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: '15m' });
-
-      //LOGIN: 
-      // have two options:
-      // ?token
-      // username OR email & password
-      // after success from either of the two methods: 
-      // generate access & refresh tokens
-      // save the refresh token in db
-      // set the token in the cookies
-      // return the result with "Login Successful!"
       return res.status(200).send({ status: "success", data: userEntryInDb.id, error: null });
     }
 
   } catch (err: any) {
     if (err.code == 'P2002') {
-      //TODO: specifically which field failed?
       return res.status(400).send({ status: "failed", data: null, error: "Username or email already exists." });
-      //TODO: toaster in FE
     }
     console.log("Err while signing up the user: ", err.message);
     return res.status(500).send({ status: "failed", data: null, error: `Some error occurred at the backend: ${err.message}` });
@@ -157,7 +142,7 @@ export async function startAuthHandler(req: Request, res: Response) {
 
     const { email } = validationResult.data;
 
-    // create entry in the table
+    // find user in the db table
     const userExistsInDb = await prisma.user.findUnique({
       where: {
         email: email

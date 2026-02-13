@@ -14,7 +14,7 @@ export const WorkflowProvider = ({ children }: { children: React.ReactNode }) =>
   const credentials = useSelector((state: RootState) => state.workflow.credentials);
 
   useEffect(() => {
-    // If Redux already has data, skip fetching (user navigated back to /home)
+    //if Redux already has data, skip fetching (user navigated back to /home)
     if (workflows.length > 0 || credentials.length > 0) return;
 
     const fetchData = async () => {

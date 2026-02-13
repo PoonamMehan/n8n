@@ -8,20 +8,6 @@ interface FinalData {
 	executing?: boolean
 }
 
-// n8n complete
-    // bolt
-    // rag
-    // draw excali
-    // react, next, ts, js
-    // kafka 
-    // redis
-    // jwt docs
-
-
-// backend endpoints
-// schema optimize
-// frontend react flow
-
 
 // TODO: attach the user
 export async function createWorkflow(req:Request, res:Response){
@@ -213,13 +199,3 @@ export const deleteAParticularWorkflow = async (req: Request, res: Response)=>{
 			return res.status(500).send({success: false, data: null, error: `Some error occurred at the backend while deleting the workflow: ${err.message}`});
 		}
 }
-
-
-// let's just save the available triggers in a file:
-
-    // to save all of them in a single file:    
-        // in an array[{}, {}, {}, {}]
-        // in an object {} 
-            // much easier to access all the values
-
-    // in a single folder, but in different files 
