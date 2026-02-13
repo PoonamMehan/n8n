@@ -245,7 +245,7 @@ export const DashboardLayout = ({ children, activeTab }: DashboardLayoutProps) =
                 <p className="text-sm text-gray-500">All the workflows, credentials you have access to</p>
               </div>
             </div>
-            <CreateDropdownCompact component="workflow" />
+            <CreateDropdownCompact component={activeTab === 'credentials' ? 'credential' : 'workflow'} />
           </div>
         </header>
 

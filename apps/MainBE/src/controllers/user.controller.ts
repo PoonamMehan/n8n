@@ -714,7 +714,6 @@ export const googleAuthCallbackHandler = async (req: Request, res: Response) => 
   }
 };
 
-//nam
-// exer(wak)
-// tech:
-// BE, FE, devops, kafka, code best practices FE
+// n8n
+// bolt
+// contest, FE hands-on

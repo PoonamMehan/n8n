@@ -24,6 +24,7 @@ export const SocketInitializer = () => {
           console.log("Token received from the server: ", token);
           if (!token) {
             console.log("No token received from the server, hence the ws connection cannot be established.");
+            toast.error("Unable to connect to the WS server.");
             return;
           }
           const socket = new WebSocket(`ws://localhost:8080?token=${token}`);
@@ -40,7 +41,7 @@ export const SocketInitializer = () => {
           };
 
         } else {
-          console.error('Unable to connect to the WS server');
+          console.log('Unable to connect to the WS server');
         }
       } catch (err: any) {
         console.error("Error connecting to WebSocket:", err.message);

@@ -50,17 +50,10 @@ export default function StartAuth() {
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      authHandler();
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#030303] text-white flex items-center justify-center relative overflow-hidden">
-      {/* Grid background */}
+
       <div className="absolute inset-0 pointer-events-none">
-        {/* Grid pattern */}
         <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
@@ -71,23 +64,20 @@ export default function StartAuth() {
             backgroundSize: '60px 60px',
           }}
         />
-        {/* Radial fade for grid */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,#030303_70%)]" />
       </div>
 
-      {/* Gradient orbs */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-rose-900/40 via-pink-900/20 to-transparent blur-[120px]" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-rose-950/30 to-transparent blur-[100px]" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-b from-rose-500/10 via-pink-600/5 to-transparent blur-[150px] rounded-full" />
 
-      {/* Main content */}
       <motion.div
         className="relative z-10 w-full max-w-md px-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        {/* Logo */}
+
         <motion.div
           className="flex items-center justify-center gap-2 mb-10"
           initial={{ opacity: 0, scale: 0.9 }}
@@ -102,24 +92,22 @@ export default function StartAuth() {
           </Link>
         </motion.div>
 
-        {/* Card */}
         <motion.div
           className="relative p-8 rounded-2xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/10 backdrop-blur-xl shadow-2xl"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          {/* Subtle glow on card */}
+
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-rose-500/5 to-transparent pointer-events-none" />
 
           <div className="relative z-10">
-            {/* Header */}
+
             <div className="text-center mb-8">
               <h1 className="text-2xl font-bold text-white mb-2">Welcome back</h1>
               <p className="text-gray-400 text-sm">Enter your email to receive a magic link</p>
             </div>
 
-            {/* Email input */}
             <div className="space-y-4">
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -131,12 +119,13 @@ export default function StartAuth() {
                   id="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={(e)=> {if(e.key == "Enter"){
+                    authHandler();
+                  }}}
                   className="w-full pl-12 pr-4 py-3.5 bg-white/[0.05] border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-rose-500/50 focus:bg-white/[0.08] focus:shadow-[0_0_20px_rgba(244,63,94,0.15)] transition-all duration-300"
                 />
               </div>
 
-              {/* Submit button */}
               <motion.button
                 onClick={authHandler}
                 disabled={isLoading}
@@ -144,10 +133,8 @@ export default function StartAuth() {
                 whileHover={{ scale: isLoading ? 1 : 1.01 }}
                 whileTap={{ scale: isLoading ? 1 : 0.99 }}
               >
-                {/* Shimmer effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
 
-                {/* Glow on hover */}
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-rose-400 to-pink-500 blur-xl -z-10" />
 
                 <span className="relative z-10 flex items-center justify-center gap-2">
@@ -169,14 +156,12 @@ export default function StartAuth() {
               </motion.button>
             </div>
 
-            {/* Divider */}
             <div className="flex items-center gap-4 my-6">
               <div className="flex-1 h-px bg-white/10" />
               <span className="text-xs text-gray-500">or</span>
               <div className="flex-1 h-px bg-white/10" />
             </div>
 
-            {/* Back to home */}
             <Link
               href="/"
               className="block w-full py-3 rounded-xl border border-white/10 text-center text-gray-400 text-sm font-medium hover:bg-white/[0.05] hover:text-white hover:border-white/20 transition-all duration-300"
@@ -186,7 +171,6 @@ export default function StartAuth() {
           </div>
         </motion.div>
 
-        {/* Footer text */}
         <motion.p
           className="text-center text-xs text-gray-600 mt-8"
           initial={{ opacity: 0 }}

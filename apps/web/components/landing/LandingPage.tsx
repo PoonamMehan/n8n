@@ -264,7 +264,7 @@ const FeatureCard = ({ icon: Icon, title, description, delay }: { icon: any, tit
   </motion.div>
 );
 
-export const LandingPageHero = () => {
+export const LandingPage = () => {
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const router = useRouter();
 

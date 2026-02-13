@@ -19,6 +19,7 @@ try{
 producer = kafka.producer();
 
 await producer.connect();
+
 }
 catch(err){
     console.log("Error connecting to Kafka: ", err);
